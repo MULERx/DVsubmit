@@ -95,19 +95,6 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-model RetentionPolicy {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String
-  retentionDays Int
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([name])
-  @@index([isActive])
-  @@map("retention_policies")
-}
 
 enum UserRole {
   USER
