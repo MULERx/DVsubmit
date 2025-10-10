@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react'
 import { FormStep, FormStepData, PersonalInfo, ContactInfo, EducationWork, Payment } from '@/lib/types/application'
 import { FormStepNavigation } from './form-step-navigation'
-import { FormProgress } from './form-progress'
 import { PersonalInfoForm } from './personal-info-form'
 import { ContactInfoForm } from './contact-info-form'
 import { EducationWorkForm } from './education-work-form'
@@ -52,7 +51,7 @@ export function MultiStepForm({
 
   // Navigation functions
   const goToNextStep = useCallback(async () => {
-    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'payment', 'review']
+    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
     const currentIndex = steps.indexOf(currentStep)
     if (currentIndex < steps.length - 1) {
       const nextStep = steps[currentIndex + 1]
@@ -70,7 +69,7 @@ export function MultiStepForm({
   }, [currentStep, checkDuplicateSubmission])
 
   const goToPreviousStep = useCallback(() => {
-    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'payment', 'review']
+    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
     const currentIndex = steps.indexOf(currentStep)
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1])
@@ -78,7 +77,7 @@ export function MultiStepForm({
   }, [currentStep])
 
   const goToStep = useCallback(async (step: FormStep) => {
-    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'payment', 'review']
+    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
     const stepIndex = steps.indexOf(step)
     const currentIndex = steps.indexOf(currentStep)
     
@@ -106,29 +105,34 @@ export function MultiStepForm({
     }
   }, [currentStep, completedSteps, paymentStatus, checkDuplicateSubmission])
 
-  // Handle personal info submission
+  // Handle personal info submission and auto-save
   const handlePersonalInfoSubmit = useCallback((data: PersonalInfo) => {
     handleStepComplete('personal', data)
+    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle contact info submission
+  // Handle contact info submission and auto-save
   const handleContactInfoSubmit = useCallback((data: ContactInfo) => {
     handleStepComplete('contact', data)
+    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle education work submission
+  // Handle education work submission and auto-save
   const handleEducationWorkSubmit = useCallback((data: EducationWork) => {
     handleStepComplete('education', data)
+    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle photo upload submission
+  // Handle photo upload submission and auto-save
   const handlePhotoUploadSubmit = useCallback((data: { file: File; preview: string }) => {
     handleStepComplete('photo', data)
+    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle payment submission
+  // Handle payment submission and auto-save
   const handlePaymentSubmit = useCallback((data: Payment) => {
     handleStepComplete('payment', data)
+    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
   // Check if form should be disabled (payment verified = form locked)
@@ -143,7 +147,7 @@ export function MultiStepForm({
             initialData={formData.personal}
             onSubmit={handlePersonalInfoSubmit}
             onNext={goToNextStep}
-            isLoading={isLoading || isSaving || isFormDisabled}
+            isLoading={isLoading || isFormDisabled}
           />
         )
       
@@ -154,7 +158,7 @@ export function MultiStepForm({
             onSubmit={handleContactInfoSubmit}
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isSaving || isFormDisabled}
+            isLoading={isLoading || isFormDisabled}
           />
         )
       
@@ -165,7 +169,7 @@ export function MultiStepForm({
             onSubmit={handleEducationWorkSubmit}
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isSaving || isFormDisabled}
+            isLoading={isLoading || isFormDisabled}
           />
         )
       
@@ -178,19 +182,7 @@ export function MultiStepForm({
               goToNextStep()
             }}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isSaving || isFormDisabled}
-          />
-        )
-      
-      case 'payment':
-        return (
-          <PaymentForm
-            initialData={formData.payment}
-            onSubmit={handlePaymentSubmit}
-            onNext={goToNextStep}
-            onPrevious={goToPreviousStep}
-            isLoading={isLoading || isSaving}
-            paymentStatus={paymentStatus}
+            isLoading={isLoading || isFormDisabled}
           />
         )
       
@@ -209,12 +201,7 @@ export function MultiStepForm({
             
             <ReviewForm
               formData={formData as FormStepData}
-              onSubmit={async () => {
-                const result = await submitApplication(formData as FormStepData)
-                if (result && onComplete) {
-                  await onComplete(formData as FormStepData)
-                }
-              }}
+              onSubmit={goToNextStep} // Go to payment step instead of submitting
               onEdit={(step) => {
                 setCurrentStep(step as FormStep)
               }}
@@ -225,6 +212,24 @@ export function MultiStepForm({
           </div>
         )
       
+      case 'payment':
+        return (
+          <PaymentForm
+            initialData={formData.payment}
+            onSubmit={handlePaymentSubmit}
+            onNext={async () => {
+              // Submit the application after payment
+              const result = await submitApplication(formData as FormStepData)
+              if (result && onComplete) {
+                await onComplete(formData as FormStepData)
+              }
+            }}
+            onPrevious={goToPreviousStep}
+            isLoading={isLoading}
+            paymentStatus={paymentStatus}
+          />
+        )
+      
       default:
         return null
     }
@@ -232,12 +237,20 @@ export function MultiStepForm({
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <FormProgress currentStep={currentStep} completedSteps={completedSteps} />
-      <FormStepNavigation 
-        currentStep={currentStep} 
-        completedSteps={completedSteps}
-        onStepClick={goToStep}
-      />
+      <div className="relative">
+        <FormStepNavigation 
+          currentStep={currentStep} 
+          completedSteps={completedSteps}
+          onStepClick={goToStep}
+        />
+        {/* Step saving indicator */}
+        {isSaving && (
+          <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
+            <div className="animate-pulse w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+            Saving step
+          </div>
+        )}
+      </div>
       
       {/* Form Lock Notice */}
       {formData.payment?.paymentReference && paymentStatus !== 'REJECTED' && (
@@ -245,19 +258,30 @@ export function MultiStepForm({
       )}
 
       {/* Save Status Indicator */}
-      <div className="mb-4 text-right">
-        {isSaving && (
-          <span className="text-sm text-blue-600 flex items-center justify-end gap-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            Saving...
-          </span>
-        )}
-        {!isSaving && hasUnsavedChanges && (
-          <span className="text-sm text-orange-600">Unsaved changes</span>
-        )}
-        {!isSaving && !hasUnsavedChanges && formData.personal && (
-          <span className="text-sm text-green-600">All changes saved</span>
-        )}
+      <div className="mb-4 flex justify-between items-center">
+        <div className="text-sm text-gray-500">
+          Progress is saved when you complete each step
+        </div>
+        <div className="flex items-center gap-2">
+          {isSaving && (
+            <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+              Saving step...
+            </div>
+          )}
+          {!isSaving && hasUnsavedChanges && (
+            <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-200">
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              Complete step to save
+            </div>
+          )}
+          {!isSaving && !hasUnsavedChanges && formData.personal && (
+            <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              Progress saved
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="bg-white rounded-lg shadow-sm border p-8">

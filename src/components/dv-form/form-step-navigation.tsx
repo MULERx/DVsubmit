@@ -15,20 +15,20 @@ const steps: { key: FormStep; label: string; description: string }[] = [
   { key: 'contact', label: 'Contact Info', description: 'Address and contact details' },
   { key: 'education', label: 'Education & Work', description: 'Education and occupation' },
   { key: 'photo', label: 'Photo Upload', description: 'DV compliant photo' },
-  { key: 'payment', label: 'Payment', description: 'Service fee payment' },
   { key: 'review', label: 'Review', description: 'Review and submit' },
+  { key: 'payment', label: 'Payment', description: 'Service fee payment' },
 ]
 
-export function FormStepNavigation({ 
-  currentStep, 
-  completedSteps, 
-  onStepClick 
+export function FormStepNavigation({
+  currentStep,
+  completedSteps,
+  onStepClick
 }: FormStepNavigationProps) {
   const currentStepIndex = steps.findIndex(step => step.key === currentStep)
 
   return (
     <nav aria-label="Progress" className="mb-8">
-      <ol className="space-y-4 md:flex md:space-x-8 md:space-y-0">
+      <ol className="space-y-4 md:flex md:space-x-4 md:space-y-0">
         {steps.map((step, index) => {
           const isCompleted = completedSteps.includes(step.key)
           const isCurrent = step.key === currentStep
@@ -38,7 +38,7 @@ export function FormStepNavigation({
             <li key={step.key} className="md:flex-1">
               <div
                 className={cn(
-                  "group flex flex-col border-l-4 py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4",
+                  "group relative flex items-start md:items-center md:flex-col border-l-4 py-3 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4 transition-colors duration-200",
                   {
                     "border-primary": isCurrent,
                     "border-green-500": isCompleted,
@@ -46,44 +46,50 @@ export function FormStepNavigation({
                     "cursor-pointer hover:border-gray-300": isClickable && !isCurrent && !isCompleted,
                   }
                 )}
-                onClick={() => isClickable && onStepClick(step.key)}
+                onClick={() => isClickable && onStepClick?.(step.key)}
               >
-                <span className="flex items-center text-sm font-medium">
+                <div className="flex items-center md:flex-col md:items-center">
                   <span
                     className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-full border-2 mr-3 md:mr-0 md:mb-2",
+                      "flex h-10 w-10 items-center justify-center rounded-full border-2 mr-4 md:mr-0 md:mb-2 transition-colors duration-200 flex-shrink-0",
                       {
                         "border-primary bg-primary text-primary-foreground": isCurrent,
                         "border-green-500 bg-green-500 text-white": isCompleted,
                         "border-gray-300 bg-white text-gray-500": !isCurrent && !isCompleted,
+                        "group-hover:border-gray-400": isClickable && !isCurrent && !isCompleted,
                       }
                     )}
                   >
                     {isCompleted ? (
-                      <Check className="h-4 w-4" />
+                      <Check className="h-5 w-5" />
                     ) : (
-                      <span className="text-sm">{index + 1}</span>
+                      <span className="text-sm font-medium">{index + 1}</span>
                     )}
                   </span>
-                  <span
-                    className={cn("text-sm font-medium", {
-                      "text-primary": isCurrent,
-                      "text-green-600": isCompleted,
-                      "text-gray-500": !isCurrent && !isCompleted,
-                    })}
-                  >
-                    {step.label}
-                  </span>
-                </span>
-                <span
-                  className={cn("text-sm", {
-                    "text-primary": isCurrent,
-                    "text-green-600": isCompleted,
-                    "text-gray-500": !isCurrent && !isCompleted,
-                  })}
-                >
-                  {step.description}
-                </span>
+
+                  <div className="md:text-center">
+                    <div
+                      className={cn("text-sm font-medium transition-colors duration-200", {
+                        "text-primary": isCurrent,
+                        "text-green-600": isCompleted,
+                        "text-gray-900": !isCurrent && !isCompleted,
+                        "group-hover:text-gray-700": isClickable && !isCurrent && !isCompleted,
+                      })}
+                    >
+                      {step.label}
+                    </div>
+                    <div
+                      className={cn("text-xs mt-1 transition-colors duration-200", {
+                        "text-primary/70": isCurrent,
+                        "text-green-600/70": isCompleted,
+                        "text-gray-500": !isCurrent && !isCompleted,
+                        "group-hover:text-gray-600": isClickable && !isCurrent && !isCompleted,
+                      })}
+                    >
+                      {step.description}
+                    </div>
+                  </div>
+                </div>
               </div>
             </li>
           )
