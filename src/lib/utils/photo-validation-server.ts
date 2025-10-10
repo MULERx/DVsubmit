@@ -12,11 +12,11 @@ export const DV_PHOTO_REQUIREMENTS = {
 } as const
 
 /**
- * Validates a photo file against DV lottery requirements
+ * Server-side photo validation that doesn't rely on browser APIs
  * @param file The photo file to validate
  * @returns Promise<PhotoValidationResult> Validation result with errors and warnings
  */
-export async function validatePhotoFile(file: File): Promise<PhotoValidationResult> {
+export async function validatePhotoFileServer(file: File): Promise<PhotoValidationResult> {
   const errors: string[] = []
   const warnings: string[] = []
 
@@ -30,8 +30,25 @@ export async function validatePhotoFile(file: File): Promise<PhotoValidationResu
     errors.push('Photo must be in JPEG or PNG format')
   }
 
-  // Check image dimensions
-  const metadata = await getImageMetadata(file)
+  // Get image dimensions using server-side method
+  let metadata
+  try {
+    metadata = await getImageMetadataServer(file)
+  } catch (error) {
+    console.error('Failed to extract image metadata:', error)
+    errors.push('Unable to read image file. Please ensure it\'s a valid image.')
+    return {
+      isValid: false,
+      errors,
+      warnings,
+      metadata: {
+        width: 0,
+        height: 0,
+        size: file.size,
+        format: file.type
+      }
+    }
+  }
 
   // Check minimum dimensions
   if (metadata.width < DV_PHOTO_REQUIREMENTS.minWidth || metadata.height < DV_PHOTO_REQUIREMENTS.minHeight) {
@@ -44,16 +61,20 @@ export async function validatePhotoFile(file: File): Promise<PhotoValidationResu
   }
 
   // Check aspect ratio (should be square)
-  const aspectRatio = metadata.width / metadata.height
-  const isSquare = Math.abs(aspectRatio - 1) <= DV_PHOTO_REQUIREMENTS.aspectRatioTolerance
-  
-  if (!isSquare) {
-    errors.push('Photo must be square (equal width and height)')
+  if (metadata.width > 0 && metadata.height > 0) {
+    const aspectRatio = metadata.width / metadata.height
+    const isSquare = Math.abs(aspectRatio - 1) <= DV_PHOTO_REQUIREMENTS.aspectRatioTolerance
+    
+    if (!isSquare) {
+      errors.push('Photo must be square (equal width and height)')
+    }
   }
 
   // Add warnings for optimal quality
-  if (metadata.width < 800 || metadata.height < 800) {
-    warnings.push('For best quality, consider using a photo that is at least 800x800 pixels')
+  if (metadata.width > 0 && metadata.height > 0) {
+    if (metadata.width < 800 || metadata.height < 800) {
+      warnings.push('For best quality, consider using a photo that is at least 800x800 pixels')
+    }
   }
 
   if (file.size < 100 * 1024) { // Less than 100KB
@@ -74,46 +95,6 @@ export async function validatePhotoFile(file: File): Promise<PhotoValidationResu
 }
 
 /**
- * Gets metadata from an image file
- * @param file The image file
- * @returns Promise with image metadata
- */
-export function getImageMetadata(file: File): Promise<{
-  width: number
-  height: number
-  size: number
-  format: string
-}> {
-  // Check if we're in a browser environment
-  if (typeof window !== 'undefined' && typeof Image !== 'undefined') {
-    // Browser environment - use Image constructor
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      
-      img.onload = () => {
-        resolve({
-          width: img.width,
-          height: img.height,
-          size: file.size,
-          format: file.type
-        })
-        URL.revokeObjectURL(img.src)
-      }
-      
-      img.onerror = () => {
-        reject(new Error('Failed to load image'))
-        URL.revokeObjectURL(img.src)
-      }
-      
-      img.src = URL.createObjectURL(file)
-    })
-  } else {
-    // Server environment - use a different approach
-    return getImageMetadataServer(file)
-  }
-}
-
-/**
  * Server-side image metadata extraction
  * @param file The image file
  * @returns Promise with image metadata
@@ -124,31 +105,17 @@ async function getImageMetadataServer(file: File): Promise<{
   size: number
   format: string
 }> {
-  try {
-    // For server-side, we'll use a basic approach with image-size library
-    // First, let's try to read the file buffer
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    
-    // Try to extract dimensions using a simple approach
-    // This is a basic implementation - for production, consider using 'image-size' npm package
-    const dimensions = await extractImageDimensions(buffer, file.type)
-    
-    return {
-      width: dimensions.width,
-      height: dimensions.height,
-      size: file.size,
-      format: file.type
-    }
-  } catch (error) {
-    console.error('Server-side image metadata extraction failed:', error)
-    // Fallback: return basic info without dimensions
-    return {
-      width: 0,
-      height: 0,
-      size: file.size,
-      format: file.type
-    }
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  
+  // Extract dimensions based on file type
+  const dimensions = await extractImageDimensions(buffer, file.type)
+  
+  return {
+    width: dimensions.width,
+    height: dimensions.height,
+    size: file.size,
+    format: file.type
   }
 }
 
@@ -225,66 +192,4 @@ function extractPNGDimensions(buffer: Buffer): { width: number; height: number }
   const height = buffer.readUInt32BE(20)
   
   return { width, height }
-}
-
-/**
- * Creates a preview URL for an image file
- * @param file The image file
- * @returns Preview URL string
- */
-export function createImagePreview(file: File): string {
-  return URL.createObjectURL(file)
-}
-
-/**
- * Revokes a preview URL to free up memory
- * @param previewUrl The preview URL to revoke
- */
-export function revokeImagePreview(previewUrl: string): void {
-  URL.revokeObjectURL(previewUrl)
-}
-
-/**
- * Formats file size in human readable format
- * @param bytes File size in bytes
- * @returns Formatted file size string
- */
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes'
-  
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-/**
- * Checks if a file is a valid image type
- * @param file The file to check
- * @returns boolean indicating if file is a valid image
- */
-export function isValidImageType(file: File): boolean {
-  return DV_PHOTO_REQUIREMENTS.allowedFormats.includes(file.type as any)
-}
-
-/**
- * Gets photo validation error messages for display
- * @param validationResult The validation result
- * @returns Formatted error messages
- */
-export function getPhotoValidationMessages(validationResult: PhotoValidationResult): {
-  errorMessages: string[]
-  warningMessages: string[]
-  successMessage?: string
-} {
-  const errorMessages = validationResult.errors
-  const warningMessages = validationResult.warnings
-  const successMessage = validationResult.isValid ? 'Photo meets all DV lottery requirements' : undefined
-
-  return {
-    errorMessages,
-    warningMessages,
-    successMessage
-  }
 }

@@ -49,7 +49,7 @@ export default function DVFormPage() {
               </svg>
             </div>
             <div className="text-sm text-yellow-800">
-              <span className="font-semibold">Important:</span> This is not a government service. 
+              <span className="font-semibold">Important:</span> This is not a government service.
               Selection in the DV lottery is not guaranteed. Service fee: 399 ETB (non-refundable after submission).
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function DVFormPage() {
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-red-800">{error}</p>
-            <button 
+            <button
               onClick={() => setError(null)}
               className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
             >

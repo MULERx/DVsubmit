@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { photoStorageService } from '@/lib/services/photo-storage'
-import { validatePhotoFile } from '@/lib/utils/photo-validation'
-import { validateAdvancedPhotoCompliance } from '@/lib/utils/advanced-photo-validation'
+import { serverPhotoStorageService } from '@/lib/services/photo-storage'
+import { validatePhotoFileServer } from '@/lib/utils/photo-validation-server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,8 +29,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Perform basic validation first
-    const basicValidation = await validatePhotoFile(file)
+    // Perform basic validation first using server-side validation
+    const basicValidation = await validatePhotoFileServer(file)
     if (!basicValidation.isValid) {
       return NextResponse.json(
         { 
@@ -47,37 +46,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Perform advanced validation if requested
+    // Advanced validation is not available in server environment
+    // It requires browser APIs like Canvas and Image
     let advancedValidation = null
     if (performAdvancedValidation) {
-      try {
-        advancedValidation = await validateAdvancedPhotoCompliance(file)
-        
-        // If advanced validation fails critically, reject upload
-        if (advancedValidation.complianceScore < 50) {
-          return NextResponse.json(
-            { 
-              success: false, 
-              error: 'Photo does not meet DV lottery compliance standards',
-              details: {
-                errors: advancedValidation.errors,
-                warnings: advancedValidation.warnings,
-                complianceScore: advancedValidation.complianceScore,
-                complianceIssues: advancedValidation.complianceIssues,
-                recommendations: advancedValidation.recommendations,
-                validationType: 'advanced'
-              }
-            },
-            { status: 400 }
-          )
-        }
-      } catch (error) {
-        console.warn('Advanced validation failed, proceeding with basic validation:', error)
-      }
+      console.warn('Advanced validation is not available in server environment. Skipping advanced validation.')
     }
 
-    // Upload photo to Supabase Storage
-    const uploadResult = await photoStorageService.uploadPhoto(
+    // Upload photo to Supabase Storage using server-side service
+    const uploadResult = await serverPhotoStorageService.uploadPhoto(
       file,
       user.id,
       applicationId || undefined
@@ -105,13 +82,7 @@ export async function POST(request: NextRequest) {
             warnings: basicValidation.warnings,
             metadata: basicValidation.metadata
           },
-          advanced: advancedValidation ? {
-            isValid: advancedValidation.isValid,
-            complianceScore: advancedValidation.complianceScore,
-            warnings: advancedValidation.warnings,
-            recommendations: advancedValidation.recommendations,
-            complianceIssues: advancedValidation.complianceIssues
-          } : null
+          advanced: null // Advanced validation not available in server environment
         }
       }
     })
@@ -159,8 +130,8 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Delete photo from storage
-    const deleteResult = await photoStorageService.deletePhoto(path)
+    // Delete photo from storage using server-side service
+    const deleteResult = await serverPhotoStorageService.deletePhoto(path)
 
     if (!deleteResult.success) {
       return NextResponse.json(

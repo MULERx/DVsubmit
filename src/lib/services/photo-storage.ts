@@ -47,8 +47,8 @@ export class PhotoStorageService {
    * @returns Upload result with path and URLs
    */
   async uploadPhoto(
-    file: File, 
-    userId: string, 
+    file: File,
+    userId: string,
     applicationId?: string
   ): Promise<PhotoUploadResult> {
     try {
@@ -64,8 +64,8 @@ export class PhotoStorageService {
       const fileExtension = file.name.split('.').pop()?.toLowerCase()
       const timestamp = Date.now()
       const fileName = `photo_${timestamp}.${fileExtension}`
-      
-      const filePath = applicationId 
+
+      const filePath = applicationId
         ? `${userId}/${applicationId}/${fileName}`
         : `${userId}/${fileName}`
 
@@ -87,7 +87,7 @@ export class PhotoStorageService {
 
       // Get signed URL for immediate viewing
       const signedUrlResult = await this.getSignedUrl(data.path)
-      
+
       return {
         success: true,
         data: {
@@ -111,7 +111,7 @@ export class PhotoStorageService {
    * @returns Signed URL result
    */
   async getSignedUrl(
-    path: string, 
+    path: string,
     expiresIn: number = PHOTO_STORAGE_CONFIG.signedUrlExpirySeconds
   ): Promise<SignedUrlResult> {
     try {
@@ -191,7 +191,7 @@ export class PhotoStorageService {
     try {
       // Upload new photo first
       const uploadResult = await this.uploadPhoto(newFile, userId, applicationId)
-      
+
       if (!uploadResult.success) {
         return uploadResult
       }
@@ -218,7 +218,7 @@ export class PhotoStorageService {
   async listUserPhotos(userId: string, applicationId?: string) {
     try {
       const prefix = applicationId ? `${userId}/${applicationId}/` : `${userId}/`
-      
+
       const { data, error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
         .list(prefix)
@@ -271,13 +271,78 @@ export class ServerPhotoStorageService {
   private supabase = createServiceClient()
 
   /**
+   * Uploads a photo file to Supabase Storage using service role
+   * @param file The photo file to upload
+   * @param userId The user ID for organizing files
+   * @param applicationId The application ID for organizing files
+   * @returns Upload result with path and URLs
+   */
+  async uploadPhoto(
+    file: File,
+    userId: string,
+    applicationId?: string
+  ): Promise<PhotoUploadResult> {
+    try {
+      // Validate file
+      if (!this.isValidFile(file)) {
+        return {
+          success: false,
+          error: 'Invalid file type or size'
+        }
+      }
+
+      // Generate file path
+      const fileExtension = file.name.split('.').pop()?.toLowerCase()
+      const timestamp = Date.now()
+      const fileName = `photo_${timestamp}.${fileExtension}`
+
+      const filePath = applicationId
+        ? `${userId}/${applicationId}/${fileName}`
+        : `${userId}/${fileName}`
+
+      // Upload file using service role
+      const { data, error } = await this.supabase.storage
+        .from(PHOTO_STORAGE_CONFIG.bucketName)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (error) {
+        console.error('Server photo upload error:', error)
+        return {
+          success: false,
+          error: error.message
+        }
+      }
+
+      // Get signed URL for immediate viewing
+      const signedUrlResult = await this.getSignedUrl(data.path)
+
+      return {
+        success: true,
+        data: {
+          path: data.path,
+          signedUrl: signedUrlResult.success ? signedUrlResult.data?.signedUrl : undefined
+        }
+      }
+    } catch (error) {
+      console.error('Server photo upload error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Upload failed'
+      }
+    }
+  }
+
+  /**
    * Gets a signed URL using service role (for server-side operations)
    * @param path The storage path
    * @param expiresIn Expiry time in seconds
    * @returns Signed URL result
    */
   async getSignedUrl(
-    path: string, 
+    path: string,
     expiresIn: number = PHOTO_STORAGE_CONFIG.signedUrlExpirySeconds
   ): Promise<SignedUrlResult> {
     try {
@@ -370,6 +435,25 @@ export class ServerPhotoStorageService {
         error: error instanceof Error ? error.message : 'Move failed'
       }
     }
+  }
+
+  /**
+   * Validates if a file meets the storage requirements
+   * @param file The file to validate
+   * @returns Boolean indicating if file is valid
+   */
+  private isValidFile(file: File): boolean {
+    // Check file size
+    if (file.size > PHOTO_STORAGE_CONFIG.maxFileSize) {
+      return false
+    }
+
+    // Check MIME type
+    if (!PHOTO_STORAGE_CONFIG.allowedMimeTypes.includes(file.type as any)) {
+      return false
+    }
+
+    return true
   }
 }
 
