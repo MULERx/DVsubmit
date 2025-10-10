@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { FormStepData, FormStep } from '@/lib/types/application'
 import { ApplicationService } from '@/lib/services/application-service'
+import { PaymentService } from '@/lib/services/payment-service'
+import { NotificationService } from '@/lib/services/notification-service'
 import { useToast } from './use-toast'
 
 interface UseApplicationFormOptions {
@@ -15,6 +17,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'>('PENDING')
   const { toast } = useToast()
 
   // Load existing draft application on mount
@@ -27,6 +30,16 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
           const convertedData = ApplicationService.convertApplicationToFormData(response.data)
           setFormData(convertedData)
           setLastSaved(new Date(response.data.updatedAt))
+          
+          // Load payment status if payment reference exists
+          if (response.data?.paymentReference) {
+            setPaymentStatus(response.data.paymentStatus)
+            // Set payment data in form
+            setFormData(prev => ({
+              ...prev,
+              payment: { paymentReference: response.data!.paymentReference! }
+            }))
+          }
         }
       } catch (error) {
         console.error('Error loading draft application:', error)
@@ -86,9 +99,37 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
   }, [])
 
   // Update specific step data
-  const updateStepData = useCallback((step: FormStep, data: any) => {
-    updateFormData({ [step]: data })
-  }, [updateFormData])
+  const updateStepData = useCallback(async (step: FormStep, data: any) => {
+    // Handle payment step specially
+    if (step === 'payment') {
+      setIsSaving(true)
+      try {
+        const response = await PaymentService.submitPaymentReference(data.paymentReference)
+        if (response.success) {
+          setPaymentStatus(response.data?.paymentStatus || 'PENDING')
+          updateFormData({ [step]: data })
+          toast({
+            title: "Payment Reference Submitted",
+            description: "Your payment reference has been submitted for verification.",
+          })
+        } else {
+          throw new Error(response.error?.message || 'Payment submission failed')
+        }
+      } catch (error) {
+        console.error('Payment submission error:', error)
+        onError?.('Failed to submit payment reference')
+        toast({
+          title: "Payment Submission Failed",
+          description: "Failed to submit payment reference. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsSaving(false)
+      }
+    } else {
+      updateFormData({ [step]: data })
+    }
+  }, [updateFormData, onError, toast])
 
   // Manual save
   const saveManually = useCallback(async () => {
@@ -175,6 +216,47 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     }
   }, [onError, toast])
 
+  // Check payment status
+  const checkPaymentStatus = useCallback(async () => {
+    if (!formData.payment?.paymentReference) return
+
+    try {
+      const response = await PaymentService.getPaymentStatus()
+      if (response.success && response.data) {
+        const newStatus = response.data.paymentStatus
+        if (newStatus !== paymentStatus) {
+          setPaymentStatus(newStatus)
+          
+          // Create persistent notification for status changes
+          if (newStatus !== 'PENDING' && formData.payment?.paymentReference) {
+            NotificationService.createPaymentStatusNotification(
+              newStatus as 'VERIFIED' | 'REJECTED' | 'REFUNDED',
+              formData.payment.paymentReference
+            )
+          }
+          
+          // Show toast notification for status changes
+          const statusMessage = PaymentService.getPaymentStatusMessage(newStatus)
+          toast({
+            title: statusMessage.title,
+            description: statusMessage.description,
+            variant: statusMessage.variant === 'error' ? 'destructive' : 'default',
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error)
+    }
+  }, [formData.payment?.paymentReference, paymentStatus, toast])
+
+  // Periodic payment status check
+  useEffect(() => {
+    if (!formData.payment?.paymentReference || paymentStatus === 'VERIFIED') return
+
+    const interval = setInterval(checkPaymentStatus, 30000) // Check every 30 seconds
+    return () => clearInterval(interval)
+  }, [formData.payment?.paymentReference, paymentStatus, checkPaymentStatus])
+
   // Get completion status for each step
   const getStepCompletionStatus = useCallback(() => {
     const completedSteps: FormStep[] = []
@@ -195,10 +277,16 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
       completedSteps.push('education')
     }
     
-    // Photo and payment steps will be added in future tasks
+    if (formData.photo?.file) {
+      completedSteps.push('photo')
+    }
+    
+    if (formData.payment?.paymentReference && paymentStatus === 'VERIFIED') {
+      completedSteps.push('payment')
+    }
     
     return completedSteps
-  }, [formData])
+  }, [formData, paymentStatus])
 
   return {
     formData,
@@ -206,11 +294,13 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     isSaving,
     lastSaved,
     hasUnsavedChanges,
+    paymentStatus,
     updateFormData,
     updateStepData,
     saveManually,
     submitApplication,
     checkDuplicateSubmission,
+    checkPaymentStatus,
     getStepCompletionStatus,
   }
 }

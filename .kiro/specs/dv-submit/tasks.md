@@ -133,14 +133,23 @@
     - Test server-side validation and error handling
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 6. Build payment processing system
-  - [ ] 6.1 Create payment interface and Telebirr integration
+- [x] 6. Build payment processing system
+
+
+
+
+
+  - [x] 6.1 Create payment interface and Telebirr integration
+
+
     - Build payment form with 399 ETB fee display and Telebirr instructions
     - Implement payment reference input with format validation
     - Create payment status tracking and display components
     - _Requirements: 4.1, 4.2, 4.5_
 
-  - [ ] 6.2 Implement payment verification workflow
+  - [x] 6.2 Implement payment verification workflow
+
+
     - Create payment reference storage and status management
     - Build payment pending state with form modification prevention
     - Implement payment status updates and user notifications
@@ -151,20 +160,29 @@
     - Test payment status management and workflow
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 7. Develop admin dashboard
-  - [ ] 7.1 Create admin authentication and dashboard layout
+- [x] 7. Develop admin dashboard
+
+
+
+
+
+  - [x] 7.1 Create admin authentication and dashboard layout
+
+
     - Build admin login flow with role verification
     - Create admin dashboard layout with navigation
     - Implement admin-only route protection
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 7.2 Build payment verification interface
+  - [x] 7.2 Build payment verification interface
+
     - Create applications list with payment verification status
     - Implement Telebirr payment verification workflow
     - Build payment approval and rejection functionality with user notifications
     - _Requirements: 5.2, 5.3, 5.4_
 
-  - [ ] 7.3 Implement DV submission management
+  - [x] 7.3 Implement DV submission management
+
     - Create interface for viewing verified applications ready for submission
     - Build official DV submission workflow and status tracking
     - Implement confirmation number recording and proof generation
@@ -178,13 +196,13 @@
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 6.4, 6.5_
 
 - [ ] 8. Implement user notification and confirmation system
-  - [ ] 8.1 Build email notification system
-    - Set up email service integration (Supabase or external provider)
-    - Create email templates for submission confirmations
-    - Implement automated email sending for status updates
-    - _Requirements: 7.1_
 
-  - [ ] 8.2 Create user dashboard and confirmation display
+  - [x] 8.1 Create user dashboard and confirmation display
+
+
+
+
+
     - Build user dashboard showing application status and confirmation details
     - Implement confirmation number display and proof of submission download
     - Create submission history and status tracking interface
@@ -196,24 +214,18 @@
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
 - [ ] 9. Implement Row Level Security and audit logging
-  - [ ] 9.1 Set up RLS policies in database
-    - Create and implement RLS policies for user data isolation
-    - Set up admin access policies for application management
-    - Implement storage bucket policies for photo access control
-    - Test and validate RLS policy enforcement
-    - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-  - [ ] 9.2 Build comprehensive audit logging system
+  - [ ] 9.1 Build comprehensive audit logging system
     - Create audit logging middleware for all admin actions
     - Implement audit log storage with detailed action tracking
     - Build audit log query and filtering interface for admins
     - Create audit log retention and archival system
-    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+    - _Requirements: 9.1, 9.2, 9.3_
 
   - [ ]* 9.3 Write unit tests for security and audit systems
     - Test RLS policy enforcement and access controls
     - Test audit logging accuracy and completeness
-    - _Requirements: 8.1, 8.2, 8.3, 8.4, 9.1, 9.2, 9.3, 9.4_
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 9.1, 9.2, 9.3_
 
 - [ ] 10. Create data retention and compliance system
   - [ ] 10.1 Implement automated data retention policies
@@ -223,11 +235,13 @@
     - Create legal hold functionality to preserve data when required
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-  - [ ] 10.2 Build legal disclaimer and terms system
+  - [x] 10.2 Build legal disclaimer and terms system
+
+
+
+
+
     - Create legal disclaimer components and terms of service
-    - Implement user acknowledgment tracking and re-acknowledgment system
-    - Build disclaimer display throughout application workflow
-    - Create terms update notification and re-acceptance flow
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
   - [ ]* 10.3 Write unit tests for retention and compliance

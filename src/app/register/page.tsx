@@ -237,9 +237,23 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="text-xs text-gray-500 text-center">
-            By creating an account, you agree that this is not a government service and 
-            selection in the DV lottery is not guaranteed.
+          <div className="text-xs text-gray-500 text-center space-y-2">
+            <p>
+              By creating an account, you agree to our{' '}
+              <Link href="/terms" className="text-indigo-600 hover:text-indigo-500 underline">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-indigo-600 hover:text-indigo-500 underline">
+                Privacy Policy
+              </Link>{' '}
+              and acknowledge that:
+            </p>
+            <ul className="text-left list-disc list-inside space-y-1 bg-gray-50 p-3 rounded">
+              <li>This is not a government service</li>
+              <li>Selection in the DV lottery is not guaranteed</li>
+              <li>Service fee is 399 ETB, non-refundable after submission</li>
+            </ul>
           </div>
         </form>
       </div>

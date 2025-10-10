@@ -249,14 +249,36 @@ export function ReviewForm({
         </Card>
       </div>
 
-      {/* Legal Disclaimer */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-semibold text-blue-900 mb-3">Important Legal Disclaimer</h3>
-        <div className="text-sm text-blue-800 space-y-2">
-          <p>• This is NOT a government service. We are a private company providing assistance with DV lottery applications.</p>
-          <p>• Submission of this application does NOT guarantee selection in the DV lottery.</p>
-          <p>• The U.S. Department of State makes all final decisions regarding DV lottery selection.</p>
-          <p>• By submitting this application, you acknowledge that you understand these terms.</p>
+      {/* Enhanced Legal Disclaimer */}
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h3 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5" />
+          Final Legal Confirmation Required
+        </h3>
+        <div className="text-sm text-red-800 space-y-3">
+          <div className="bg-white border border-red-200 rounded p-3">
+            <h4 className="font-semibold mb-2">Government Non-Affiliation</h4>
+            <p>This is NOT a government service. We are a private company providing assistance with DV lottery applications. We are not affiliated with the U.S. Department of State or any government agency.</p>
+          </div>
+          
+          <div className="bg-white border border-red-200 rounded p-3">
+            <h4 className="font-semibold mb-2">No Selection Guarantee</h4>
+            <p>Submission of this application does NOT guarantee selection in the DV lottery. The U.S. Department of State makes all final decisions regarding DV lottery selection through a random process.</p>
+          </div>
+          
+          <div className="bg-white border border-red-200 rounded p-3">
+            <h4 className="font-semibold mb-2">Service Fee</h4>
+            <p>The 399 ETB service fee is for our assistance services only and is non-refundable once your application is submitted to the official DV system.</p>
+          </div>
+          
+          <div className="bg-white border border-red-200 rounded p-3">
+            <h4 className="font-semibold mb-2">Your Responsibility</h4>
+            <p>You confirm that all information provided is accurate and truthful. False information may result in disqualification by the U.S. Department of State.</p>
+          </div>
+          
+          <p className="font-semibold text-center pt-2">
+            By submitting this application, you acknowledge that you understand and agree to these terms.
+          </p>
         </div>
       </div>
 

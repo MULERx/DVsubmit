@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { FormStep, FormStepData, PersonalInfo, ContactInfo, EducationWork } from '@/lib/types/application'
+import { FormStep, FormStepData, PersonalInfo, ContactInfo, EducationWork, Payment } from '@/lib/types/application'
 import { FormStepNavigation } from './form-step-navigation'
 import { FormProgress } from './form-progress'
 import { PersonalInfoForm } from './personal-info-form'
 import { ContactInfoForm } from './contact-info-form'
 import { EducationWorkForm } from './education-work-form'
 import { PhotoUploadForm } from './photo-upload-form'
+import { PaymentForm } from './payment-form'
 import { ReviewForm } from './review-form'
+import { FormLockNotice } from '@/components/ui/form-lock-notice'
 import { useApplicationForm } from '@/hooks/use-application-form'
 
 interface MultiStepFormProps {
@@ -32,6 +34,7 @@ export function MultiStepForm({
     isLoading,
     isSaving,
     hasUnsavedChanges,
+    paymentStatus,
     updateStepData,
     submitApplication,
     checkDuplicateSubmission,
@@ -79,6 +82,16 @@ export function MultiStepForm({
     const stepIndex = steps.indexOf(step)
     const currentIndex = steps.indexOf(currentStep)
     
+    // Prevent navigation away from payment step if payment is pending
+    if (currentStep === 'payment' && paymentStatus === 'PENDING' && step !== 'payment') {
+      return
+    }
+    
+    // Prevent navigation to previous steps if payment is verified (form locked)
+    if (paymentStatus === 'VERIFIED' && stepIndex < steps.indexOf('payment') && currentStep !== step) {
+      return
+    }
+    
     // Allow navigation to completed steps or the next immediate step
     if (completedSteps.includes(step) || stepIndex <= currentIndex + 1) {
       // Check for duplicates when entering the review step
@@ -91,7 +104,7 @@ export function MultiStepForm({
       
       setCurrentStep(step)
     }
-  }, [currentStep, completedSteps, checkDuplicateSubmission])
+  }, [currentStep, completedSteps, paymentStatus, checkDuplicateSubmission])
 
   // Handle personal info submission
   const handlePersonalInfoSubmit = useCallback((data: PersonalInfo) => {
@@ -113,6 +126,14 @@ export function MultiStepForm({
     handleStepComplete('photo', data)
   }, [handleStepComplete])
 
+  // Handle payment submission
+  const handlePaymentSubmit = useCallback((data: Payment) => {
+    handleStepComplete('payment', data)
+  }, [handleStepComplete])
+
+  // Check if form should be disabled (payment verified = form locked)
+  const isFormDisabled = paymentStatus === 'VERIFIED'
+
   // Render current step
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -122,7 +143,7 @@ export function MultiStepForm({
             initialData={formData.personal}
             onSubmit={handlePersonalInfoSubmit}
             onNext={goToNextStep}
-            isLoading={isLoading || isSaving}
+            isLoading={isLoading || isSaving || isFormDisabled}
           />
         )
       
@@ -133,7 +154,7 @@ export function MultiStepForm({
             onSubmit={handleContactInfoSubmit}
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isSaving}
+            isLoading={isLoading || isSaving || isFormDisabled}
           />
         )
       
@@ -144,7 +165,7 @@ export function MultiStepForm({
             onSubmit={handleEducationWorkSubmit}
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isSaving}
+            isLoading={isLoading || isSaving || isFormDisabled}
           />
         )
       
@@ -157,39 +178,20 @@ export function MultiStepForm({
               goToNextStep()
             }}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isSaving}
+            isLoading={isLoading || isSaving || isFormDisabled}
           />
         )
       
       case 'payment':
         return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Payment</h2>
-              <p className="text-gray-600 mt-2">
-                Complete payment for the DV submission service.
-              </p>
-            </div>
-            <div className="text-center py-12 text-gray-500">
-              Payment component will be implemented in a future task.
-            </div>
-            <div className="flex justify-between">
-              <button 
-                type="button" 
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                onClick={goToPreviousStep}
-              >
-                Previous
-              </button>
-              <button 
-                type="button" 
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                onClick={goToNextStep}
-              >
-                Next Step
-              </button>
-            </div>
-          </div>
+          <PaymentForm
+            initialData={formData.payment}
+            onSubmit={handlePaymentSubmit}
+            onNext={goToNextStep}
+            onPrevious={goToPreviousStep}
+            isLoading={isLoading || isSaving}
+            paymentStatus={paymentStatus}
+          />
         )
       
       case 'review':
@@ -237,6 +239,11 @@ export function MultiStepForm({
         onStepClick={goToStep}
       />
       
+      {/* Form Lock Notice */}
+      {formData.payment?.paymentReference && paymentStatus !== 'REJECTED' && (
+        <FormLockNotice paymentStatus={paymentStatus} className="mb-4" />
+      )}
+
       {/* Save Status Indicator */}
       <div className="mb-4 text-right">
         {isSaving && (
