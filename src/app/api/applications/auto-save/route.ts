@@ -42,11 +42,16 @@ export async function POST(request: NextRequest) {
     const { personal, contact, education } = validationResult.data
 
     // Find or create draft application
+    // TODO: With multiple applications, we need to identify which specific application is being edited
+    // For now, this will find the most recent draft application
     let application = await prisma.application.findFirst({
       where: {
         userId: userWithRole.dbUser.id,
         status: 'DRAFT',
       },
+      orderBy: {
+        updatedAt: 'desc'
+      }
     })
 
     // Prepare update data

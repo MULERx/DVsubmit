@@ -34,7 +34,7 @@ export default function DVFormPage() {
         <div className="max-w-4xl mx-auto px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-900">DV Lottery Application</h1>
           <p className="text-gray-600 mt-2">
-            Complete your Diversity Visa lottery application with our guided process.
+            Complete a Diversity Visa lottery application. You can submit multiple applications for different family members.
           </p>
         </div>
       </div>
@@ -50,7 +50,7 @@ export default function DVFormPage() {
             </div>
             <div className="text-sm text-yellow-800">
               <span className="font-semibold">Important:</span> This is not a government service.
-              Selection in the DV lottery is not guaranteed. Service fee: 399 ETB (non-refundable after submission).
+              You can submit applications for multiple eligible family members. Each application requires a separate 399 ETB service fee (non-refundable after submission).
             </div>
           </div>
         </div>

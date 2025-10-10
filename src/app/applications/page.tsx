@@ -111,7 +111,7 @@ export default function ApplicationsPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Applications</h1>
               <p className="text-gray-600 mt-2">
-                View and manage all your DV lottery applications
+                View and manage DV lottery applications for yourself and family members
               </p>
             </div>
             <Button asChild>
@@ -129,7 +129,7 @@ export default function ApplicationsPage() {
             <CardHeader>
               <CardTitle>No Applications Found</CardTitle>
               <CardDescription>
-                You haven't created any DV lottery applications yet.
+                You haven't created any DV lottery applications yet. You can create applications for yourself and eligible family members.
               </CardDescription>
             </CardHeader>
             <CardContent>

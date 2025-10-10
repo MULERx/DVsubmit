@@ -8,16 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { 
-  FileText, 
-  Download, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  FileText,
+  Download,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertCircle,
-  CreditCard,
   Upload,
-  Eye
+  Copy
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -42,7 +41,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
     try {
       setLoading(true)
       const response = await ApplicationService.getApplications()
-      
+
       if (response.success && response.data) {
         setApplications(response.data)
       } else {
@@ -107,7 +106,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
   const downloadProofOfSubmission = async (applicationId: string, confirmationNumber: string) => {
     try {
       setDownloadingProof(applicationId)
-      
+
       const response = await fetch(`/api/applications/${applicationId}/proof`, {
         method: 'GET',
       })
@@ -143,6 +142,23 @@ export function UserDashboard({ className }: UserDashboardProps) {
     }
   }
 
+  const copyConfirmationNumber = async (confirmationNumber: string) => {
+    try {
+      await navigator.clipboard.writeText(confirmationNumber)
+      toast({
+        title: 'Copied!',
+        description: 'Confirmation number copied to clipboard',
+      })
+    } catch (error) {
+      console.error('Error copying to clipboard:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to copy confirmation number',
+        variant: 'destructive',
+      })
+    }
+  }
+
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -153,37 +169,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
     })
   }
 
-  const getNextAction = (application: ApplicationRecord) => {
-    switch (application.status) {
-      case 'DRAFT':
-        return {
-          label: 'Continue Application',
-          href: '/dv-form',
-          variant: 'default' as const,
-        }
-      case 'PAYMENT_PENDING':
-        return {
-          label: 'View Payment Status',
-          href: `/applications/${application.id}`,
-          variant: 'outline' as const,
-        }
-      case 'PAYMENT_VERIFIED':
-        return {
-          label: 'View Application',
-          href: `/applications/${application.id}`,
-          variant: 'outline' as const,
-        }
-      case 'SUBMITTED':
-      case 'CONFIRMED':
-        return {
-          label: 'View Details',
-          href: `/applications/${application.id}`,
-          variant: 'outline' as const,
-        }
-      default:
-        return null
-    }
-  }
+
 
   if (loading) {
     return (
@@ -193,8 +179,12 @@ export function UserDashboard({ className }: UserDashboardProps) {
     )
   }
 
-  const currentApplication = applications.find(app => app.status !== 'EXPIRED')
-  const submittedApplications = applications.filter(app => 
+  // Organize applications by status
+  const draftApplications = applications.filter(app => app.status === 'DRAFT')
+  const pendingApplications = applications.filter(app =>
+    app.status === 'PAYMENT_PENDING' || app.status === 'PAYMENT_VERIFIED'
+  )
+  const submittedApplications = applications.filter(app =>
     app.status === 'SUBMITTED' || app.status === 'CONFIRMED'
   )
 
@@ -202,145 +192,89 @@ export function UserDashboard({ className }: UserDashboardProps) {
     <div className={className}>
       {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Welcome back, {userWithRole?.dbUser?.email}</h1>
-        <p className="text-gray-600 mt-2">
-          Track your DV lottery application status and manage your submissions.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Welcome back, {userWithRole?.dbUser?.email}</h1>
+            <p className="text-gray-600 mt-2">
+              Manage DV lottery applications for yourself and family members.
+            </p>
+          </div>
+          <Button asChild size="lg">
+            <Link href="/dv-form">
+              <FileText className="h-5 w-5 mr-2" />
+              New Application
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      {/* Current Application Status */}
-      {currentApplication ? (
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  Current Application
-                  {getStatusBadge(currentApplication.status)}
-                </CardTitle>
-                <CardDescription>
-                  Application ID: {currentApplication.id}
-                </CardDescription>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Last updated</p>
-                <p className="text-sm font-medium">{formatDate(currentApplication.updatedAt)}</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Personal Information */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Personal Information</h4>
-                <div className="space-y-1 text-sm">
-                  <p><span className="text-gray-500">Name:</span> {currentApplication.firstName} {currentApplication.lastName}</p>
-                  <p><span className="text-gray-500">Date of Birth:</span> {formatDate(currentApplication.dateOfBirth)}</p>
-                  <p><span className="text-gray-500">Country of Birth:</span> {currentApplication.countryOfBirth}</p>
-                </div>
-              </div>
-
-              {/* Payment Information */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Payment Status</h4>
-                <div className="space-y-2">
-                  {getPaymentStatusBadge(currentApplication.paymentStatus)}
-                  {currentApplication.paymentReference && (
-                    <p className="text-sm">
-                      <span className="text-gray-500">Reference:</span> {currentApplication.paymentReference}
-                    </p>
-                  )}
-                  {currentApplication.paymentVerifiedAt && (
-                    <p className="text-sm">
-                      <span className="text-gray-500">Verified:</span> {formatDate(currentApplication.paymentVerifiedAt)}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Submission Information */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Submission Details</h4>
-                <div className="space-y-2">
-                  {currentApplication.confirmationNumber ? (
-                    <div>
-                      <p className="text-sm">
-                        <span className="text-gray-500">Confirmation Number:</span>
-                      </p>
-                      <p className="font-mono text-lg font-bold text-green-600">
-                        {currentApplication.confirmationNumber}
-                      </p>
-                      {currentApplication.submittedAt && (
-                        <p className="text-sm text-gray-500">
-                          Submitted: {formatDate(currentApplication.submittedAt)}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">Not yet submitted</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-6 pt-6 border-t">
-              {(() => {
-                const nextAction = getNextAction(currentApplication)
-                return nextAction ? (
-                  <Button asChild variant={nextAction.variant}>
-                    <Link href={nextAction.href}>
-                      {nextAction.label}
-                    </Link>
-                  </Button>
-                ) : null
-              })()}
-              
-              {currentApplication.confirmationNumber && (
-                <Button
-                  variant="outline"
-                  onClick={() => downloadProofOfSubmission(currentApplication.id, currentApplication.confirmationNumber!)}
-                  disabled={downloadingProof === currentApplication.id}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  {downloadingProof === currentApplication.id ? 'Downloading...' : 'Download Proof'}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        /* No Current Application */
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Start Your DV Application</CardTitle>
-            <CardDescription>
-              You don't have any active applications. Start your DV lottery application now.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <Link href="/dv-form">
-                <FileText className="h-4 w-4 mr-2" />
-                Start New Application
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Submission History */}
-      {submittedApplications.length > 0 && (
+      {/* Applications Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5 text-gray-500" />
+              Draft
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-gray-900">{draftApplications.length}</div>
+            <p className="text-sm text-gray-500">Applications in progress</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-500" />
+              Pending
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-yellow-600">{pendingApplications.length}</div>
+            <p className="text-sm text-gray-500">Awaiting payment/processing</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              Submitted
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">{submittedApplications.length}</div>
+            <p className="text-sm text-gray-500">Successfully submitted</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-500" />
+              Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">{applications.length}</div>
+            <p className="text-sm text-gray-500">All applications</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Draft Applications */}
+      {draftApplications.length > 0 && (
+        <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Submission History</CardTitle>
+            <CardTitle>Draft Applications</CardTitle>
             <CardDescription>
-              Your previous DV lottery submissions and their confirmation details.
+              Complete these applications to submit them for the DV lottery.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {submittedApplications.map((application) => (
+              {draftApplications.map((application) => (
                 <div
                   key={application.id}
                   className="flex items-center justify-between p-4 border rounded-lg"
@@ -354,8 +288,118 @@ export function UserDashboard({ className }: UserDashboardProps) {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                       <div>
+                        <span className="font-medium">Country of Birth:</span> {application.countryOfBirth}
+                      </div>
+                      <div>
+                        <span className="font-medium">Created:</span> {formatDate(application.createdAt)}
+                      </div>
+                      <div>
+                        <span className="font-medium">Last Updated:</span> {formatDate(application.updatedAt)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button asChild>
+                      <Link href="/dv-form">
+                        Continue Application
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pending Applications */}
+      {pendingApplications.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Pending Applications</CardTitle>
+            <CardDescription>
+              These applications are awaiting payment verification or processing.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingApplications.map((application) => (
+                <div
+                  key={application.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="font-medium">
+                        {application.firstName} {application.lastName}
+                      </h4>
+                      {getStatusBadge(application.status)}
+                      {getPaymentStatusBadge(application.paymentStatus)}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div>
+                        <span className="font-medium">Country of Birth:</span> {application.countryOfBirth}
+                      </div>
+                      <div>
+                        <span className="font-medium">Payment Ref:</span> {application.paymentReference || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="font-medium">Last Updated:</span> {formatDate(application.updatedAt)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/applications/${application.id}`}>
+                        View Details
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Submitted Applications */}
+      {submittedApplications.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Submitted Applications</CardTitle>
+            <CardDescription>
+              Successfully submitted DV lottery applications with confirmation numbers.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {submittedApplications.map((application) => (
+                <div
+                  key={application.id}
+                  className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="font-medium">
+                        {application.firstName} {application.lastName}
+                      </h4>
+                      {getStatusBadge(application.status)}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div>
                         <span className="font-medium">Confirmation:</span>{' '}
-                        <span className="font-mono">{application.confirmationNumber}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="font-mono font-bold text-green-700 select-all">
+                            {application.confirmationNumber}
+                          </span>
+                          <button
+                            onClick={() => copyConfirmationNumber(application.confirmationNumber!)}
+                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            title="Copy confirmation number"
+                          >
+                            <Copy className="h-3 w-3 text-gray-500 hover:text-gray-700" />
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <span className="font-medium">Submitted:</span>{' '}
@@ -367,22 +411,19 @@ export function UserDashboard({ className }: UserDashboardProps) {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/applications/${application.id}`}>
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Link>
-                    </Button>
                     {application.confirmationNumber && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadProofOfSubmission(application.id, application.confirmationNumber!)}
-                        disabled={downloadingProof === application.id}
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        {downloadingProof === application.id ? 'Downloading...' : 'Proof'}
-                      </Button>
+                      <>
+                      
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadProofOfSubmission(application.id, application.confirmationNumber!)}
+                          disabled={downloadingProof === application.id}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          {downloadingProof === application.id ? 'Downloading...' : 'Download Proof'}
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -392,8 +433,45 @@ export function UserDashboard({ className }: UserDashboardProps) {
         </Card>
       )}
 
+      {/* No Applications State */}
+      {applications.length === 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Start Your First DV Application</CardTitle>
+            <CardDescription>
+              You haven&apos;t created any applications yet. Start your first DV lottery application for yourself or a family member.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild size="lg">
+              <Link href="/dv-form">
+                <FileText className="h-4 w-4 mr-2" />
+                Create First Application
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">New Application</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Start a new DV application for yourself or a family member.
+            </p>
+            <Button asChild size="sm" className="w-full">
+              <Link href="/dv-form">
+                <FileText className="h-4 w-4 mr-2" />
+                Start Application
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Need Help?</CardTitle>
@@ -402,7 +480,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
             <p className="text-sm text-gray-600 mb-4">
               Get assistance with your DV application process.
             </p>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="w-full">
               <Link href="/help">
                 View Help Center
               </Link>
@@ -412,14 +490,14 @@ export function UserDashboard({ className }: UserDashboardProps) {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Application Status</CardTitle>
+            <CardTitle className="text-lg">Check Results</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-4">
               Check the official DV lottery results when available.
             </p>
-            <Button variant="outline" size="sm" disabled>
-              Check Results (Coming Soon)
+            <Button variant="outline" size="sm" disabled className="w-full">
+              Results (Coming Soon)
             </Button>
           </CardContent>
         </Card>
@@ -432,7 +510,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
             <p className="text-sm text-gray-600 mb-4">
               Update your account information and preferences.
             </p>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="w-full">
               <Link href="/profile">
                 Manage Account
               </Link>

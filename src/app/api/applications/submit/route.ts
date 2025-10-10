@@ -31,41 +31,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for duplicate submissions
-    const existingSubmittedApplication = await prisma.application.findFirst({
-      where: {
-        userId: userWithRole.dbUser.id,
-        status: {
-          in: ['PAYMENT_PENDING', 'PAYMENT_VERIFIED', 'SUBMITTED', 'CONFIRMED']
-        }
-      }
-    })
-
-    if (existingSubmittedApplication) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: { 
-            code: 'DUPLICATE_SUBMISSION', 
-            message: 'You already have an active application for the current DV cycle',
-            details: {
-              existingApplicationId: existingSubmittedApplication.id,
-              existingStatus: existingSubmittedApplication.status,
-              submittedAt: existingSubmittedApplication.submittedAt
-            }
-          } 
-        },
-        { status: 409 }
-      )
-    }
+    // Allow multiple applications per user since they can submit for family members
+    // Each application represents a different person's DV lottery entry
 
     const applicationData = validationResult.data
 
-    // Find existing draft application or create new one
+    // Check if there's a matching draft application for this specific person
+    // Match by name and date of birth to find the correct draft
     let application = await prisma.application.findFirst({
       where: {
         userId: userWithRole.dbUser.id,
-        status: 'DRAFT'
+        status: 'DRAFT',
+        firstName: applicationData.firstName,
+        lastName: applicationData.lastName,
+        dateOfBirth: new Date(applicationData.dateOfBirth)
       }
     })
 

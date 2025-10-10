@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { authServer } from '@/lib/auth/server-auth-helpers'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const userWithRole = await authServer.getUserWithRole()
     if (!userWithRole?.dbUser) {
@@ -33,18 +33,10 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Check if there's already a submitted application
-    const submittedApplication = existingApplications.find(app => 
-      app.status === 'SUBMITTED' || app.status === 'CONFIRMED'
-    )
-
-    // Check if there's a pending application (payment pending or verified)
-    const pendingApplication = existingApplications.find(app => 
-      app.status === 'PAYMENT_PENDING' || app.status === 'PAYMENT_VERIFIED'
-    )
-
-    const hasDuplicate = !!(submittedApplication || pendingApplication)
-    const canSubmit = !hasDuplicate
+    // Allow multiple applications per user since one person can submit for family members
+    // Always allow new applications - users can submit for multiple people
+    const hasDuplicate = false
+    const canSubmit = true
 
     return NextResponse.json({
       success: true,
@@ -58,9 +50,7 @@ export async function GET(request: NextRequest) {
           submittedAt: app.submittedAt,
           confirmationNumber: app.confirmationNumber,
         })),
-        message: hasDuplicate 
-          ? 'You already have an active application for the current DV cycle'
-          : 'You can submit a new application'
+        message: 'You can submit multiple applications for different people'
       }
     })
   } catch (error) {
