@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 // Schema for partial application updates
 const partialApplicationSchema = z.object({
+  applicationId: z.string().optional(), // Optional application ID for editing specific applications
   personal: personalInfoSchema.partial().optional(),
   contact: contactInfoSchema.partial().optional(),
   education: educationWorkSchema.partial().optional(),
@@ -22,37 +23,50 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    
+
     // Validate the request body
     const validationResult = partialApplicationSchema.safeParse(body)
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: { 
-            code: 'VALIDATION_ERROR', 
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
             message: 'Invalid application data',
             details: validationResult.error.issues
-          } 
+          }
         },
         { status: 400 }
       )
     }
 
-    const { personal, contact, education } = validationResult.data
+    const { applicationId, personal, contact, education } = validationResult.data
 
-    // Find or create draft application
-    // TODO: With multiple applications, we need to identify which specific application is being edited
-    // For now, this will find the most recent draft application
-    let application = await prisma.application.findFirst({
-      where: {
-        userId: userWithRole.dbUser.id,
-        status: 'DRAFT',
-      },
-      orderBy: {
-        updatedAt: 'desc'
-      }
-    })
+    // Find specific application or most recent draft
+    let application = null
+    if (applicationId) {
+      // Find specific application for editing
+      application = await prisma.application.findFirst({
+        where: {
+          id: applicationId,
+          userId: userWithRole.dbUser.id,
+          status: {
+            in: ['DRAFT', 'PAYMENT_PENDING'] // Allow editing of draft and payment pending applications
+          }
+        }
+      })
+    } else {
+      // Find most recent draft application
+      application = await prisma.application.findFirst({
+        where: {
+          userId: userWithRole.dbUser.id,
+          status: 'DRAFT',
+        },
+        orderBy: {
+          updatedAt: 'desc'
+        }
+      })
+    }
 
     // Prepare update data
     const updateData: any = {
@@ -88,6 +102,28 @@ export async function POST(request: NextRequest) {
         data: updateData,
       })
     } else {
+      // Check draft application limit before creating new one
+      const draftCount = await prisma.application.count({
+        where: {
+          userId: userWithRole.dbUser.id,
+          status: 'DRAFT',
+        },
+      })
+
+      const MAX_DRAFT_APPLICATIONS = 5
+      if (draftCount >= MAX_DRAFT_APPLICATIONS) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'DRAFT_LIMIT_EXCEEDED',
+              message: `You can only have ${MAX_DRAFT_APPLICATIONS} draft applications at a time. Please submit or delete existing drafts to create new ones.`
+            }
+          },
+          { status: 400 }
+        )
+      }
+
       // Create new draft application with minimal required fields
       const requiredFields = {
         firstName: personal?.firstName || '',
@@ -134,12 +170,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error auto-saving application:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to auto-save application' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to auto-save application'
+        }
       },
       { status: 500 }
     )

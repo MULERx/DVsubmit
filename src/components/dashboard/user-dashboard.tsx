@@ -26,6 +26,8 @@ interface UserDashboardProps {
   className?: string
 }
 
+const MAX_DRAFT_APPLICATIONS = 5
+
 export function UserDashboard({ className }: UserDashboardProps) {
   const { user, userWithRole } = useAuth()
   const { toast } = useToast()
@@ -226,6 +228,10 @@ export function UserDashboard({ className }: UserDashboardProps) {
     app.status === 'SUBMITTED' || app.status === 'CONFIRMED'
   )
 
+  // Check if user can create new applications
+  const canCreateNewApplication = draftApplications.length < MAX_DRAFT_APPLICATIONS
+  const remainingDrafts = MAX_DRAFT_APPLICATIONS - draftApplications.length
+
   return (
     <div className={className}>
       {/* Welcome Section */}
@@ -237,14 +243,37 @@ export function UserDashboard({ className }: UserDashboardProps) {
               Manage DV lottery applications for yourself and family members.
             </p>
           </div>
-          <Button asChild size="lg">
-            <Link href="/dv-form?new=true">
+          {canCreateNewApplication ? (
+            <Button asChild size="lg">
+              <Link href="/dv-form?new=true">
+                <FileText className="h-5 w-5 mr-2" />
+                New Application
+              </Link>
+            </Button>
+          ) : (
+            <Button size="lg" disabled>
               <FileText className="h-5 w-5 mr-2" />
-              New Application
-            </Link>
-          </Button>
+              Draft Limit Reached
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Draft Limit Warning */}
+      {!canCreateNewApplication && (
+        <Card className="mb-8 border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-orange-800 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Draft Application Limit Reached
+            </CardTitle>
+            <CardDescription className="text-orange-700">
+              You have reached the maximum of {MAX_DRAFT_APPLICATIONS} draft applications. 
+              Please submit or delete existing drafts to create new applications.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Applications Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -256,8 +285,16 @@ export function UserDashboard({ className }: UserDashboardProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{draftApplications.length}</div>
-            <p className="text-sm text-gray-500">Applications in progress</p>
+            <div className="text-3xl font-bold text-gray-900">
+              {draftApplications.length}
+              <span className="text-lg text-gray-500">/{MAX_DRAFT_APPLICATIONS}</span>
+            </div>
+            <p className="text-sm text-gray-500">
+              {canCreateNewApplication 
+                ? `${remainingDrafts} more allowed`
+                : 'Limit reached'
+              }
+            </p>
           </CardContent>
         </Card>
 
@@ -312,12 +349,19 @@ export function UserDashboard({ className }: UserDashboardProps) {
                   Complete these applications to submit them for the DV lottery.
                 </CardDescription>
               </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/dv-form?new=true">
+              {canCreateNewApplication ? (
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/dv-form?new=true">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Start Fresh Application
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
                   <FileText className="h-4 w-4 mr-2" />
-                  Start Fresh Application
-                </Link>
-              </Button>
+                  Limit Reached ({MAX_DRAFT_APPLICATIONS}/{MAX_DRAFT_APPLICATIONS})
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -539,14 +583,24 @@ export function UserDashboard({ className }: UserDashboardProps) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-4">
-              Start a new DV application for yourself or a family member.
+              {canCreateNewApplication 
+                ? `Start a new DV application. ${remainingDrafts} drafts remaining.`
+                : `Draft limit reached (${MAX_DRAFT_APPLICATIONS}). Submit or delete existing drafts first.`
+              }
             </p>
-            <Button asChild size="sm" className="w-full">
-              <Link href="/dv-form?new=true">
+            {canCreateNewApplication ? (
+              <Button asChild size="sm" className="w-full">
+                <Link href="/dv-form?new=true">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Start Application
+                </Link>
+              </Button>
+            ) : (
+              <Button size="sm" className="w-full" disabled>
                 <FileText className="h-4 w-4 mr-2" />
-                Start Application
-              </Link>
-            </Button>
+                Limit Reached
+              </Button>
+            )}
           </CardContent>
         </Card>
 

@@ -21,6 +21,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+const MAX_DRAFT_APPLICATIONS = 5
+
 export default function ApplicationsPage() {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -132,6 +134,10 @@ export default function ApplicationsPage() {
     )
   }
 
+  // Check draft limit
+  const draftApplications = applications.filter(app => app.status === 'DRAFT')
+  const canCreateNewApplication = draftApplications.length < MAX_DRAFT_APPLICATIONS
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -152,12 +158,19 @@ export default function ApplicationsPage() {
                 View and manage DV lottery applications for yourself and family members
               </p>
             </div>
-            <Button asChild>
-              <Link href="/dv-form?new=true">
+            {canCreateNewApplication ? (
+              <Button asChild>
+                <Link href="/dv-form?new=true">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Application
+                </Link>
+              </Button>
+            ) : (
+              <Button disabled>
                 <Plus className="h-4 w-4 mr-2" />
-                New Application
-              </Link>
-            </Button>
+                Draft Limit Reached
+              </Button>
+            )}
           </div>
         </div>
 

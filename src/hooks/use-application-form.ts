@@ -13,6 +13,7 @@ interface UseApplicationFormOptions {
 export function useApplicationForm(options: UseApplicationFormOptions = {}) {
   const { autoSaveDelay = 2000, onError } = options
   const [formData, setFormData] = useState<Partial<FormStepData>>({})
+  const [currentApplicationId, setCurrentApplicationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
@@ -41,6 +42,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
           if (apiResponse.ok) {
             const result = await apiResponse.json()
             if (result.success && result.data) {
+              setCurrentApplicationId(result.data.id)
               const convertedData = ApplicationService.convertApplicationToFormData(result.data)
               setFormData(convertedData)
               setLastSaved(new Date(result.data.updatedAt))
@@ -60,6 +62,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
           // Load most recent draft application
           const serviceResponse = await ApplicationService.getCurrentDraftApplication()
           if (serviceResponse.success && serviceResponse.data) {
+            setCurrentApplicationId(serviceResponse.data.id)
             const convertedData = ApplicationService.convertApplicationToFormData(serviceResponse.data)
             setFormData(convertedData)
             setLastSaved(new Date(serviceResponse.data.updatedAt))
@@ -92,7 +95,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
 
     setIsSaving(true)
     try {
-      const response = await ApplicationService.autoSaveApplication(data)
+      const response = await ApplicationService.autoSaveApplication(data, currentApplicationId)
       if (response.success) {
         setLastSaved(new Date())
         setHasUnsavedChanges(false)
@@ -102,6 +105,17 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
           duration: 2000,
         })
       } else {
+        // Handle draft limit error specifically
+        if (response.error?.code === 'DRAFT_LIMIT_EXCEEDED') {
+          toast({
+            title: "Draft Limit Reached",
+            description: response.error.message,
+            variant: "destructive",
+            duration: 5000,
+          })
+          onError?.(response.error.message)
+          return // Don't throw error, just show message
+        }
         throw new Error(response.error?.message || 'Auto-save failed')
       }
     } catch (error) {
@@ -171,7 +185,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
 
     setIsSaving(true)
     try {
-      const response = await ApplicationService.autoSaveApplication(formData)
+      const response = await ApplicationService.autoSaveApplication(formData, currentApplicationId)
       if (response.success) {
         setLastSaved(new Date())
         setHasUnsavedChanges(false)

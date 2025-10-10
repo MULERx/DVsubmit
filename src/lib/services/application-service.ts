@@ -59,14 +59,15 @@ export class ApplicationService {
     }
   }
 
-  static async autoSaveApplication(data: Partial<FormStepData>): Promise<ApiResponse<ApplicationRecord>> {
+  static async autoSaveApplication(data: Partial<FormStepData>, applicationId?: string | null): Promise<ApiResponse<ApplicationRecord>> {
     try {
+      const payload = applicationId ? { ...data, applicationId } : data
       const response = await fetch(`${this.baseUrl}/auto-save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
