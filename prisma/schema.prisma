@@ -7,3 +7,126 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id                String        @id @default(cuid())
+  email            String        @unique
+  supabaseId       String        @unique
+  role             UserRole      @default(USER)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  applications     Application[]
+  auditLogs        AuditLog[]
+  
+  @@index([email])
+  @@index([supabaseId])
+  @@map("users")
+}
+
+model Application {
+  id                    String            @id @default(cuid())
+  userId               String
+  user                 User              @relation(fields: [userId], references: [id])
+  
+  // Personal Information
+  firstName            String
+  lastName             String
+  dateOfBirth          DateTime
+  countryOfBirth       String
+  countryOfEligibility String
+  
+  // Contact Information
+  email                String
+  phone                String
+  address              Json
+  
+  // Education/Work
+  education            String
+  occupation           String
+  
+  // Photo
+  photoUrl             String?
+  photoValidated       Boolean           @default(false)
+  
+  // Payment
+  paymentReference     String?
+  paymentStatus        PaymentStatus     @default(PENDING)
+  paymentVerifiedAt    DateTime?
+  paymentVerifiedBy    String?
+  
+  // Submission
+  status               ApplicationStatus @default(DRAFT)
+  submittedAt          DateTime?
+  confirmationNumber   String?
+  submittedBy          String?
+  
+  // Metadata
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  
+  auditLogs            AuditLog[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@index([email])
+  @@map("applications")
+}
+
+model AuditLog {
+  id            String      @id @default(cuid())
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
+  
+  action        String
+  details       Json
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([applicationId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model RetentionPolicy {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  retentionDays Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([name])
+  @@index([isActive])
+  @@map("retention_policies")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  REFUNDED
+}
+
+enum ApplicationStatus {
+  DRAFT
+  PAYMENT_PENDING
+  PAYMENT_VERIFIED
+  SUBMITTED
+  CONFIRMED
+  EXPIRED
+}
