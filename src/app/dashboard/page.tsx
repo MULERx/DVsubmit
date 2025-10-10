@@ -58,7 +58,7 @@ export default function DashboardPage() {
                   </span>
                 )}
               </span>
-              
+
               {/* Admin Links */}
               <AdminOnly>
                 <Link
@@ -68,7 +68,7 @@ export default function DashboardPage() {
                   Admin Panel
                 </Link>
               </AdminOnly>
-              
+
               <button
                 onClick={handleSignOut}
                 className="text-sm text-gray-500 hover:text-gray-700"

@@ -20,36 +20,70 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'>('PENDING')
   const { toast } = useToast()
 
-  // Load existing draft application on mount
+  // Load existing draft application on mount (unless starting fresh)
   useEffect(() => {
-    const loadDraftApplication = async () => {
+    const loadApplication = async () => {
       setIsLoading(true)
       try {
-        const response = await ApplicationService.getCurrentDraftApplication()
-        if (response.success && response.data) {
-          const convertedData = ApplicationService.convertApplicationToFormData(response.data)
-          setFormData(convertedData)
-          setLastSaved(new Date(response.data.updatedAt))
-          
-          // Load payment status if payment reference exists
-          if (response.data?.paymentReference) {
-            setPaymentStatus(response.data.paymentStatus)
-            // Set payment data in form
-            setFormData(prev => ({
-              ...prev,
-              payment: { paymentReference: response.data!.paymentReference! }
-            }))
+        const urlParams = new URLSearchParams(window.location.search)
+        const startFresh = urlParams.get('new') === 'true'
+        const editApplicationId = urlParams.get('edit')
+        
+        if (startFresh) {
+          // Don't load any existing data, start completely fresh
+          setIsLoading(false)
+          return
+        }
+
+        if (editApplicationId) {
+          // Load specific application for editing
+          const apiResponse = await fetch(`/api/applications/${editApplicationId}`)
+          if (apiResponse.ok) {
+            const result = await apiResponse.json()
+            if (result.success && result.data) {
+              const convertedData = ApplicationService.convertApplicationToFormData(result.data)
+              setFormData(convertedData)
+              setLastSaved(new Date(result.data.updatedAt))
+              
+              // Load payment status if payment reference exists
+              if (result.data?.paymentReference) {
+                setPaymentStatus(result.data.paymentStatus)
+                // Set payment data in form
+                setFormData(prev => ({
+                  ...prev,
+                  payment: { paymentReference: result.data!.paymentReference! }
+                }))
+              }
+            }
+          }
+        } else {
+          // Load most recent draft application
+          const serviceResponse = await ApplicationService.getCurrentDraftApplication()
+          if (serviceResponse.success && serviceResponse.data) {
+            const convertedData = ApplicationService.convertApplicationToFormData(serviceResponse.data)
+            setFormData(convertedData)
+            setLastSaved(new Date(serviceResponse.data.updatedAt))
+            
+            // Load payment status if payment reference exists
+            if (serviceResponse.data?.paymentReference) {
+              setPaymentStatus(serviceResponse.data.paymentStatus)
+              // Set payment data in form
+              setFormData(prev => ({
+                ...prev,
+                payment: { paymentReference: serviceResponse.data!.paymentReference! }
+              }))
+            }
           }
         }
       } catch (error) {
-        console.error('Error loading draft application:', error)
-        onError?.('Failed to load existing application data')
+        console.error('Error loading application:', error)
+        onError?.('Failed to load application data')
       } finally {
         setIsLoading(false)
       }
     }
 
-    loadDraftApplication()
+    loadApplication()
   }, [onError])
 
   // Auto-save functionality with debouncing

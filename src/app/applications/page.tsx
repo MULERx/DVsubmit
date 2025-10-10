@@ -15,7 +15,9 @@ import {
   CheckCircle, 
   XCircle, 
   Eye,
-  Plus
+  Plus,
+  Edit,
+  Trash2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -24,6 +26,7 @@ export default function ApplicationsPage() {
   const { toast } = useToast()
   const [applications, setApplications] = useState<ApplicationRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingApplication, setDeletingApplication] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -86,6 +89,41 @@ export default function ApplicationsPage() {
     })
   }
 
+  const deleteApplication = async (applicationId: string, applicantName: string) => {
+    if (!confirm(`Are you sure you want to delete the application for ${applicantName}? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      setDeletingApplication(applicationId)
+      
+      const response = await fetch(`/api/applications/${applicationId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete application')
+      }
+
+      // Remove the application from the local state
+      setApplications(prev => prev.filter(app => app.id !== applicationId))
+      
+      toast({
+        title: 'Application Deleted',
+        description: `Application for ${applicantName} has been deleted successfully.`,
+      })
+    } catch (error) {
+      console.error('Error deleting application:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to delete application. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setDeletingApplication(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -115,7 +153,7 @@ export default function ApplicationsPage() {
               </p>
             </div>
             <Button asChild>
-              <Link href="/dv-form">
+              <Link href="/dv-form?new=true">
                 <Plus className="h-4 w-4 mr-2" />
                 New Application
               </Link>
@@ -129,12 +167,12 @@ export default function ApplicationsPage() {
             <CardHeader>
               <CardTitle>No Applications Found</CardTitle>
               <CardDescription>
-                You haven't created any DV lottery applications yet. You can create applications for yourself and eligible family members.
+                You haven&apos;t created any DV lottery applications yet. You can create applications for yourself and eligible family members.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <Link href="/dv-form">
+                <Link href="/dv-form?new=true">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Your First Application
                 </Link>
@@ -205,12 +243,25 @@ export default function ApplicationsPage() {
                       </Link>
                     </Button>
                     
-                    {application.status === 'DRAFT' && (
-                      <Button asChild>
-                        <Link href="/dv-form">
-                          Continue Application
-                        </Link>
-                      </Button>
+                    {/* Edit and Delete options for non-submitted applications */}
+                    {(application.status === 'DRAFT' || 
+                      (application.status === 'PAYMENT_PENDING' && application.paymentStatus !== 'VERIFIED')) && (
+                      <>
+                        <Button asChild>
+                          <Link href={`/dv-form?edit=${application.id}`}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            {application.status === 'DRAFT' ? 'Continue' : 'Edit'}
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => deleteApplication(application.id, `${application.firstName} ${application.lastName}`)}
+                          disabled={deletingApplication === application.id}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {deletingApplication === application.id ? 'Deleting...' : 'Delete'}
+                        </Button>
+                      </>
                     )}
                   </div>
                 </CardContent>

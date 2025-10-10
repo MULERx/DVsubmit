@@ -16,7 +16,9 @@ import {
   XCircle,
   AlertCircle,
   Upload,
-  Copy
+  Copy,
+  Edit,
+  Trash2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -30,6 +32,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
   const [applications, setApplications] = useState<ApplicationRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [downloadingProof, setDownloadingProof] = useState<string | null>(null)
+  const [deletingApplication, setDeletingApplication] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -159,6 +162,41 @@ export function UserDashboard({ className }: UserDashboardProps) {
     }
   }
 
+  const deleteApplication = async (applicationId: string, applicantName: string) => {
+    if (!confirm(`Are you sure you want to delete the application for ${applicantName}? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      setDeletingApplication(applicationId)
+      
+      const response = await fetch(`/api/applications/${applicationId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete application')
+      }
+
+      // Remove the application from the local state
+      setApplications(prev => prev.filter(app => app.id !== applicationId))
+      
+      toast({
+        title: 'Application Deleted',
+        description: `Application for ${applicantName} has been deleted successfully.`,
+      })
+    } catch (error) {
+      console.error('Error deleting application:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to delete application. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setDeletingApplication(null)
+    }
+  }
+
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -200,7 +238,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
             </p>
           </div>
           <Button asChild size="lg">
-            <Link href="/dv-form">
+            <Link href="/dv-form?new=true">
               <FileText className="h-5 w-5 mr-2" />
               New Application
             </Link>
@@ -267,10 +305,20 @@ export function UserDashboard({ className }: UserDashboardProps) {
       {draftApplications.length > 0 && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Draft Applications</CardTitle>
-            <CardDescription>
-              Complete these applications to submit them for the DV lottery.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Draft Applications</CardTitle>
+                <CardDescription>
+                  Complete these applications to submit them for the DV lottery.
+                </CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dv-form?new=true">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Start Fresh Application
+                </Link>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -299,10 +347,20 @@ export function UserDashboard({ className }: UserDashboardProps) {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button asChild>
-                      <Link href="/dv-form">
-                        Continue Application
+                    <Button asChild size="sm">
+                      <Link href={`/dv-form?edit=${application.id}`}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Continue
                       </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteApplication(application.id, `${application.firstName} ${application.lastName}`)}
+                      disabled={deletingApplication === application.id}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      {deletingApplication === application.id ? 'Deleting...' : 'Delete'}
                     </Button>
                   </div>
                 </div>
@@ -354,6 +412,26 @@ export function UserDashboard({ className }: UserDashboardProps) {
                         View Details
                       </Link>
                     </Button>
+                    {/* Only show edit/delete for payment pending, not for payment verified */}
+                    {application.status === 'PAYMENT_PENDING' && application.paymentStatus !== 'VERIFIED' && (
+                      <>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/dv-form?edit=${application.id}`}>
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteApplication(application.id, `${application.firstName} ${application.lastName}`)}
+                          disabled={deletingApplication === application.id}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          {deletingApplication === application.id ? 'Deleting...' : 'Delete'}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -444,7 +522,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
           </CardHeader>
           <CardContent>
             <Button asChild size="lg">
-              <Link href="/dv-form">
+              <Link href="/dv-form?new=true">
                 <FileText className="h-4 w-4 mr-2" />
                 Create First Application
               </Link>
@@ -464,7 +542,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
               Start a new DV application for yourself or a family member.
             </p>
             <Button asChild size="sm" className="w-full">
-              <Link href="/dv-form">
+              <Link href="/dv-form?new=true">
                 <FileText className="h-4 w-4 mr-2" />
                 Start Application
               </Link>
