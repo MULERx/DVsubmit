@@ -122,6 +122,8 @@ export interface FormStepData {
   photo?: {
     file: File
     preview: string
+    path?: string
+    signedUrl?: string
   }
   payment?: Payment
 }
