@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth/auth-context'
 import { ApplicationService } from '@/lib/services/application-service'
-import { ApplicationRecord, ApplicationStatus, PaymentStatus } from '@/lib/types/application'
+import { ApplicationRecord, ApplicationStatus } from '@/lib/types/application'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -70,33 +70,14 @@ export function UserDashboard({ className }: UserDashboardProps) {
 
   const getStatusBadge = (status: ApplicationStatus) => {
     const statusConfig = {
-      PAYMENT_PENDING: { variant: 'outline' as const, label: 'Payment Pending', icon: Clock },
+      PAYMENT_PENDING: { variant: 'outline' as const, label: 'Payment Verifing', icon: Clock },
       PAYMENT_VERIFIED: { variant: 'default' as const, label: 'Payment Verified', icon: CheckCircle },
+      PAYMENT_REJECTED: { variant: 'destructive' as const, label: 'Payment Rejected', icon: XCircle },
+      APPLICATION_REJECTED: { variant: 'destructive' as const, label: 'Application Rejected', icon: XCircle },
       SUBMITTED: { variant: 'default' as const, label: 'Submitted to DV System', icon: Upload },
-      CONFIRMED: { variant: 'default' as const, label: 'Confirmed', icon: CheckCircle },
-      EXPIRED: { variant: 'destructive' as const, label: 'Expired', icon: XCircle },
     }
 
     const config = statusConfig[status] || statusConfig.PAYMENT_PENDING
-    const Icon = config.icon
-
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
-    )
-  }
-
-  const getPaymentStatusBadge = (status: PaymentStatus) => {
-    const statusConfig = {
-      PENDING: { variant: 'outline' as const, label: 'Pending Verification', icon: Clock },
-      VERIFIED: { variant: 'default' as const, label: 'Verified', icon: CheckCircle },
-      REJECTED: { variant: 'destructive' as const, label: 'Rejected', icon: XCircle },
-      REFUNDED: { variant: 'secondary' as const, label: 'Refunded', icon: AlertCircle },
-    }
-
-    const config = statusConfig[status] || statusConfig.PENDING
     const Icon = config.icon
 
     return (
@@ -216,10 +197,10 @@ export function UserDashboard({ className }: UserDashboardProps) {
 
   // Organize applications by status
   const pendingApplications = applications.filter(app =>
-    app.status === 'PAYMENT_PENDING' || app.status === 'PAYMENT_VERIFIED'
+    app.status === 'PAYMENT_PENDING' || app.status === 'PAYMENT_VERIFIED' || app.status === 'PAYMENT_REJECTED' || app.status === 'APPLICATION_REJECTED'
   )
   const submittedApplications = applications.filter(app =>
-    app.status === 'SUBMITTED' || app.status === 'CONFIRMED'
+    app.status === 'SUBMITTED'
   )
 
   return (
@@ -308,7 +289,6 @@ export function UserDashboard({ className }: UserDashboardProps) {
                         {application.givenName} {application.familyName}
                       </h4>
                       {getStatusBadge(application.status)}
-                      {getPaymentStatusBadge(application.paymentStatus)}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                       <div>

@@ -86,7 +86,6 @@ export async function POST(request: NextRequest) {
       },
       data: {
         paymentReference,
-        paymentStatus: 'PENDING',
         status: 'PAYMENT_PENDING',
         updatedAt: new Date(),
       },
@@ -114,7 +113,6 @@ export async function POST(request: NextRequest) {
       data: {
         id: updatedApplication.id,
         paymentReference: updatedApplication.paymentReference,
-        paymentStatus: updatedApplication.paymentStatus,
         status: updatedApplication.status,
         updatedAt: updatedApplication.updatedAt,
       },
@@ -153,7 +151,6 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         paymentReference: true,
-        paymentStatus: true,
         status: true,
         paymentVerifiedAt: true,
         paymentVerifiedBy: true,

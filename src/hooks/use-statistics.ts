@@ -4,6 +4,7 @@ export interface Statistics {
   totalSubmittedApplications: number
   pendingPaymentVerify: number
   rejectedPayments: number
+  rejectedApplications: number
   pendingReviewAndSubmit: number
   submittedToDV: number
 }

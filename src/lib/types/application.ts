@@ -42,8 +42,7 @@ export type MaritalStatus = z.infer<typeof maritalStatusEnum>
 
 // Database model types (matching Prisma schema)
 export type UserRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN'
-export type PaymentStatus = 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'
-export type ApplicationStatus = 'PAYMENT_PENDING' | 'PAYMENT_VERIFIED' | 'SUBMITTED' | 'CONFIRMED' | 'EXPIRED'
+export type ApplicationStatus = 'PAYMENT_PENDING' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED' | 'APPLICATION_REJECTED' | 'SUBMITTED'
 
 export interface User {
   id: string
@@ -108,7 +107,6 @@ export interface ApplicationRecord {
   
   // Payment
   paymentReference?: string
-  paymentStatus: PaymentStatus
   paymentVerifiedAt?: Date
   paymentVerifiedBy?: string
   

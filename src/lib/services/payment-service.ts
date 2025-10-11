@@ -4,8 +4,7 @@ import { NotificationService } from './notification-service'
 export interface PaymentStatusResponse {
   id: string
   paymentReference: string | null
-  paymentStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'
-  status: string
+  status: 'PAYMENT_PENDING' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED' | 'APPLICATION_REJECTED' | 'SUBMITTED'
   paymentVerifiedAt: Date | null
   paymentVerifiedBy: string | null
   updatedAt: Date
@@ -98,45 +97,51 @@ export class PaymentService {
   /**
    * Check if payment allows form modification
    */
-  static canModifyApplication(paymentStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'): boolean {
+  static canModifyApplication(status: 'PAYMENT_PENDING' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED' | 'APPLICATION_REJECTED' | 'SUBMITTED'): boolean {
     // Users can modify their application only if payment is not verified
-    return paymentStatus !== 'VERIFIED'
+    return status !== 'PAYMENT_VERIFIED' && status !== 'SUBMITTED'
   }
 
   /**
    * Check if user can proceed to next step
    */
-  static canProceedToReview(paymentStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'): boolean {
+  static canProceedToReview(status: 'PAYMENT_PENDING' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED' | 'APPLICATION_REJECTED' | 'SUBMITTED'): boolean {
     // Users can only proceed to review if payment is verified
-    return paymentStatus === 'VERIFIED'
+    return status === 'PAYMENT_VERIFIED'
   }
 
   /**
    * Get user-friendly payment status message
    */
-  static getPaymentStatusMessage(paymentStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'): {
+  static getPaymentStatusMessage(status: 'PAYMENT_PENDING' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED' | 'APPLICATION_REJECTED' | 'SUBMITTED'): {
     title: string
     description: string
     variant: 'success' | 'error' | 'warning' | 'info'
   } {
-    switch (paymentStatus) {
-      case 'VERIFIED':
+    switch (status) {
+      case 'PAYMENT_VERIFIED':
         return {
           title: 'Payment Verified',
           description: 'Your payment has been verified successfully. You can now proceed to review your application.',
           variant: 'success'
         }
-      case 'REJECTED':
+      case 'PAYMENT_REJECTED':
         return {
           title: 'Payment Rejected',
           description: 'Your payment could not be verified. Please check your payment reference and submit a new one.',
           variant: 'error'
         }
-      case 'REFUNDED':
+      case 'APPLICATION_REJECTED':
         return {
-          title: 'Payment Refunded',
-          description: 'Your payment has been refunded. You can submit a new payment reference to continue.',
-          variant: 'info'
+          title: 'Application Rejected',
+          description: 'Your application has been rejected by admins. Please review and correct the issues.',
+          variant: 'error'
+        }
+      case 'SUBMITTED':
+        return {
+          title: 'Application Submitted',
+          description: 'Your application has been successfully submitted to the DV system.',
+          variant: 'success'
         }
       default:
         return {

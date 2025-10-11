@@ -121,6 +121,20 @@ export function ApplicationsTable({
             Payment Verified
           </Badge>
         )
+      case 'PAYMENT_REJECTED':
+        return (
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <XCircle className="h-3 w-3" />
+            Payment Rejected
+          </Badge>
+        )
+      case 'APPLICATION_REJECTED':
+        return (
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <XCircle className="h-3 w-3" />
+            Application Rejected
+          </Badge>
+        )
       case 'SUBMITTED':
         return (
           <Badge variant="default" className="flex items-center gap-1 bg-blue-100 text-blue-800">
@@ -147,9 +161,9 @@ export function ApplicationsTable({
     }
   }
 
-  const getPaymentStatusBadge = (paymentStatus: string, paymentReference?: string) => {
-    switch (paymentStatus) {
-      case 'PENDING':
+  const getPaymentStatusBadge = (status: string, paymentReference?: string) => {
+    switch (status) {
+      case 'PAYMENT_PENDING':
         if (!paymentReference) {
           return (
             <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-200">
@@ -164,14 +178,14 @@ export function ApplicationsTable({
             Pending Verification
           </Badge>
         )
-      case 'VERIFIED':
+      case 'PAYMENT_VERIFIED':
         return (
           <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800">
             <CheckCircle className="h-3 w-3" />
             Verified
           </Badge>
         )
-      case 'REJECTED':
+      case 'PAYMENT_REJECTED':
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="h-3 w-3" />
@@ -179,7 +193,7 @@ export function ApplicationsTable({
           </Badge>
         )
       default:
-        return <Badge variant="outline">{paymentStatus}</Badge>
+        return <Badge variant="outline">{status}</Badge>
     }
   }
 
@@ -223,20 +237,20 @@ export function ApplicationsTable({
       cell: ({ row }) => getStatusBadge(row.original.status),
     },
     {
-      accessorKey: 'paymentStatus',
+      accessorKey: 'status',
       header: 'Payment Status',
-      cell: ({ row }) => getPaymentStatusBadge(row.original.paymentStatus, row.original.paymentReference),
+      cell: ({ row }) => getPaymentStatusBadge(row.original.status, row.original.paymentReference),
     },
     {
       accessorKey: 'paymentReference',
       header: 'Payment Reference',
       cell: ({ row }) => {
         const ref = row.original.paymentReference
-        const paymentStatus = row.original.paymentStatus
+        const status = row.original.status
 
         if (ref) {
           return <span className="font-mono text-sm">{ref}</span>
-        } else if (paymentStatus === 'PENDING') {
+        } else if (status === 'PAYMENT_PENDING') {
           return (
             <span className="text-orange-500 text-sm italic">
               Awaiting payment submission
@@ -286,7 +300,7 @@ export function ApplicationsTable({
       header: 'Actions',
       cell: ({ row }) => {
         const app = row.original
-        const canManagePayment = app.paymentStatus === 'PENDING' 
+        const canManagePayment = app.status === 'PAYMENT_PENDING' 
 
         return (
           <div className="flex items-center space-x-2">

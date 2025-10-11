@@ -6,7 +6,6 @@ export interface AdminApplication {
   familyName: string
   email: string
   status: string
-  paymentStatus: string
   paymentReference?: string
   confirmationNumber?: string
   createdAt: string

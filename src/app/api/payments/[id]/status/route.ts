@@ -29,7 +29,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       select: {
         id: true,
         paymentReference: true,
-        paymentStatus: true,
         status: true,
         paymentVerifiedAt: true,
         paymentVerifiedBy: true,

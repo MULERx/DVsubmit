@@ -25,18 +25,24 @@ export async function GET(request: NextRequest) {
     if (status) {
       where.status = status
     }
-    
+
     // Handle type-based filtering
     if (type) {
       switch (type) {
         case 'pendingPayment':
-          where.paymentStatus = 'PENDING'
+          where.status = 'PAYMENT_PENDING'
           break
         case 'pendingReview':
           where.status = 'PAYMENT_VERIFIED'
           break
+        case 'paymentRejected':
+          where.status = 'PAYMENT_REJECTED'
+          break
+        case 'applicationRejected':
+          where.status = 'APPLICATION_REJECTED'
+          break
         case 'submitted':
-          where.status = { in: ['SUBMITTED', 'CONFIRMED'] }
+          where.status = 'SUBMITTED'
           break
         default:
           // Invalid type, ignore
@@ -81,12 +87,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching admin applications:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to fetch applications' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch applications'
+        }
       },
       { status: 500 }
     )

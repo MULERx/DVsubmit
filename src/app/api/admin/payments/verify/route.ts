@@ -90,11 +90,9 @@ export async function PUT(request: NextRequest) {
     }
 
     if (action === 'approve') {
-      updateData.paymentStatus = 'VERIFIED'
       updateData.status = 'PAYMENT_VERIFIED'
     } else {
-      updateData.paymentStatus = 'REJECTED'
-      updateData.status = 'DRAFT' // Allow user to resubmit
+      updateData.status = 'PAYMENT_REJECTED'
       updateData.paymentReference = null // Clear the rejected reference
     }
 
@@ -126,7 +124,6 @@ export async function PUT(request: NextRequest) {
       data: {
         id: updatedApplication.id,
         status: updatedApplication.status,
-        paymentStatus: updatedApplication.paymentStatus,
         paymentVerifiedAt: updatedApplication.paymentVerifiedAt,
         paymentVerifiedBy: updatedApplication.paymentVerifiedBy,
       },

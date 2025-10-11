@@ -49,7 +49,6 @@ export async function PATCH(
       where: { id: applicationId },
       select: {
         id: true,
-        paymentStatus: true,
         paymentReference: true,
         status: true,
         givenName: true,
@@ -70,7 +69,7 @@ export async function PATCH(
     }
 
     // Check if payment is in pending status
-    if (application.paymentStatus !== 'PENDING') {
+    if (application.status !== 'PAYMENT_PENDING') {
       return NextResponse.json(
         { error: 'Payment is not in pending status' },
         { status: 400 }
@@ -93,11 +92,9 @@ export async function PATCH(
     }
 
     if (action === 'approve') {
-      updateData.paymentStatus = 'VERIFIED'
       updateData.status = 'PAYMENT_VERIFIED'
     } else {
-      updateData.paymentStatus = 'REJECTED'
-      // Keep status as PAYMENT_PENDING so user can resubmit
+      updateData.status = 'PAYMENT_REJECTED'
     }
 
     const updatedApplication = await prisma.application.update({
@@ -105,7 +102,6 @@ export async function PATCH(
       data: updateData,
       select: {
         id: true,
-        paymentStatus: true,
         status: true,
         paymentReference: true,
         paymentVerifiedAt: true,
@@ -122,8 +118,6 @@ export async function PATCH(
         action: action === 'approve' ? 'PAYMENT_APPROVED' : 'PAYMENT_REJECTED',
         details: {
           paymentReference: application.paymentReference,
-          previousPaymentStatus: 'PENDING',
-          newPaymentStatus: updateData.paymentStatus,
           previousStatus: application.status,
           newStatus: updateData.status,
           adminId: dbUser.id,

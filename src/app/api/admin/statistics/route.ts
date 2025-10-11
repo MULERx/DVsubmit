@@ -35,39 +35,39 @@ export async function GET(request: NextRequest) {
             totalSubmittedApplications,
             pendingPaymentVerify,
             rejectedPayments,
+            rejectedApplications,
             pendingReviewAndSubmit,
             submittedToDV
         ] = await Promise.all([
-            // 1. Total submitted applications
             prisma.application.count(),
 
-            // 2. Pending payment verify applications (paymentStatus: 'PENDING')
             prisma.application.count({
                 where: {
-                    paymentStatus: 'PENDING'
+                    status: 'PAYMENT_PENDING'
                 }
             }),
 
-
             prisma.application.count({
                 where: {
-                    paymentStatus: 'REJECTED'
+                    status: 'PAYMENT_REJECTED'
                 }
             }),
 
-            // 3. Pending review and submit to DV applications (status: 'PAYMENT_VERIFIED')
+            prisma.application.count({
+                where: {
+                    status: 'APPLICATION_REJECTED'
+                }
+            }),
+
             prisma.application.count({
                 where: {
                     status: 'PAYMENT_VERIFIED'
                 }
             }),
 
-            // 4. Submitted to DV applications
             prisma.application.count({
                 where: {
-                    status: {
-                        in: ['SUBMITTED', 'CONFIRMED']
-                    }
+                    status: 'SUBMITTED'
                 }
             })
         ])
@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
             totalSubmittedApplications,
             pendingPaymentVerify,
             rejectedPayments,
+            rejectedApplications,
             pendingReviewAndSubmit,
             submittedToDV
         }

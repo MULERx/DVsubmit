@@ -36,6 +36,10 @@ function ApplicationsManagementPage() {
         return 'Pending Payment Verification'
       case 'pendingReview':
         return 'Pending Review & Submit'
+      case 'paymentRejected':
+        return 'Payment Rejected'
+      case 'applicationRejected':
+        return 'Application Rejected'
       case 'submitted':
         return 'Submitted Applications'
       default:
@@ -49,6 +53,10 @@ function ApplicationsManagementPage() {
         return 'Applications awaiting payment verification from oldest to newest.'
       case 'pendingReview':
         return 'Applications with verified payments ready for DV submission.'
+      case 'paymentRejected':
+        return 'Applications with rejected payments that need resubmission.'
+      case 'applicationRejected':
+        return 'Applications rejected by admins that need corrections.'
       case 'submitted':
         return 'Applications successfully submitted to the DV system.'
       default:
@@ -121,9 +129,9 @@ function ApplicationsManagementPage() {
                 {[
                   { key: 'PAYMENT_PENDING', label: 'Payment Pending' },
                   { key: 'PAYMENT_VERIFIED', label: 'Payment Verified' },
+                  { key: 'PAYMENT_REJECTED', label: 'Payment Rejected' },
+                  { key: 'APPLICATION_REJECTED', label: 'Application Rejected' },
                   { key: 'SUBMITTED', label: 'Submitted' },
-                  { key: 'CONFIRMED', label: 'Confirmed' },
-                  { key: 'EXPIRED', label: 'Expired' },
                 ].map((status) => (
                   <button
                     key={status.key}

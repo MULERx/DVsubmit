@@ -58,7 +58,7 @@ export function QuickStatistics() {
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
         {/* 1. Total Submitted Applications */}
         <Link href="/admin/applications" className="block">
           <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
@@ -117,23 +117,23 @@ export function QuickStatistics() {
           </Card>
         </Link>
 
-        {/* 2. Rejected Payment  */}
-        <Link href="/admin/applications?type=rejected" className="block">
+        {/* 3. Rejected Payments */}
+        <Link href="/admin/applications?type=paymentRejected" className="block">
           <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
             <CardContent className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className={`text-2xl font-bold text-orange-600 ${isLoading ? 'animate-pulse' : ''}`}>
+                  <div className={`text-2xl font-bold text-red-600 ${isLoading ? 'animate-pulse' : ''}`}>
                     {isLoading ? '...' : statistics?.rejectedPayments || 0}
                   </div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <div className="text-sm font-medium text-gray-500 flex items-center gap-2">
                     <CreditCard className="h-4 w-4" />
-                    Rejected Payment
+                    Rejected Payments
                   </div>
                   <div className="text-xs text-gray-400 mt-1">
-                    Rejected payment
+                    Payment verification failed
                   </div>
                 </div>
               </div>
@@ -146,7 +146,36 @@ export function QuickStatistics() {
           </Card>
         </Link>
 
-        {/* 3. Pending Review and Submit */}
+        {/* 4. Rejected Applications */}
+        <Link href="/admin/applications?type=applicationRejected" className="block">
+          <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className={`text-2xl font-bold text-red-600 ${isLoading ? 'animate-pulse' : ''}`}>
+                    {isLoading ? '...' : statistics?.rejectedApplications || 0}
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <div className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Rejected Applications
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Need corrections by users
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            {isLoading && (
+              <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                <RefreshCw className="h-5 w-5 animate-spin text-gray-400" />
+              </div>
+            )}
+          </Card>
+        </Link>
+
+        {/* 5. Pending Review and Submit */}
         <Link href="/admin/applications?type=pendingReview" className="block">
           <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
             <CardContent className="p-5">
@@ -175,7 +204,7 @@ export function QuickStatistics() {
           </Card>
         </Link>
 
-        {/* 4. Submitted to DV */}
+        {/* 6. Submitted to DV */}
         <Link href="/admin/applications?type=submitted" className="block">
           <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
             <CardContent className="p-5">

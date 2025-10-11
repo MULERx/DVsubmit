@@ -79,7 +79,6 @@ model Application {
   
   // Payment
   paymentReference     String?
-  paymentStatus        PaymentStatus     @default(PENDING)
   paymentVerifiedAt    DateTime?
   paymentVerifiedBy    String?
   
@@ -97,7 +96,6 @@ model Application {
   
   @@index([userId])
   @@index([status])
-  @@index([paymentStatus])
   @@index([createdAt])
   @@index([email])
   @@map("applications")
@@ -152,19 +150,12 @@ enum UserRole {
   SUPER_ADMIN
 }
 
-enum PaymentStatus {
-  PENDING
-  VERIFIED
-  REJECTED
-  REFUNDED
-}
-
 enum ApplicationStatus {
   PAYMENT_PENDING
   PAYMENT_VERIFIED
+  PAYMENT_REJECTED
+  APPLICATION_REJECTED
   SUBMITTED
-  CONFIRMED
-  EXPIRED
 }
 
 enum Gender {

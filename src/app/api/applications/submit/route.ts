@@ -98,9 +98,6 @@ export async function POST(request: NextRequest) {
         // Photo
         photoUrl: null, // Will be handled separately
         photoValidated: false,
-        
-        // Payment - starts as pending
-        paymentStatus: 'PENDING',
         status: 'PAYMENT_PENDING',
       },
     })
