@@ -39,11 +39,11 @@ interface ApplicationDetail {
   countryOfBirth: string
   countryOfEligibility: string
   eligibilityClaimType?: string
-  
+
   // Contact Information
   email: string
   phoneNumber?: string
-  
+
   // Address Information
   inCareOf?: string
   addressLine1: string
@@ -53,10 +53,10 @@ interface ApplicationDetail {
   postalCode: string
   country: string
   countryOfResidence: string
-  
+
   // Education
   educationLevel: string
-  
+
   // Marital Status
   maritalStatus: string
   spouseFamilyName?: string
@@ -66,7 +66,7 @@ interface ApplicationDetail {
   spouseDateOfBirth?: string
   spouseCityOfBirth?: string
   spouseCountryOfBirth?: string
-  
+
   // Children
   children: Array<{
     familyName: string
@@ -77,7 +77,7 @@ interface ApplicationDetail {
     cityOfBirth: string
     countryOfBirth: string
   }>
-  
+
   // Application Status
   status: string
   paymentReference?: string
@@ -85,7 +85,7 @@ interface ApplicationDetail {
   submittedAt?: string
   createdAt: string
   updatedAt: string
-  
+
   // User Information
   user: {
     id: string
@@ -113,7 +113,7 @@ function ApplicationDetailPage() {
     try {
       setLoading(true)
       const response = await fetch(`/api/admin/applications/${applicationId}`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to load application')
       }
@@ -172,6 +172,48 @@ function ApplicationDetailPage() {
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to update payment status',
+        variant: 'destructive',
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleApplicationRejection = async () => {
+    if (!application) return
+
+    try {
+      setActionLoading('reject-application')
+      const response = await fetch('/api/admin/applications/reject', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          applicationId: application.id
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to reject application')
+      }
+
+      const result = await response.json()
+      if (result.success) {
+        toast({
+          title: 'Success',
+          description: 'Application rejected successfully. The applicant will be notified to make corrections.',
+        })
+        // Reload application data
+        await loadApplication()
+      } else {
+        throw new Error(result.error?.message || 'Failed to reject application')
+      }
+    } catch (error) {
+      console.error('Error rejecting application:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to reject application',
         variant: 'destructive',
       })
     } finally {
@@ -266,6 +308,7 @@ function ApplicationDetailPage() {
   }
 
   const canManagePayment = application.status === 'PAYMENT_PENDING' && application.paymentReference
+  const canRejectApplication = application.status === 'PAYMENT_VERIFIED' || application.status === 'PAYMENT_PENDING'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -316,44 +359,66 @@ function ApplicationDetailPage() {
               </div>
               <div className="flex items-center space-x-4">
                 {getStatusBadge(application.status)}
-                {canManagePayment && (
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={() => handlePaymentAction('approve')}
-                      disabled={actionLoading !== null}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      {actionLoading === 'approve' ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Approving...
-                        </>
-                      ) : (
-                        <>
-                          <Check className="h-4 w-4 mr-2" />
-                          Approve Payment
-                        </>
-                      )}
-                    </Button>
+                <div className="flex space-x-2">
+                  {canManagePayment && (
+                    <>
+                      <Button
+                        onClick={() => handlePaymentAction('approve')}
+                        disabled={actionLoading !== null}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {actionLoading === 'approve' ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Approving...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4 mr-2" />
+                            Approve Payment
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handlePaymentAction('reject')}
+                        disabled={actionLoading !== null}
+                      >
+                        {actionLoading === 'reject' ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Rejecting...
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 mr-2" />
+                            Reject Payment
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  )}
+                  {canRejectApplication && (
                     <Button
                       variant="destructive"
-                      onClick={() => handlePaymentAction('reject')}
+                      onClick={handleApplicationRejection}
                       disabled={actionLoading !== null}
+                      className="bg-red-600 hover:bg-red-700"
                     >
-                      {actionLoading === 'reject' ? (
+                      {actionLoading === 'reject-application' ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Rejecting...
+                          Rejecting Application...
                         </>
                       ) : (
                         <>
                           <X className="h-4 w-4 mr-2" />
-                          Reject Payment
+                          Reject Application
                         </>
                       )}
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -522,7 +587,7 @@ function ApplicationDetailPage() {
                     <label className="text-sm font-medium text-gray-500">Marital Status</label>
                     <p className="text-sm text-gray-900">{application.maritalStatus}</p>
                   </div>
-                  
+
                   {application.maritalStatus === 'MARRIED' && (
                     <div className="border-t pt-4">
                       <h4 className="text-sm font-medium text-gray-900 mb-3">Spouse Information</h4>
@@ -646,31 +711,31 @@ function ApplicationDetailPage() {
                       {getStatusBadge(application.status)}
                     </div>
                   </div>
-                  
+
                   {application.paymentReference && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Payment Reference</label>
                       <p className="text-sm font-mono text-gray-900">{application.paymentReference}</p>
                     </div>
                   )}
-                  
+
                   {application.confirmationNumber && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">DV Confirmation Number</label>
                       <p className="text-sm font-mono text-green-600">{application.confirmationNumber}</p>
                     </div>
                   )}
-                  
+
                   <div>
                     <label className="text-sm font-medium text-gray-500">Created At</label>
                     <p className="text-sm text-gray-900">{formatDateTime(application.createdAt)}</p>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium text-gray-500">Last Updated</label>
                     <p className="text-sm text-gray-900">{formatDateTime(application.updatedAt)}</p>
                   </div>
-                  
+
                   {application.submittedAt && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Submitted At</label>
