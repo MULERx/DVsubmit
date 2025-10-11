@@ -1,17 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { MultiStepForm } from '@/components/dv-form/multi-step-form'
-import { FormStepData } from '@/lib/types/application'
+import { FormStepData, ApplicationRecord } from '@/lib/types/application'
 import { Toaster } from '@/components/ui/toaster'
 
 export default function DVFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [existingApplication, setExistingApplication] = useState<ApplicationRecord | null>(null)
   const router = useRouter()
-  // No draft functionality - each form session is independent
+  const searchParams = useSearchParams()
+  const applicationId = searchParams.get('applicationId')
 
   const handleComplete = async (data: FormStepData) => {
     setIsSubmitting(true)
@@ -35,6 +38,34 @@ export default function DVFormPage() {
     setError(errorMessage)
   }
 
+  // Load existing application if applicationId is provided
+  useEffect(() => {
+    if (applicationId) {
+      loadExistingApplication(applicationId)
+    }
+  }, [applicationId])
+
+  const loadExistingApplication = async (id: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/applications/${id}`)
+      if (!response.ok) {
+        throw new Error('Failed to load application')
+      }
+      const result = await response.json()
+      if (result.success && result.data) {
+        setExistingApplication(result.data)
+      } else {
+        throw new Error(result.error?.message || 'Failed to load application')
+      }
+    } catch (error) {
+      console.error('Error loading application:', error)
+      setError(error instanceof Error ? error.message : 'Failed to load application')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
@@ -50,9 +81,14 @@ export default function DVFormPage() {
               Back to Dashboard
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">DV Lottery Application</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {existingApplication ? 'Edit DV Lottery Application' : 'DV Lottery Application'}
+          </h1>
           <p className="text-gray-600 mt-2">
-            Complete a Diversity Visa lottery application. You can submit multiple applications for different family members.
+            {existingApplication 
+              ? `Edit the application for ${existingApplication.givenName} ${existingApplication.familyName}. Make necessary corrections and resubmit.`
+              : 'Complete a Diversity Visa lottery application. You can submit multiple applications for different family members.'
+            }
           </p>
         </div>
       </div>
@@ -93,10 +129,17 @@ export default function DVFormPage() {
       )}
 
       <div className="py-8">
-        <MultiStepForm
-          onComplete={handleComplete}
-          onError={handleError}
-        />
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <MultiStepForm
+            onComplete={handleComplete}
+            onError={handleError}
+            existingApplication={existingApplication}
+          />
+        )}
       </div>
 
       <Toaster />

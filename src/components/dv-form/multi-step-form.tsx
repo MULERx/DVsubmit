@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { FormStep, FormStepData, PersonalInfo, MailingAddress, ContactInfo, Education, MaritalStatusInfo, Children, Payment } from '@/lib/types/application'
+import { useState, useCallback, useEffect } from 'react'
+import { FormStep, FormStepData, PersonalInfo, MailingAddress, ContactInfo, Education, MaritalStatusInfo, Children, Payment, ApplicationRecord } from '@/lib/types/application'
 import { FormStepNavigation } from './form-step-navigation'
 import { PersonalInfoForm } from './personal-info-form'
 import { MailingAddressForm } from './mailing-address-form'
@@ -12,26 +12,85 @@ import { ChildrenForm } from './children-form'
 import { PhotoUploadForm } from './photo-upload-form'
 
 import { ReviewForm } from './review-form'
-import { FormLockNotice } from '@/components/ui/form-lock-notice'
 
 interface MultiStepFormProps {
   onComplete?: (data: FormStepData) => Promise<void>
   onError?: (error: string) => void
+  existingApplication?: ApplicationRecord | null
 }
 
 export function MultiStepForm({
   onComplete,
-  onError
+  onError,
+  existingApplication
 }: MultiStepFormProps) {
   const [currentStep, setCurrentStep] = useState<FormStep>('personal')
-  const [duplicateCheckResult, setDuplicateCheckResult] = useState<{
-    canSubmit: boolean
-    hasDuplicate: boolean
-    message: string
-  } | null>(null)
+
 
   const [formData, setFormData] = useState<Partial<FormStepData>>({})
   const [isLoading, setIsLoading] = useState(false)
+
+  // Initialize form data with existing application data
+  useEffect(() => {
+    if (existingApplication) {
+      const transformedData: Partial<FormStepData> = {
+        personal: {
+          familyName: existingApplication.familyName,
+          givenName: existingApplication.givenName,
+          middleName: existingApplication.middleName || '',
+          gender: existingApplication.gender,
+          dateOfBirth: typeof existingApplication.dateOfBirth === 'string'
+            ? existingApplication.dateOfBirth
+            : existingApplication.dateOfBirth.toISOString().split('T')[0],
+          cityOfBirth: existingApplication.cityOfBirth,
+          countryOfBirth: existingApplication.countryOfBirth,
+          countryOfEligibility: existingApplication.countryOfEligibility,
+          eligibilityClaimType: existingApplication.eligibilityClaimType || undefined,
+        },
+        address: {
+          inCareOf: existingApplication.inCareOf || '',
+          addressLine1: existingApplication.addressLine1,
+          addressLine2: existingApplication.addressLine2 || '',
+          city: existingApplication.city,
+          stateProvince: existingApplication.stateProvince,
+          postalCode: existingApplication.postalCode,
+          country: existingApplication.country,
+          countryOfResidence: existingApplication.countryOfResidence,
+        },
+        contact: {
+          phoneNumber: existingApplication.phoneNumber || '',
+          email: existingApplication.email,
+        },
+        education: {
+          educationLevel: existingApplication.educationLevel,
+        },
+        marital: {
+          maritalStatus: existingApplication.maritalStatus,
+          spouseFamilyName: existingApplication.spouseFamilyName || '',
+          spouseGivenName: existingApplication.spouseGivenName || '',
+          spouseMiddleName: existingApplication.spouseMiddleName || '',
+          spouseGender: existingApplication.spouseGender || undefined,
+          spouseDateOfBirth: existingApplication.spouseDateOfBirth
+            ? (typeof existingApplication.spouseDateOfBirth === 'string'
+              ? existingApplication.spouseDateOfBirth
+              : existingApplication.spouseDateOfBirth.toISOString().split('T')[0])
+            : '',
+          spouseCityOfBirth: existingApplication.spouseCityOfBirth || '',
+          spouseCountryOfBirth: existingApplication.spouseCountryOfBirth || '',
+        },
+        children: {
+          children: (existingApplication.children || []).map(child => ({
+            ...child,
+            dateOfBirth: typeof child.dateOfBirth === 'string'
+              ? child.dateOfBirth
+              : child.dateOfBirth.toISOString().split('T')[0]
+          })),
+        },
+        // Note: Photo data would need to be handled separately if needed
+      }
+      setFormData(transformedData)
+    }
+  }, [existingApplication])
 
   // Track completed steps based on form data
   const getCompletedSteps = (): FormStep[] => {
@@ -43,8 +102,6 @@ export function MultiStepForm({
     if (formData.marital) completed.push('marital')
     if (formData.children !== undefined) completed.push('children')
     if (formData.photo) completed.push('photo')
-
-    // Review step completion is handled by the review form itself
 
     return completed
   }
@@ -130,7 +187,7 @@ export function MultiStepForm({
       console.log('Education data:', formData.education)
       console.log('Marital data:', formData.marital)
       console.log('Children data:', formData.children)
-      
+
       // Transform nested form data to flat structure expected by API
       const applicationData = {
         // Personal Information
@@ -143,7 +200,7 @@ export function MultiStepForm({
         countryOfBirth: formData.personal?.countryOfBirth || '',
         countryOfEligibility: formData.personal?.countryOfEligibility || '',
         eligibilityClaimType: formData.personal?.eligibilityClaimType || undefined,
-        
+
         // Mailing Address
         inCareOf: formData.address?.inCareOf || undefined,
         addressLine1: formData.address?.addressLine1 || '',
@@ -153,14 +210,14 @@ export function MultiStepForm({
         postalCode: formData.address?.postalCode || '',
         country: formData.address?.country || '',
         countryOfResidence: formData.address?.countryOfResidence || '',
-        
+
         // Contact Information
         phoneNumber: formData.contact?.phoneNumber || undefined,
         email: formData.contact?.email || '',
-        
+
         // Education
         educationLevel: formData.education?.educationLevel || 'HIGH_SCHOOL_DIPLOMA',
-        
+
         // Marital Status
         maritalStatus: formData.marital?.maritalStatus || 'UNMARRIED',
         spouseFamilyName: formData.marital?.spouseFamilyName || undefined,
@@ -170,15 +227,20 @@ export function MultiStepForm({
         spouseDateOfBirth: formData.marital?.spouseDateOfBirth || undefined,
         spouseCityOfBirth: formData.marital?.spouseCityOfBirth || undefined,
         spouseCountryOfBirth: formData.marital?.spouseCountryOfBirth || undefined,
-        
+
         // Children
         children: formData.children?.children || [],
       }
 
       console.log('Transformed application data:', applicationData)
 
-      const response = await fetch('/api/applications/submit', {
-        method: 'POST',
+      const isEditing = !!existingApplication
+      const url = isEditing
+        ? `/api/applications/${existingApplication.id}/update`
+        : '/api/applications/submit'
+
+      const response = await fetch(url, {
+        method: isEditing ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -206,8 +268,6 @@ export function MultiStepForm({
       setIsLoading(false)
     }
   }, [formData, onComplete, onError])
-
-  // No form locking needed since we don't save until final submission
 
   // Render current step
   const renderCurrentStep = () => {

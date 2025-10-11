@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { DeleteApplicationDialog } from './delete-application-dialog'
+import { PaymentReferenceDialog } from './payment-reference-dialog'
 import {
   FileText,
   Download,
@@ -18,9 +19,11 @@ import {
   AlertCircle,
   Upload,
   Copy,
-  Edit
+  Edit,
+  CreditCard
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface UserDashboardProps {
   className?: string
@@ -31,10 +34,13 @@ interface UserDashboardProps {
 export function UserDashboard({ className }: UserDashboardProps) {
   const { user, userWithRole } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
   const [applications, setApplications] = useState<ApplicationRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [downloadingProof, setDownloadingProof] = useState<string | null>(null)
   const [deletingApplication, setDeletingApplication] = useState<string | null>(null)
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const [selectedApplication, setSelectedApplication] = useState<ApplicationRecord | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -175,6 +181,20 @@ export function UserDashboard({ className }: UserDashboardProps) {
     }
   }
 
+  const handleCheckPayment = (application: ApplicationRecord) => {
+    setSelectedApplication(application)
+    setPaymentDialogOpen(true)
+  }
+
+  const handleEditApplication = (applicationId: string) => {
+    router.push(`/dv-form?applicationId=${applicationId}`)
+  }
+
+  const handlePaymentReferenceSuccess = () => {
+    // Reload applications to get updated status
+    loadApplications()
+  }
+
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -303,11 +323,34 @@ export function UserDashboard({ className }: UserDashboardProps) {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {/* No actions available for pending applications */}
-                    <div className="text-sm text-gray-500 italic flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      Processing
-                    </div>
+                    {application.status === 'PAYMENT_REJECTED' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCheckPayment(application)}
+                        className="flex items-center gap-2"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        Check Payment
+                      </Button>
+                    )}
+                    {application.status === 'APPLICATION_REJECTED' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditApplication(application.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit Application
+                      </Button>
+                    )}
+                    {(application.status === 'PAYMENT_PENDING' || application.status === 'PAYMENT_VERIFIED') && (
+                      <div className="text-sm text-gray-500 italic flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        Processing
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -472,6 +515,21 @@ export function UserDashboard({ className }: UserDashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment Reference Dialog */}
+      {selectedApplication && (
+        <PaymentReferenceDialog
+          isOpen={paymentDialogOpen}
+          onClose={() => {
+            setPaymentDialogOpen(false)
+            setSelectedApplication(null)
+          }}
+          applicationId={selectedApplication.id}
+          currentPaymentReference={selectedApplication.paymentReference || ''}
+          applicantName={`${selectedApplication.givenName} ${selectedApplication.familyName}`}
+          onSuccess={handlePaymentReferenceSuccess}
+        />
+      )}
     </div>
   )
 }
