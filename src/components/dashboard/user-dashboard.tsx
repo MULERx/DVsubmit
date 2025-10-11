@@ -26,7 +26,7 @@ interface UserDashboardProps {
   className?: string
 }
 
-const MAX_DRAFT_APPLICATIONS = 5
+
 
 export function UserDashboard({ className }: UserDashboardProps) {
   const { user, userWithRole } = useAuth()
@@ -70,7 +70,6 @@ export function UserDashboard({ className }: UserDashboardProps) {
 
   const getStatusBadge = (status: ApplicationStatus) => {
     const statusConfig = {
-      DRAFT: { variant: 'secondary' as const, label: 'Draft', icon: FileText },
       PAYMENT_PENDING: { variant: 'outline' as const, label: 'Payment Pending', icon: Clock },
       PAYMENT_VERIFIED: { variant: 'default' as const, label: 'Payment Verified', icon: CheckCircle },
       SUBMITTED: { variant: 'default' as const, label: 'Submitted to DV System', icon: Upload },
@@ -78,7 +77,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
       EXPIRED: { variant: 'destructive' as const, label: 'Expired', icon: XCircle },
     }
 
-    const config = statusConfig[status] || statusConfig.DRAFT
+    const config = statusConfig[status] || statusConfig.PAYMENT_PENDING
     const Icon = config.icon
 
     return (
@@ -167,7 +166,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
   const handleDeleteApplication = async (applicationId: string, applicantName: string) => {
     try {
       setDeletingApplication(applicationId)
-      
+
       const response = await fetch(`/api/applications/${applicationId}`, {
         method: 'DELETE',
       })
@@ -178,7 +177,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
 
       // Remove the application from the local state
       setApplications(prev => prev.filter(app => app.id !== applicationId))
-      
+
       toast({
         title: 'Application Deleted',
         description: `Application for ${applicantName} has been deleted successfully.`,
@@ -216,17 +215,12 @@ export function UserDashboard({ className }: UserDashboardProps) {
   }
 
   // Organize applications by status
-  const draftApplications = applications.filter(app => app.status === 'DRAFT')
   const pendingApplications = applications.filter(app =>
     app.status === 'PAYMENT_PENDING' || app.status === 'PAYMENT_VERIFIED'
   )
   const submittedApplications = applications.filter(app =>
     app.status === 'SUBMITTED' || app.status === 'CONFIRMED'
   )
-
-  // Check if user can create new applications
-  const canCreateNewApplication = draftApplications.length < MAX_DRAFT_APPLICATIONS
-  const remainingDrafts = MAX_DRAFT_APPLICATIONS - draftApplications.length
 
   return (
     <div className={className}>
@@ -239,61 +233,17 @@ export function UserDashboard({ className }: UserDashboardProps) {
               Manage DV lottery applications for yourself and family members.
             </p>
           </div>
-          {canCreateNewApplication ? (
-            <Button asChild size="lg">
-              <Link href="/dv-form">
-                <FileText className="h-5 w-5 mr-2" />
-                New Application
-              </Link>
-            </Button>
-          ) : (
-            <Button size="lg" disabled>
+          <Button asChild size="lg">
+            <Link href="/dv-form">
               <FileText className="h-5 w-5 mr-2" />
-              Draft Limit Reached
-            </Button>
-          )}
+              New Application
+            </Link>
+          </Button>
         </div>
       </div>
 
-      {/* Draft Limit Warning */}
-      {!canCreateNewApplication && (
-        <Card className="mb-8 border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle className="text-orange-800 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Draft Application Limit Reached
-            </CardTitle>
-            <CardDescription className="text-orange-700">
-              You have reached the maximum of {MAX_DRAFT_APPLICATIONS} draft applications. 
-              Please submit or delete existing drafts to create new applications.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
       {/* Applications Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5 text-gray-500" />
-              Draft
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
-              {draftApplications.length}
-              <span className="text-lg text-gray-500">/{MAX_DRAFT_APPLICATIONS}</span>
-            </div>
-            <p className="text-sm text-gray-500">
-              {canCreateNewApplication 
-                ? `${remainingDrafts} more allowed`
-                : 'Limit reached'
-              }
-            </p>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -334,78 +284,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
         </Card>
       </div>
 
-      {/* Draft Applications */}
-      {draftApplications.length > 0 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Draft Applications</CardTitle>
-                <CardDescription>
-                  Complete these applications to submit them for the DV lottery.
-                </CardDescription>
-              </div>
-              {canCreateNewApplication ? (
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/dv-form">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Start Fresh Application
-                  </Link>
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" disabled>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Limit Reached ({MAX_DRAFT_APPLICATIONS}/{MAX_DRAFT_APPLICATIONS})
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {draftApplications.map((application) => (
-                <div
-                  key={application.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-medium">
-                        {application.firstName} {application.lastName}
-                      </h4>
-                      {getStatusBadge(application.status)}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                      <div>
-                        <span className="font-medium">Country of Birth:</span> {application.countryOfBirth}
-                      </div>
-                      <div>
-                        <span className="font-medium">Created:</span> {formatDate(application.createdAt)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Last Updated:</span> {formatDate(application.updatedAt)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button asChild size="sm">
-                      <Link href={`/dv-form?edit=${application.id}`}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Continue
-                      </Link>
-                    </Button>
-                    <DeleteApplicationDialog
-                      applicationId={application.id}
-                      applicantName={`${application.firstName} ${application.lastName}`}
-                      onDelete={handleDeleteApplication}
-                      isDeleting={deletingApplication === application.id}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Pending Applications */}
       {pendingApplications.length > 0 && (
@@ -426,17 +305,17 @@ export function UserDashboard({ className }: UserDashboardProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h4 className="font-medium">
-                        {application.firstName} {application.lastName}
+                        {application.givenName} {application.familyName}
                       </h4>
                       {getStatusBadge(application.status)}
                       {getPaymentStatusBadge(application.paymentStatus)}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                       <div>
-                        <span className="font-medium">Country of Birth:</span> {application.countryOfBirth}
+                        <span className="font-medium">Payment Ref:</span> {application.paymentReference || 'N/A'}
                       </div>
                       <div>
-                        <span className="font-medium">Payment Ref:</span> {application.paymentReference || 'N/A'}
+                        <span className="font-medium">Created At:</span> {formatDate(application.createdAt)}
                       </div>
                       <div>
                         <span className="font-medium">Last Updated:</span> {formatDate(application.updatedAt)}
@@ -447,7 +326,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
                     {/* No actions available for pending applications */}
                     <div className="text-sm text-gray-500 italic flex items-center">
                       <Clock className="h-4 w-4 mr-1" />
-                      Processing - No actions available
+                      Processing
                     </div>
                   </div>
                 </div>
@@ -476,7 +355,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h4 className="font-medium">
-                        {application.firstName} {application.lastName}
+                        {application.givenName} {application.familyName}
                       </h4>
                       {getStatusBadge(application.status)}
                     </div>
@@ -508,7 +387,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
                   <div className="flex gap-2">
                     {application.confirmationNumber && (
                       <>
-                      
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -556,24 +435,14 @@ export function UserDashboard({ className }: UserDashboardProps) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-4">
-              {canCreateNewApplication 
-                ? `Start a new DV application. ${remainingDrafts} drafts remaining.`
-                : `Draft limit reached (${MAX_DRAFT_APPLICATIONS}). Submit or delete existing drafts first.`
-              }
+              Start a new DV lottery application for yourself or a family member.
             </p>
-            {canCreateNewApplication ? (
-              <Button asChild size="sm" className="w-full">
-                <Link href="/dv-form">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Start Application
-                </Link>
-              </Button>
-            ) : (
-              <Button size="sm" className="w-full" disabled>
+            <Button asChild size="sm" className="w-full">
+              <Link href="/dv-form">
                 <FileText className="h-4 w-4 mr-2" />
-                Limit Reached
-              </Button>
-            )}
+                Start Application
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 

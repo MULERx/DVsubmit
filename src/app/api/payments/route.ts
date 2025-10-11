@@ -33,11 +33,15 @@ export async function POST(request: NextRequest) {
 
     const { paymentReference } = validationResult.data
 
-    // Find the user's current draft application
+    // Find the user's current application that needs payment
     const application = await prisma.application.findFirst({
       where: {
         userId: userWithRole.dbUser.id,
-        status: 'DRAFT',
+        status: 'PAYMENT_PENDING',
+        paymentReference: null, // Only applications without payment reference
+      },
+      orderBy: {
+        createdAt: 'desc', // Get the most recent one
       },
     })
 
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
           success: false, 
           error: { 
             code: 'APPLICATION_NOT_FOUND', 
-            message: 'No draft application found. Please complete the form first.' 
+            message: 'No application awaiting payment found. Please complete the form first or payment has already been submitted.' 
           } 
         },
         { status: 404 }

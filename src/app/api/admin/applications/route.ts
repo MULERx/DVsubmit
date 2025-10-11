@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
+    const type = searchParams.get('type')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
@@ -23,6 +24,24 @@ export async function GET(request: NextRequest) {
     const where: any = {}
     if (status) {
       where.status = status
+    }
+    
+    // Handle type-based filtering
+    if (type) {
+      switch (type) {
+        case 'pendingPayment':
+          where.paymentStatus = 'PENDING'
+          break
+        case 'pendingReview':
+          where.status = 'PAYMENT_VERIFIED'
+          break
+        case 'submitted':
+          where.status = { in: ['SUBMITTED', 'CONFIRMED'] }
+          break
+        default:
+          // Invalid type, ignore
+          break
+      }
     }
 
     // Get applications with user information
@@ -39,7 +58,7 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: {
-          updatedAt: 'desc',
+          createdAt: 'asc', // From old to new as requested
         },
         skip,
         take: limit,

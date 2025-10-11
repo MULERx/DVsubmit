@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/auth/auth-context'
 import { withAuth } from '@/lib/auth/auth-context'
 import { SuperAdminOnly } from '@/lib/auth/role-guard'
+import { QuickStatistics } from '@/components/admin/quick-statistics'
 import Link from 'next/link'
 
 function AdminDashboard() {
@@ -207,59 +208,7 @@ function AdminDashboard() {
           </div>
 
           {/* Quick Stats */}
-          <div className="mt-8">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Statistics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="text-2xl font-bold text-indigo-600">0</div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <div className="text-sm font-medium text-gray-500">Total Applications</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="text-2xl font-bold text-green-600">0</div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <div className="text-sm font-medium text-gray-500">Verified Payments</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="text-2xl font-bold text-blue-600">0</div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <div className="text-sm font-medium text-gray-500">Submitted to DV</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="text-2xl font-bold text-yellow-600">0</div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <div className="text-sm font-medium text-gray-500">Pending Review</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <QuickStatistics />
         </div>
       </main>
     </div>
