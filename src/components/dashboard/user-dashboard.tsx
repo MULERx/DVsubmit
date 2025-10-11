@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { DeleteApplicationDialog } from './delete-application-dialog'
 import {
   FileText,
   Download,
@@ -17,8 +18,7 @@ import {
   AlertCircle,
   Upload,
   Copy,
-  Edit,
-  Trash2
+  Edit
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -164,11 +164,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
     }
   }
 
-  const deleteApplication = async (applicationId: string, applicantName: string) => {
-    if (!confirm(`Are you sure you want to delete the application for ${applicantName}? This action cannot be undone.`)) {
-      return
-    }
-
+  const handleDeleteApplication = async (applicationId: string, applicantName: string) => {
     try {
       setDeletingApplication(applicationId)
       
@@ -245,7 +241,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
           </div>
           {canCreateNewApplication ? (
             <Button asChild size="lg">
-              <Link href="/dv-form?new=true">
+              <Link href="/dv-form">
                 <FileText className="h-5 w-5 mr-2" />
                 New Application
               </Link>
@@ -351,7 +347,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
               </div>
               {canCreateNewApplication ? (
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/dv-form?new=true">
+                  <Link href="/dv-form">
                     <FileText className="h-4 w-4 mr-2" />
                     Start Fresh Application
                   </Link>
@@ -397,15 +393,12 @@ export function UserDashboard({ className }: UserDashboardProps) {
                         Continue
                       </Link>
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteApplication(application.id, `${application.firstName} ${application.lastName}`)}
-                      disabled={deletingApplication === application.id}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      {deletingApplication === application.id ? 'Deleting...' : 'Delete'}
-                    </Button>
+                    <DeleteApplicationDialog
+                      applicationId={application.id}
+                      applicantName={`${application.firstName} ${application.lastName}`}
+                      onDelete={handleDeleteApplication}
+                      isDeleting={deletingApplication === application.id}
+                    />
                   </div>
                 </div>
               ))}
@@ -451,31 +444,11 @@ export function UserDashboard({ className }: UserDashboardProps) {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/applications/${application.id}`}>
-                        View Details
-                      </Link>
-                    </Button>
-                    {/* Only show edit/delete for payment pending, not for payment verified */}
-                    {application.status === 'PAYMENT_PENDING' && application.paymentStatus !== 'VERIFIED' && (
-                      <>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/dv-form?edit=${application.id}`}>
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteApplication(application.id, `${application.firstName} ${application.lastName}`)}
-                          disabled={deletingApplication === application.id}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          {deletingApplication === application.id ? 'Deleting...' : 'Delete'}
-                        </Button>
-                      </>
-                    )}
+                    {/* No actions available for pending applications */}
+                    <div className="text-sm text-gray-500 italic flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      Processing - No actions available
+                    </div>
                   </div>
                 </div>
               ))}
@@ -566,7 +539,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
           </CardHeader>
           <CardContent>
             <Button asChild size="lg">
-              <Link href="/dv-form?new=true">
+              <Link href="/dv-form">
                 <FileText className="h-4 w-4 mr-2" />
                 Create First Application
               </Link>
@@ -590,7 +563,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
             </p>
             {canCreateNewApplication ? (
               <Button asChild size="sm" className="w-full">
-                <Link href="/dv-form?new=true">
+                <Link href="/dv-form">
                   <FileText className="h-4 w-4 mr-2" />
                   Start Application
                 </Link>
