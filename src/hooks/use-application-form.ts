@@ -92,6 +92,11 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
   // Auto-save functionality with debouncing
   const autoSave = useCallback(async (data: Partial<FormStepData>) => {
     if (!hasUnsavedChanges) return
+    
+    // Prevent auto-save if payment is pending or verified (form locked)
+    if (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') {
+      return
+    }
 
     setIsSaving(true)
     try {
@@ -124,7 +129,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     } finally {
       setIsSaving(false)
     }
-  }, [hasUnsavedChanges, onError, toast])
+  }, [hasUnsavedChanges, onError, toast, paymentStatus])
 
   // Debounced auto-save effect
   useEffect(() => {
@@ -148,6 +153,11 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
 
   // Update specific step data
   const updateStepData = useCallback(async (step: FormStep, data: any) => {
+    // Prevent updates to non-payment steps if payment is pending or verified (form locked)
+    if (step !== 'payment' && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) {
+      return
+    }
+    
     // Handle payment step specially
     if (step === 'payment') {
       setIsSaving(true)
@@ -177,7 +187,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     } else {
       updateFormData({ [step]: data })
     }
-  }, [updateFormData, onError, toast])
+  }, [updateFormData, onError, toast, paymentStatus])
 
   // Manual save
   const saveManually = useCallback(async () => {
@@ -327,6 +337,16 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     
     if (formData.photo?.file) {
       completedSteps.push('photo')
+    }
+    
+    // Review step is completed if all previous steps are completed OR if payment data exists
+    const allPreviousStepsCompleted = completedSteps.includes('personal') && 
+                                     completedSteps.includes('contact') && 
+                                     completedSteps.includes('education') && 
+                                     completedSteps.includes('photo')
+    
+    if (allPreviousStepsCompleted || formData.payment?.paymentReference) {
+      completedSteps.push('review')
     }
     
     if (formData.payment?.paymentReference && paymentStatus === 'VERIFIED') {

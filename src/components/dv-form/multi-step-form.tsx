@@ -69,25 +69,25 @@ export function MultiStepForm({
   }, [currentStep, checkDuplicateSubmission])
 
   const goToPreviousStep = useCallback(() => {
+    // Prevent navigation if payment is pending or verified (form locked)
+    if (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') {
+      return
+    }
+    
     const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
     const currentIndex = steps.indexOf(currentStep)
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1])
     }
-  }, [currentStep])
+  }, [currentStep, paymentStatus])
 
   const goToStep = useCallback(async (step: FormStep) => {
     const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
     const stepIndex = steps.indexOf(step)
     const currentIndex = steps.indexOf(currentStep)
     
-    // Prevent navigation away from payment step if payment is pending
-    if (currentStep === 'payment' && paymentStatus === 'PENDING' && step !== 'payment') {
-      return
-    }
-    
-    // Prevent navigation to previous steps if payment is verified (form locked)
-    if (paymentStatus === 'VERIFIED' && stepIndex < steps.indexOf('payment') && currentStep !== step) {
+    // Prevent any navigation if payment is pending or verified (form locked)
+    if ((paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') && step !== currentStep) {
       return
     }
     
@@ -135,8 +135,8 @@ export function MultiStepForm({
     // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Check if form should be disabled (payment verified = form locked)
-  const isFormDisabled = paymentStatus === 'VERIFIED'
+  // Check if form should be disabled (payment pending or verified = form locked)
+  const isFormDisabled = paymentStatus === 'VERIFIED' || paymentStatus === 'PENDING'
 
   // Render current step
   const renderCurrentStep = () => {
@@ -224,7 +224,7 @@ export function MultiStepForm({
                 await onComplete(formData as FormStepData)
               }
             }}
-            onPrevious={goToPreviousStep}
+            {...(paymentStatus !== 'PENDING' && paymentStatus !== 'VERIFIED' && { onPrevious: goToPreviousStep })}
             isLoading={isLoading}
             paymentStatus={paymentStatus}
           />
@@ -242,6 +242,7 @@ export function MultiStepForm({
           currentStep={currentStep} 
           completedSteps={completedSteps}
           onStepClick={goToStep}
+          paymentStatus={paymentStatus}
         />
         {/* Step saving indicator */}
         {isSaving && (
@@ -260,22 +261,28 @@ export function MultiStepForm({
       {/* Save Status Indicator */}
       <div className="mb-4 flex justify-between items-center">
         <div className="text-sm text-gray-500">
-          Progress is saved when you complete each step
+          {isFormDisabled ? 'Form is locked - no further changes allowed' : 'Progress is saved when you complete each step'}
         </div>
         <div className="flex items-center gap-2">
-          {isSaving && (
+          {isFormDisabled && (
+            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              Form locked
+            </div>
+          )}
+          {!isFormDisabled && isSaving && (
             <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
               Saving step...
             </div>
           )}
-          {!isSaving && hasUnsavedChanges && (
+          {!isFormDisabled && !isSaving && hasUnsavedChanges && (
             <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-200">
               <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
               Complete step to save
             </div>
           )}
-          {!isSaving && !hasUnsavedChanges && formData.personal && (
+          {!isFormDisabled && !isSaving && !hasUnsavedChanges && formData.personal && (
             <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               Progress saved

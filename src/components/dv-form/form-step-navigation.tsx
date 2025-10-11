@@ -8,6 +8,7 @@ interface FormStepNavigationProps {
   currentStep: FormStep
   completedSteps: FormStep[]
   onStepClick?: (step: FormStep) => void
+  paymentStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'
 }
 
 const steps: { key: FormStep; label: string; description: string }[] = [
@@ -22,7 +23,8 @@ const steps: { key: FormStep; label: string; description: string }[] = [
 export function FormStepNavigation({
   currentStep,
   completedSteps,
-  onStepClick
+  onStepClick,
+  paymentStatus
 }: FormStepNavigationProps) {
   const currentStepIndex = steps.findIndex(step => step.key === currentStep)
 
@@ -32,7 +34,8 @@ export function FormStepNavigation({
         {steps.map((step, index) => {
           const isCompleted = completedSteps.includes(step.key)
           const isCurrent = step.key === currentStep
-          const isClickable = onStepClick && (isCompleted || index <= currentStepIndex)
+          const isFormLocked = paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED'
+          const isClickable = onStepClick && (isCompleted || index <= currentStepIndex) && (!isFormLocked || step.key === currentStep)
 
           return (
             <li key={step.key} className="md:flex-1">

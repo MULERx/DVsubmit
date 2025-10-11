@@ -15,7 +15,7 @@ interface PaymentFormProps {
   initialData?: Payment
   onSubmit: (data: Payment) => void
   onNext: () => void
-  onPrevious: () => void
+  onPrevious?: () => void
   isLoading?: boolean
   paymentStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'
 }
@@ -282,21 +282,25 @@ export function PaymentForm({
 
       {/* Navigation */}
       <div className="flex justify-between pt-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onPrevious}
-          disabled={isLoading || isSubmitting}
-        >
-          Previous
-        </Button>
+        {onPrevious ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onPrevious}
+            disabled={isLoading || isSubmitting}
+          >
+            Previous
+          </Button>
+        ) : (
+          <div></div>
+        )}
         
         <Button
           type="button"
           onClick={onNext}
           disabled={!canProceed || isLoading}
         >
-          {canProceed ? 'Review Application' : 'Waiting for Payment Verification'}
+          {canProceed ? 'Complete Application' : 'Waiting for Payment Verification'}
         </Button>
       </div>
     </div>

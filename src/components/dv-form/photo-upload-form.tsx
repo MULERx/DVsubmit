@@ -31,8 +31,12 @@ export function PhotoUploadForm({
   applicationId
 }: PhotoUploadFormProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(initialData?.file || null)
-  const [preview, setPreview] = useState<string>(initialData?.preview || '')
-  const [validation, setValidation] = useState<PhotoValidationResult | null>(null)
+  // Use signedUrl if available, otherwise fall back to preview
+  const [preview, setPreview] = useState<string>(initialData?.signedUrl || initialData?.preview || '')
+  const [validation, setValidation] = useState<PhotoValidationResult | null>(
+    // If we have initial data with a file, assume it's valid
+    initialData?.file ? { isValid: true, errors: [], warnings: [] } : null
+  )
   const [isValidating, setIsValidating] = useState(false)
   const [storagePath, setStoragePath] = useState<string | undefined>(initialData?.path)
   const [signedUrl, setSignedUrl] = useState<string | undefined>(initialData?.signedUrl)
@@ -76,6 +80,10 @@ export function PhotoUploadForm({
         if (uploadResult.success && uploadResult.data) {
           setStoragePath(uploadResult.data.path)
           setSignedUrl(uploadResult.data.signedUrl)
+          // Update preview to use the signed URL for consistency
+          if (uploadResult.data.signedUrl) {
+            setPreview(uploadResult.data.signedUrl)
+          }
         }
       }
     } catch (error) {
@@ -150,10 +158,23 @@ export function PhotoUploadForm({
     }
   }
 
-  // Clean up preview URL on unmount
+  // Handle initial data and refresh signed URL if needed
+  useEffect(() => {
+    if (initialData?.file && initialData?.path && !signedUrl) {
+      // If we have a file and path but no signed URL, we might need to refresh it
+      // This handles the case where the signed URL has expired
+      const refreshSignedUrl = async () => {
+        // You might want to add a function to refresh the signed URL here
+        // For now, we'll just use the existing preview or show a placeholder
+      }
+      refreshSignedUrl()
+    }
+  }, [initialData, signedUrl])
+
+  // Clean up preview URL on unmount (only if it's a blob URL)
   useEffect(() => {
     return () => {
-      if (preview) {
+      if (preview && preview.startsWith('blob:')) {
         revokeImagePreview(preview)
       }
     }
@@ -243,11 +264,22 @@ export function PhotoUploadForm({
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <div className="relative">
-                  <img
-                    src={preview}
-                    alt="Uploaded photo"
-                    className="w-32 h-32 object-cover rounded-lg border"
-                  />
+                  {preview ? (
+                    <img
+                      src={signedUrl || preview}
+                      alt="Uploaded photo"
+                      className="w-32 h-32 object-cover rounded-lg border"
+                      onError={(e) => {
+                        // If image fails to load, show a placeholder
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-32 h-32 bg-gray-100 rounded-lg border flex items-center justify-center">
+                      <ImageIcon className="h-8 w-8 text-gray-400" />
+                    </div>
+                  )}
                   <Button
                     type="button"
                     variant="destructive"
