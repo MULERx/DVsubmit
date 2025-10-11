@@ -19,25 +19,20 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'>('PENDING')
+  const [formMode, setFormMode] = useState<'new' | 'edit'>('new')
   const { toast } = useToast()
 
-  // Load existing draft application on mount (unless starting fresh)
+  // Load existing draft application only when editing
   useEffect(() => {
     const loadApplication = async () => {
       setIsLoading(true)
       try {
         const urlParams = new URLSearchParams(window.location.search)
-        const startFresh = urlParams.get('new') === 'true'
         const editApplicationId = urlParams.get('edit')
         
-        if (startFresh) {
-          // Don't load any existing data, start completely fresh
-          setIsLoading(false)
-          return
-        }
-
         if (editApplicationId) {
           // Load specific application for editing
+          setFormMode('edit')
           const apiResponse = await fetch(`/api/applications/${editApplicationId}`)
           if (apiResponse.ok) {
             const result = await apiResponse.json()
@@ -59,24 +54,8 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
             }
           }
         } else {
-          // Load most recent draft application
-          const serviceResponse = await ApplicationService.getCurrentDraftApplication()
-          if (serviceResponse.success && serviceResponse.data) {
-            setCurrentApplicationId(serviceResponse.data.id)
-            const convertedData = ApplicationService.convertApplicationToFormData(serviceResponse.data)
-            setFormData(convertedData)
-            setLastSaved(new Date(serviceResponse.data.updatedAt))
-            
-            // Load payment status if payment reference exists
-            if (serviceResponse.data?.paymentReference) {
-              setPaymentStatus(serviceResponse.data.paymentStatus)
-              // Set payment data in form
-              setFormData(prev => ({
-                ...prev,
-                payment: { paymentReference: serviceResponse.data!.paymentReference! }
-              }))
-            }
-          }
+          // For all other cases (/dv-form, /dv-form?new=true), start with empty form
+          setFormMode('new')
         }
       } catch (error) {
         console.error('Error loading application:', error)
@@ -94,13 +73,14 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     if (!hasUnsavedChanges) return
     
     // Prevent auto-save if payment is pending or verified (form locked)
-    if (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') {
+    // Only lock if there's actually a payment reference
+    if (data.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) {
       return
     }
 
     setIsSaving(true)
     try {
-      const response = await ApplicationService.autoSaveApplication(data, currentApplicationId)
+      const response = await ApplicationService.autoSaveApplication(data, currentApplicationId, formMode)
       if (response.success) {
         setLastSaved(new Date())
         setHasUnsavedChanges(false)
@@ -129,7 +109,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     } finally {
       setIsSaving(false)
     }
-  }, [hasUnsavedChanges, onError, toast, paymentStatus])
+  }, [hasUnsavedChanges, onError, toast, paymentStatus, formMode])
 
   // Debounced auto-save effect
   useEffect(() => {
@@ -154,7 +134,8 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
   // Update specific step data
   const updateStepData = useCallback(async (step: FormStep, data: any) => {
     // Prevent updates to non-payment steps if payment is pending or verified (form locked)
-    if (step !== 'payment' && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) {
+    // Only lock if there's actually a payment reference
+    if (step !== 'payment' && formData.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) {
       return
     }
     
@@ -187,7 +168,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     } else {
       updateFormData({ [step]: data })
     }
-  }, [updateFormData, onError, toast, paymentStatus])
+  }, [updateFormData, onError, toast, paymentStatus, formData.payment?.paymentReference])
 
   // Manual save
   const saveManually = useCallback(async () => {
@@ -195,7 +176,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
 
     setIsSaving(true)
     try {
-      const response = await ApplicationService.autoSaveApplication(formData, currentApplicationId)
+      const response = await ApplicationService.autoSaveApplication(formData, currentApplicationId, formMode)
       if (response.success) {
         setLastSaved(new Date())
         setHasUnsavedChanges(false)
@@ -214,7 +195,7 @@ export function useApplicationForm(options: UseApplicationFormOptions = {}) {
     } finally {
       setIsSaving(false)
     }
-  }, [formData, hasUnsavedChanges, onError, toast])
+  }, [formData, hasUnsavedChanges, onError, toast, formMode])
 
   // Check for duplicate submissions
   const checkDuplicateSubmission = useCallback(async () => {

@@ -7,6 +7,7 @@ import { z } from 'zod'
 // Schema for partial application updates
 const partialApplicationSchema = z.object({
   applicationId: z.string().optional(), // Optional application ID for editing specific applications
+  mode: z.enum(['new', 'edit']).default('new'), // Mode to determine save behavior
   personal: personalInfoSchema.partial().optional(),
   contact: contactInfoSchema.partial().optional(),
   education: educationWorkSchema.partial().optional(),
@@ -40,12 +41,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { applicationId, personal, contact, education } = validationResult.data
+    const { applicationId, mode, personal, contact, education } = validationResult.data
 
-    // Find specific application or most recent draft
+    // Find application based on mode
     let application = null
-    if (applicationId) {
-      // Find specific application for editing
+
+    if (mode === 'edit') {
+      // Edit mode: Find specific application by ID
+      if (!applicationId) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Application ID is required for edit mode'
+            }
+          },
+          { status: 400 }
+        )
+      }
+
       application = await prisma.application.findFirst({
         where: {
           id: applicationId,
@@ -55,17 +70,33 @@ export async function POST(request: NextRequest) {
           }
         }
       })
+
+      if (!application) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'NOT_FOUND',
+              message: 'Application not found or not editable'
+            }
+          },
+          { status: 404 }
+        )
+      }
     } else {
-      // Find most recent draft application
-      application = await prisma.application.findFirst({
-        where: {
-          userId: userWithRole.dbUser.id,
-          status: 'DRAFT',
-        },
-        orderBy: {
-          updatedAt: 'desc'
-        }
-      })
+      // New mode: Find or create draft application
+      // For new mode, we don't load existing drafts - always create fresh or update the current session's draft
+      if (applicationId) {
+        // If we have an applicationId in new mode, it means we're continuing to save the same new application
+        application = await prisma.application.findFirst({
+          where: {
+            id: applicationId,
+            userId: userWithRole.dbUser.id,
+            status: 'DRAFT'
+          }
+        })
+      }
+      // If no application found or no applicationId, we'll create a new one below
     }
 
     // Prepare update data
@@ -94,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (application) {
-      // Update existing application
+      // Update existing application (both edit and new modes)
       application = await prisma.application.update({
         where: {
           id: application.id,
@@ -102,7 +133,22 @@ export async function POST(request: NextRequest) {
         data: updateData,
       })
     } else {
-      // Check draft application limit before creating new one
+      // Create new application (only in new mode)
+      if (mode === 'edit') {
+        // This shouldn't happen as we already checked above
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'NOT_FOUND',
+              message: 'Application not found for editing'
+            }
+          },
+          { status: 404 }
+        )
+      }
+
+      // Check draft application limit before creating new one (only for new mode)
       const draftCount = await prisma.application.count({
         where: {
           userId: userWithRole.dbUser.id,
@@ -153,9 +199,12 @@ export async function POST(request: NextRequest) {
       data: {
         userId: userWithRole.dbUser.id,
         applicationId: application.id,
-        action: 'APPLICATION_AUTO_SAVED',
+        action: mode === 'edit' ? 'APPLICATION_EDITED' : 'APPLICATION_AUTO_SAVED',
         details: {
-          sections: Object.keys(validationResult.data).filter(key => validationResult.data[key as keyof typeof validationResult.data]),
+          mode,
+          sections: Object.keys(validationResult.data).filter(key =>
+            key !== 'applicationId' && key !== 'mode' && validationResult.data[key as keyof typeof validationResult.data]
+          ),
           timestamp: new Date().toISOString(),
         },
         ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
@@ -165,7 +214,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: application,
+      data: {
+        ...application,
+        mode, // Include the mode in the response for client-side reference
+      },
     })
   } catch (error) {
     console.error('Error auto-saving application:', error)

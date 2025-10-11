@@ -19,7 +19,8 @@ export default function DVFormPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    const isNew = urlParams.get('new') === 'true'
+    const editApplicationId = urlParams.get('edit')
+    const isNew = !editApplicationId // New application if no edit parameter
     setIsNewApplication(isNew)
 
     // Check draft limit only for new applications
@@ -86,14 +87,14 @@ export default function DVFormPage() {
                   </svg>
                 </div>
                 <div className="text-sm text-blue-800">
-                  <span className="font-semibold">Starting Fresh:</span> You&apos;re creating a new application. All fields will be empty.
+                  <span className="font-semibold">New Application:</span> You&apos;re creating a fresh application. All fields will be empty.
                 </div>
               </div>
               <Link 
-                href="/dv-form" 
+                href="/applications" 
                 className="text-sm text-blue-600 hover:text-blue-800 underline"
               >
-                Continue existing draft instead
+                View existing applications
               </Link>
             </div>
           </div>

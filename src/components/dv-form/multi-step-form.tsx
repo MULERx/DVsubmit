@@ -17,7 +17,7 @@ interface MultiStepFormProps {
   onError?: (error: string) => void
 }
 
-export function MultiStepForm({ 
+export function MultiStepForm({
   onComplete,
   onError
 }: MultiStepFormProps) {
@@ -27,7 +27,7 @@ export function MultiStepForm({
     hasDuplicate: boolean
     message: string
   } | null>(null)
-  
+
   const {
     formData,
     isLoading,
@@ -55,7 +55,7 @@ export function MultiStepForm({
     const currentIndex = steps.indexOf(currentStep)
     if (currentIndex < steps.length - 1) {
       const nextStep = steps[currentIndex + 1]
-      
+
       // Check for duplicates when entering the review step
       if (nextStep === 'review') {
         const duplicateCheck = await checkDuplicateSubmission()
@@ -63,34 +63,34 @@ export function MultiStepForm({
           setDuplicateCheckResult(duplicateCheck.data)
         }
       }
-      
+
       setCurrentStep(nextStep)
     }
   }, [currentStep, checkDuplicateSubmission])
 
   const goToPreviousStep = useCallback(() => {
     // Prevent navigation if payment is pending or verified (form locked)
-    if (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') {
+    if (formData.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) {
       return
     }
-    
+
     const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
     const currentIndex = steps.indexOf(currentStep)
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1])
     }
-  }, [currentStep, paymentStatus])
+  }, [currentStep, paymentStatus, formData.payment?.paymentReference])
 
   const goToStep = useCallback(async (step: FormStep) => {
     const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
     const stepIndex = steps.indexOf(step)
     const currentIndex = steps.indexOf(currentStep)
-    
+
     // Prevent any navigation if payment is pending or verified (form locked)
-    if ((paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') && step !== currentStep) {
+    if (formData.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') && step !== currentStep) {
       return
     }
-    
+
     // Allow navigation to completed steps or the next immediate step
     if (completedSteps.includes(step) || stepIndex <= currentIndex + 1) {
       // Check for duplicates when entering the review step
@@ -100,10 +100,10 @@ export function MultiStepForm({
           setDuplicateCheckResult(duplicateCheck.data)
         }
       }
-      
+
       setCurrentStep(step)
     }
-  }, [currentStep, completedSteps, paymentStatus, checkDuplicateSubmission])
+  }, [currentStep, completedSteps, paymentStatus, checkDuplicateSubmission, formData.payment?.paymentReference])
 
   // Handle personal info submission and auto-save
   const handlePersonalInfoSubmit = useCallback((data: PersonalInfo) => {
@@ -136,7 +136,8 @@ export function MultiStepForm({
   }, [handleStepComplete])
 
   // Check if form should be disabled (payment pending or verified = form locked)
-  const isFormDisabled = paymentStatus === 'VERIFIED' || paymentStatus === 'PENDING'
+  // Only lock if there's actually a payment reference AND status is pending/verified
+  const isFormDisabled = !!(formData.payment?.paymentReference && (paymentStatus === 'VERIFIED' || paymentStatus === 'PENDING'))
 
   // Render current step
   const renderCurrentStep = () => {
@@ -150,7 +151,7 @@ export function MultiStepForm({
             isLoading={isLoading || isFormDisabled}
           />
         )
-      
+
       case 'contact':
         return (
           <ContactInfoForm
@@ -161,7 +162,7 @@ export function MultiStepForm({
             isLoading={isLoading || isFormDisabled}
           />
         )
-      
+
       case 'education':
         return (
           <EducationWorkForm
@@ -172,7 +173,7 @@ export function MultiStepForm({
             isLoading={isLoading || isFormDisabled}
           />
         )
-      
+
       case 'photo':
         return (
           <PhotoUploadForm
@@ -185,7 +186,7 @@ export function MultiStepForm({
             isLoading={isLoading || isFormDisabled}
           />
         )
-      
+
       case 'review':
         return (
           <div className="space-y-6">
@@ -198,7 +199,7 @@ export function MultiStepForm({
                 </p>
               </div>
             )}
-            
+
             <ReviewForm
               formData={formData as FormStepData}
               onSubmit={goToNextStep} // Go to payment step instead of submitting
@@ -211,7 +212,7 @@ export function MultiStepForm({
             />
           </div>
         )
-      
+
       case 'payment':
         return (
           <PaymentForm
@@ -224,12 +225,12 @@ export function MultiStepForm({
                 await onComplete(formData as FormStepData)
               }
             }}
-            {...(paymentStatus !== 'PENDING' && paymentStatus !== 'VERIFIED' && { onPrevious: goToPreviousStep })}
+            {...(!(formData.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) && { onPrevious: goToPreviousStep })}
             isLoading={isLoading}
             paymentStatus={paymentStatus}
           />
         )
-      
+
       default:
         return null
     }
@@ -238,11 +239,12 @@ export function MultiStepForm({
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="relative">
-        <FormStepNavigation 
-          currentStep={currentStep} 
+        <FormStepNavigation
+          currentStep={currentStep}
           completedSteps={completedSteps}
           onStepClick={goToStep}
           paymentStatus={paymentStatus}
+          hasPaymentReference={!!formData.payment?.paymentReference}
         />
         {/* Step saving indicator */}
         {isSaving && (
@@ -252,7 +254,7 @@ export function MultiStepForm({
           </div>
         )}
       </div>
-      
+
       {/* Form Lock Notice */}
       {formData.payment?.paymentReference && paymentStatus !== 'REJECTED' && (
         <FormLockNotice paymentStatus={paymentStatus} className="mb-4" />
@@ -290,7 +292,7 @@ export function MultiStepForm({
           )}
         </div>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-sm border p-8">
         {renderCurrentStep()}
       </div>
