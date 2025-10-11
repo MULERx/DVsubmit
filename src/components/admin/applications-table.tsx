@@ -300,7 +300,7 @@ export function ApplicationsTable({
       header: 'Actions',
       cell: ({ row }) => {
         const app = row.original
-        const canManagePayment = app.status === 'PAYMENT_PENDING' 
+        const canManagePayment = app.status === 'PAYMENT_PENDING'
 
         return (
           <div className="flex items-center space-x-2">
