@@ -8,25 +8,23 @@ interface FormStepNavigationProps {
   currentStep: FormStep
   completedSteps: FormStep[]
   onStepClick?: (step: FormStep) => void
-  paymentStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED'
-  hasPaymentReference?: boolean
 }
 
 const steps: { key: FormStep; label: string; description: string }[] = [
   { key: 'personal', label: 'Personal Info', description: 'Basic personal information' },
-  { key: 'contact', label: 'Contact Info', description: 'Address and contact details' },
-  { key: 'education', label: 'Education & Work', description: 'Education and occupation' },
-  { key: 'photo', label: 'Photo Upload', description: 'DV compliant photo' },
-  { key: 'review', label: 'Review', description: 'Review and submit' },
-  { key: 'payment', label: 'Payment', description: 'Service fee payment' },
+  { key: 'address', label: 'Mailing Address', description: 'Address and residence details' },
+  { key: 'contact', label: 'Contact Info', description: 'Phone and email details' },
+  { key: 'education', label: 'Education', description: 'Education level' },
+  { key: 'marital', label: 'Marital Status', description: 'Marital status and spouse details' },
+  { key: 'children', label: 'Children', description: 'Children information' },
+  { key: 'photo', label: 'Photo Upload', description: 'DV compliant photos' },
+  { key: 'review', label: 'Review & Submit', description: 'Review and submit application' },
 ]
 
 export function FormStepNavigation({
   currentStep,
   completedSteps,
-  onStepClick,
-  paymentStatus,
-  hasPaymentReference = false
+  onStepClick
 }: FormStepNavigationProps) {
   const currentStepIndex = steps.findIndex(step => step.key === currentStep)
 
@@ -36,8 +34,7 @@ export function FormStepNavigation({
         {steps.map((step, index) => {
           const isCompleted = completedSteps.includes(step.key)
           const isCurrent = step.key === currentStep
-          const isFormLocked = hasPaymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')
-          const isClickable = onStepClick && (isCompleted || index <= currentStepIndex) && (!isFormLocked || step.key === currentStep)
+          const isClickable = onStepClick && (isCompleted || index <= currentStepIndex)
 
           return (
             <li key={step.key} className="md:flex-1">

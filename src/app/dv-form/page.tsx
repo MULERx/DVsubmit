@@ -1,57 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { MultiStepForm } from '@/components/dv-form/multi-step-form'
 import { FormStepData } from '@/lib/types/application'
 import { Toaster } from '@/components/ui/toaster'
-import { ApplicationService } from '@/lib/services/application-service'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-
-const MAX_DRAFT_APPLICATIONS = 5
 
 export default function DVFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isNewApplication, setIsNewApplication] = useState(false)
-  const [draftLimitReached, setDraftLimitReached] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const editApplicationId = urlParams.get('edit')
-    const isNew = !editApplicationId // New application if no edit parameter
-    setIsNewApplication(isNew)
-
-    // Check draft limit only for new applications
-    if (isNew) {
-      checkDraftLimit()
-    } else {
-      setLoading(false)
-    }
-  }, [])
-
-  const checkDraftLimit = async () => {
-    try {
-      const response = await ApplicationService.getApplications()
-      if (response.success && response.data) {
-        const draftCount = response.data.filter(app => app.status === 'DRAFT').length
-        setDraftLimitReached(draftCount >= MAX_DRAFT_APPLICATIONS)
-      }
-    } catch (error) {
-      console.error('Error checking draft limit:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const router = useRouter()
+  // No draft functionality - each form session is independent
 
   const handleComplete = async (data: FormStepData) => {
     setIsSubmitting(true)
     setError(null)
     try {
       console.log('Application completed:', data)
-      // The actual submission is handled by the useApplicationForm hook
-      alert('Application submitted successfully!')
+      // Show success message briefly then redirect
+      alert('Application submitted successfully! Redirecting to dashboard...')
+      
+      // Redirect to dashboard after successful submission
+      router.push('/dashboard')
     } catch (error) {
       console.error('Submission failed:', error)
       setError('Submission failed. Please try again.')
@@ -68,6 +39,17 @@ export default function DVFormPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-4 mb-2">
+            <Link 
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Dashboard
+            </Link>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">DV Lottery Application</h1>
           <p className="text-gray-600 mt-2">
             Complete a Diversity Visa lottery application. You can submit multiple applications for different family members.
@@ -75,31 +57,7 @@ export default function DVFormPage() {
         </div>
       </div>
 
-      {/* New Application Notice */}
-      {isNewApplication && (
-        <div className="bg-blue-50 border-b border-blue-200">
-          <div className="max-w-4xl mx-auto px-6 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="text-sm text-blue-800">
-                  <span className="font-semibold">New Application:</span> You&apos;re creating a fresh application. All fields will be empty.
-                </div>
-              </div>
-              <Link 
-                href="/applications" 
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
-              >
-                View existing applications
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Legal Disclaimer Banner */}
       <div className="bg-yellow-50 border-b border-yellow-200">
@@ -118,35 +76,7 @@ export default function DVFormPage() {
         </div>
       </div>
 
-      {/* Draft Limit Reached */}
-      {isNewApplication && draftLimitReached && (
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <svg className="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <h3 className="text-lg font-semibold text-red-800">Draft Application Limit Reached</h3>
-            </div>
-            <p className="text-red-700 mb-4">
-              You have reached the maximum of {MAX_DRAFT_APPLICATIONS} draft applications. 
-              Please submit or delete existing draft applications before creating new ones.
-            </p>
-            <div className="flex gap-3">
-              <Button asChild>
-                <Link href="/dashboard">
-                  Go to Dashboard
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/applications">
-                  Manage Applications
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {error && (
         <div className="max-w-4xl mx-auto px-6 py-4">
@@ -163,23 +93,10 @@ export default function DVFormPage() {
       )}
 
       <div className="py-8">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : (isNewApplication && draftLimitReached) ? (
-          // Don't show the form if draft limit is reached for new applications
-          <div className="max-w-4xl mx-auto px-6">
-            <div className="text-center py-12">
-              <p className="text-gray-500">Please manage your existing draft applications to continue.</p>
-            </div>
-          </div>
-        ) : (
-          <MultiStepForm
-            onComplete={handleComplete}
-            onError={handleError}
-          />
-        )}
+        <MultiStepForm
+          onComplete={handleComplete}
+          onError={handleError}
+        />
       </div>
 
       <Toaster />

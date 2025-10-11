@@ -1,33 +1,101 @@
 import { z } from 'zod'
 
-// Personal Information Schema
+// Enums matching Prisma schema
+export const genderEnum = z.enum(['MALE', 'FEMALE'])
+export const educationLevelEnum = z.enum([
+  'PRIMARY_SCHOOL_ONLY',
+  'SOME_HIGH_SCHOOL_NO_DIPLOMA', 
+  'HIGH_SCHOOL_DIPLOMA',
+  'VOCATIONAL_SCHOOL',
+  'SOME_UNIVERSITY_COURSES',
+  'UNIVERSITY_DEGREE',
+  'SOME_GRADUATE_LEVEL_COURSES',
+  'MASTER_DEGREE',
+  'SOME_DOCTORAL_LEVEL_COURSES',
+  'DOCTORATE'
+])
+export const maritalStatusEnum = z.enum([
+  'UNMARRIED',
+  'MARRIED_SPOUSE_NOT_US_CITIZEN_LPR',
+  'MARRIED_SPOUSE_IS_US_CITIZEN_LPR',
+  'DIVORCED',
+  'WIDOWED',
+  'LEGALLY_SEPARATED'
+])
+
+// Personal Information Schema (Primary Applicant)
 export const personalInfoSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(50, 'First name must be less than 50 characters'),
-  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name must be less than 50 characters'),
+  familyName: z.string().min(1, 'Family/Last name is required').max(50, 'Family name must be less than 50 characters'),
+  givenName: z.string().min(1, 'Given/First name is required').max(50, 'Given name must be less than 50 characters'),
+  middleName: z.string().max(50, 'Middle name must be less than 50 characters').optional(),
+  gender: genderEnum,
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  cityOfBirth: z.string().min(1, 'City/Town of birth is required'),
   countryOfBirth: z.string().min(1, 'Country of birth is required'),
   countryOfEligibility: z.string().min(1, 'Country of eligibility is required'),
+  eligibilityClaimType: z.string().optional(), // If claiming spouse's or parent's country
+})
+
+// Mailing Address Schema
+export const mailingAddressSchema = z.object({
+  inCareOf: z.string().max(100, 'In care of must be less than 100 characters').optional(),
+  addressLine1: z.string().min(1, 'Address Line 1 is required').max(100, 'Address Line 1 must be less than 100 characters'),
+  addressLine2: z.string().max(100, 'Address Line 2 must be less than 100 characters').optional(),
+  city: z.string().min(1, 'City/Town is required').max(50, 'City must be less than 50 characters'),
+  stateProvince: z.string().min(1, 'District/Province/State is required').max(50, 'State/Province must be less than 50 characters'),
+  postalCode: z.string().min(1, 'Postal/ZIP code is required').max(20, 'Postal code must be less than 20 characters'),
+  country: z.string().min(1, 'Country is required'),
+  countryOfResidence: z.string().min(1, 'Country where you live today is required'),
 })
 
 // Contact Information Schema
 export const contactInfoSchema = z.object({
+  phoneNumber: z.string().max(20, 'Phone number must be less than 20 characters').optional(),
   email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  address: z.object({
-    street: z.string().min(1, 'Street address is required'),
-    city: z.string().min(1, 'City is required'),
-    state: z.string().min(1, 'State/Province is required'),
-    postalCode: z.string().min(1, 'Postal code is required'),
-    country: z.string().min(1, 'Country is required'),
-  }),
 })
 
-// Education and Work Schema
-export const educationWorkSchema = z.object({
-  education: z.enum(['primary', 'secondary', 'vocational', 'university', 'graduate'], {
-    message: 'Education level is required',
-  }),
-  occupation: z.string().min(1, 'Occupation is required').max(100, 'Occupation must be less than 100 characters'),
+// Education Schema
+export const educationSchema = z.object({
+  educationLevel: educationLevelEnum,
+})
+
+// Marital Status and Spouse Schema
+export const maritalStatusSchema = z.object({
+  maritalStatus: maritalStatusEnum,
+  // Spouse information (conditional based on marital status)
+  spouseFamilyName: z.string().max(50, 'Spouse family name must be less than 50 characters').optional(),
+  spouseGivenName: z.string().max(50, 'Spouse given name must be less than 50 characters').optional(),
+  spouseMiddleName: z.string().max(50, 'Spouse middle name must be less than 50 characters').optional(),
+  spouseGender: genderEnum.optional(),
+  spouseDateOfBirth: z.string().optional(),
+  spouseCityOfBirth: z.string().max(50, 'Spouse city of birth must be less than 50 characters').optional(),
+  spouseCountryOfBirth: z.string().optional(),
+}).refine((data) => {
+  // If married and spouse is NOT US citizen/LPR, spouse details are required
+  if (data.maritalStatus === 'MARRIED_SPOUSE_NOT_US_CITIZEN_LPR') {
+    return data.spouseFamilyName && data.spouseGivenName && data.spouseGender && 
+           data.spouseDateOfBirth && data.spouseCityOfBirth && data.spouseCountryOfBirth
+  }
+  return true
+}, {
+  message: 'Spouse details are required when married to non-US citizen/LPR',
+  path: ['spouseFamilyName']
+})
+
+// Child Schema
+export const childSchema = z.object({
+  familyName: z.string().min(1, 'Child family name is required').max(50, 'Family name must be less than 50 characters'),
+  givenName: z.string().min(1, 'Child given name is required').max(50, 'Given name must be less than 50 characters'),
+  middleName: z.string().max(50, 'Middle name must be less than 50 characters').optional(),
+  gender: genderEnum,
+  dateOfBirth: z.string().min(1, 'Child date of birth is required'),
+  cityOfBirth: z.string().min(1, 'Child city of birth is required').max(50, 'City must be less than 50 characters'),
+  countryOfBirth: z.string().min(1, 'Child country of birth is required'),
+})
+
+// Children Schema (array of children)
+export const childrenSchema = z.object({
+  children: z.array(childSchema).max(10, 'Maximum 10 children allowed'),
 })
 
 // Photo Upload Schema
@@ -50,8 +118,11 @@ export const paymentSchema = z.object({
 
 // Complete Application Schema
 export const applicationSchema = personalInfoSchema
+  .merge(mailingAddressSchema)
   .merge(contactInfoSchema)
-  .merge(educationWorkSchema)
+  .merge(educationSchema)
+  .merge(maritalStatusSchema)
+  .merge(childrenSchema)
 
 // User Registration Schema
 export const registerSchema = z.object({

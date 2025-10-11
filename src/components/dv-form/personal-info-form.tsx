@@ -66,35 +66,29 @@ const countries = [
   'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
 ]
 
-export function PersonalInfoForm({ 
-  initialData, 
-  onSubmit, 
-  onNext, 
-  isLoading = false 
+export function PersonalInfoForm({
+  initialData,
+  onSubmit,
+  onNext,
+  isLoading = false
 }: PersonalInfoFormProps) {
   const form = useForm<PersonalInfo>({
     resolver: zodResolver(personalInfoSchema),
+    mode: 'onChange', // Enable validation on change
     defaultValues: {
-      firstName: initialData?.firstName || '',
-      lastName: initialData?.lastName || '',
+      familyName: initialData?.familyName || '',
+      givenName: initialData?.givenName || '',
+      middleName: initialData?.middleName || '',
+      gender: initialData?.gender || undefined,
       dateOfBirth: initialData?.dateOfBirth || '',
+      cityOfBirth: initialData?.cityOfBirth || '',
       countryOfBirth: initialData?.countryOfBirth || '',
       countryOfEligibility: initialData?.countryOfEligibility || '',
+      eligibilityClaimType: initialData?.eligibilityClaimType || '',
     },
   })
 
-  // Auto-save on form changes
-  useEffect(() => {
-    const subscription = form.watch((data) => {
-      if (data.firstName || data.lastName || data.dateOfBirth || data.countryOfBirth || data.countryOfEligibility) {
-        const validData = personalInfoSchema.safeParse(data)
-        if (validData.success) {
-          onSubmit(validData.data)
-        }
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [form, onSubmit])
+  // No auto-save - data is only submitted when user clicks Next
 
   const handleSubmit = (data: PersonalInfo) => {
     onSubmit(data)
@@ -112,17 +106,17 @@ export function PersonalInfoForm({
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
-              name="firstName"
+              name="familyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First Name *</FormLabel>
+                  <FormLabel>Family / Last Name *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter your first name" 
-                      {...field} 
+                    <Input
+                      placeholder="Enter your family/last name"
+                      {...field}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -133,14 +127,32 @@ export function PersonalInfoForm({
 
             <FormField
               control={form.control}
-              name="lastName"
+              name="givenName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Last Name *</FormLabel>
+                  <FormLabel>Given / First Name *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter your last name" 
-                      {...field} 
+                    <Input
+                      placeholder="Enter your given/first name"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="middleName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Middle Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your middle name (optional)"
+                      {...field}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -150,26 +162,68 @@ export function PersonalInfoForm({
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="dateOfBirth"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date of Birth *</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="date" 
-                    {...field} 
-                    disabled={isLoading}
-                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="MALE">Male</SelectItem>
+                      <SelectItem value="FEMALE">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Birth (Day/Month/Year) *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      disabled={isLoading}
+                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="cityOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City / Town of Birth *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your city/town of birth"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="countryOfBirth"
@@ -194,13 +248,15 @@ export function PersonalInfoForm({
                 </FormItem>
               )}
             />
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="countryOfEligibility"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country of Eligibility *</FormLabel>
+                  <FormLabel>Country of Eligibility (Chargeability) for DV *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
                     <FormControl>
                       <SelectTrigger>
@@ -219,17 +275,38 @@ export function PersonalInfoForm({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="eligibilityClaimType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>If claiming spouse's or parent's country, indicate which</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., 'spouse' or 'parent' (optional)"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <div className="flex justify-end">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading || !form.formState.isValid}
               className="min-w-32"
+              title={!form.formState.isValid ? 'Please fill all required fields correctly' : ''}
             >
               {isLoading ? 'Saving...' : 'Next Step'}
             </Button>
           </div>
+
+
         </form>
       </Form>
     </div>

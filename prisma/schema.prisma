@@ -28,25 +28,53 @@ model Application {
   userId               String
   user                 User              @relation(fields: [userId], references: [id])
   
-  // Personal Information
-  firstName            String
-  lastName             String
-  dateOfBirth          DateTime
-  countryOfBirth       String
-  countryOfEligibility String
-  
-  // Contact Information
-  email                String
-  phone                String
-  address              Json
-  
-  // Education/Work
-  education            String
-  occupation           String
+  // Personal Information (Primary Applicant)
+  familyName           String            // Family/Last Name
+  givenName            String            // Given/First Name
+  middleName           String?           // Middle Name (optional)
+  gender               Gender
+  dateOfBirth          DateTime          // Day/Month/Year
+  cityOfBirth          String            // City/Town of Birth
+  countryOfBirth       String            // Country of Birth
+  countryOfEligibility String            // Country of Eligibility (Chargeability) for DV
+  eligibilityClaimType String?           // If claiming spouse's or parent's country
   
   // Photo
-  photoUrl             String?
+  photoUrl             String?           // Photograph upload
   photoValidated       Boolean           @default(false)
+  
+  // Mailing Address
+  inCareOf             String?           // In care of (optional)
+  addressLine1         String            // Address Line 1
+  addressLine2         String?           // Address Line 2 (optional)
+  city                 String            // City/Town
+  stateProvince        String            // District/Province/State
+  postalCode           String            // Postal/ZIP Code
+  country              String            // Country
+  countryOfResidence   String            // Country where you live today
+  
+  // Contact Information
+  phoneNumber          String?           // Phone number with country code (optional)
+  email                String            // Email address
+  
+  // Education
+  educationLevel       EducationLevel    // Highest level of education achieved
+  
+  // Marital Status
+  maritalStatus        MaritalStatus     // Current marital status
+  
+  // Spouse Information (if married and spouse is NOT US citizen/LPR)
+  spouseFamilyName     String?
+  spouseGivenName      String?
+  spouseMiddleName     String?
+  spouseGender         Gender?
+  spouseDateOfBirth    DateTime?
+  spouseCityOfBirth    String?
+  spouseCountryOfBirth String?
+  spousePhotoUrl       String?
+  
+  // Children Information
+  children             Child[]
   
   // Payment
   paymentReference     String?
@@ -55,7 +83,7 @@ model Application {
   paymentVerifiedBy    String?
   
   // Submission
-  status               ApplicationStatus @default(DRAFT)
+  status               ApplicationStatus @default(PAYMENT_PENDING)
   submittedAt          DateTime?
   confirmationNumber   String?
   submittedBy          String?
@@ -72,6 +100,27 @@ model Application {
   @@index([createdAt])
   @@index([email])
   @@map("applications")
+}
+
+model Child {
+  id                   String      @id @default(cuid())
+  applicationId        String
+  application          Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  familyName           String      // Family/Last Name
+  givenName            String      // Given/First Name
+  middleName           String?     // Middle Name (optional)
+  gender               Gender
+  dateOfBirth          DateTime    // Day/Month/Year
+  cityOfBirth          String      // City/Town of Birth
+  countryOfBirth       String      // Country of Birth
+  photoUrl             String?     // Photograph upload
+  
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  
+  @@index([applicationId])
+  @@map("children")
 }
 
 model AuditLog {
@@ -110,10 +159,36 @@ enum PaymentStatus {
 }
 
 enum ApplicationStatus {
-  DRAFT
   PAYMENT_PENDING
   PAYMENT_VERIFIED
   SUBMITTED
   CONFIRMED
   EXPIRED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum EducationLevel {
+  PRIMARY_SCHOOL_ONLY
+  SOME_HIGH_SCHOOL_NO_DIPLOMA
+  HIGH_SCHOOL_DIPLOMA
+  VOCATIONAL_SCHOOL
+  SOME_UNIVERSITY_COURSES
+  UNIVERSITY_DEGREE
+  SOME_GRADUATE_LEVEL_COURSES
+  MASTER_DEGREE
+  SOME_DOCTORAL_LEVEL_COURSES
+  DOCTORATE
+}
+
+enum MaritalStatus {
+  UNMARRIED
+  MARRIED_SPOUSE_NOT_US_CITIZEN_LPR
+  MARRIED_SPOUSE_IS_US_CITIZEN_LPR
+  DIVORCED
+  WIDOWED
+  LEGALLY_SEPARATED
 }

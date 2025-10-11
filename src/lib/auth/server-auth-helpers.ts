@@ -45,45 +45,87 @@ export const authServer = {
   // Create or update user in database after Supabase auth
   async syncUserToDatabase(supabaseUser: { id: string; email: string }) {
     try {
-      const existingUser = await prisma.user.findUnique({
+      // First check if user exists by supabaseId
+      const existingUserBySupabaseId = await prisma.user.findUnique({
         where: { supabaseId: supabaseUser.id },
       })
 
-      if (existingUser) {
+      if (existingUserBySupabaseId) {
         // Update existing user if email changed
-        if (existingUser.email !== supabaseUser.email) {
+        if (existingUserBySupabaseId.email !== supabaseUser.email) {
           const updatedUser = await prisma.user.update({
             where: { supabaseId: supabaseUser.id },
             data: { email: supabaseUser.email },
           })
-          
+
           // Also update the role in Supabase user metadata for faster access
           await this.updateSupabaseUserMetadata(supabaseUser.id, { role: updatedUser.role })
-          
+
           return updatedUser
         }
-        
+
         // Ensure role is synced to Supabase metadata
-        await this.updateSupabaseUserMetadata(supabaseUser.id, { role: existingUser.role })
-        
-        return existingUser
-      } else {
-        // Create new user
-        const newUser = await prisma.user.create({
-          data: {
-            email: supabaseUser.email,
-            supabaseId: supabaseUser.id,
-            role: 'USER', // Default role
-          },
-        })
-        
-        // Set role in Supabase user metadata
-        await this.updateSupabaseUserMetadata(supabaseUser.id, { role: newUser.role })
-        
-        return newUser
+        await this.updateSupabaseUserMetadata(supabaseUser.id, { role: existingUserBySupabaseId.role })
+
+        return existingUserBySupabaseId
       }
+
+      // Check if user exists by email (in case of account linking or re-registration)
+      const existingUserByEmail = await prisma.user.findUnique({
+        where: { email: supabaseUser.email },
+      })
+
+      if (existingUserByEmail) {
+        // Update the existing user with the new supabaseId
+        const updatedUser = await prisma.user.update({
+          where: { email: supabaseUser.email },
+          data: { supabaseId: supabaseUser.id },
+        })
+
+        // Set role in Supabase user metadata
+        await this.updateSupabaseUserMetadata(supabaseUser.id, { role: updatedUser.role })
+
+        return updatedUser
+      }
+
+      // Create new user if no existing user found
+      const newUser = await prisma.user.create({
+        data: {
+          email: supabaseUser.email,
+          supabaseId: supabaseUser.id,
+          role: 'USER', // Default role
+        },
+      })
+
+      // Set role in Supabase user metadata
+      await this.updateSupabaseUserMetadata(supabaseUser.id, { role: newUser.role })
+
+      return newUser
     } catch (error) {
       console.error('Error syncing user to database:', error)
+      
+      // If it's still a unique constraint error, try to find and return the existing user
+      if (error instanceof Error && error.message.includes('Unique constraint failed')) {
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: supabaseUser.email },
+          })
+          if (existingUser) {
+            // Update with supabaseId if it's different
+            if (existingUser.supabaseId !== supabaseUser.id) {
+              const updatedUser = await prisma.user.update({
+                where: { email: supabaseUser.email },
+                data: { supabaseId: supabaseUser.id },
+              })
+              return updatedUser
+            }
+            return existingUser
+          }
+        } catch (fallbackError) {
+          console.error('Fallback error:', fallbackError)
+        }
+      }
+      
       throw error
     }
   },

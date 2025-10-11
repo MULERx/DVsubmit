@@ -1,16 +1,18 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { FormStep, FormStepData, PersonalInfo, ContactInfo, EducationWork, Payment } from '@/lib/types/application'
+import { FormStep, FormStepData, PersonalInfo, MailingAddress, ContactInfo, Education, MaritalStatusInfo, Children, Payment } from '@/lib/types/application'
 import { FormStepNavigation } from './form-step-navigation'
 import { PersonalInfoForm } from './personal-info-form'
+import { MailingAddressForm } from './mailing-address-form'
 import { ContactInfoForm } from './contact-info-form'
-import { EducationWorkForm } from './education-work-form'
+import { EducationForm } from './education-form'
+import { MaritalStatusForm } from './marital-status-form'
+import { ChildrenForm } from './children-form'
 import { PhotoUploadForm } from './photo-upload-form'
-import { PaymentForm } from './payment-form'
+
 import { ReviewForm } from './review-form'
 import { FormLockNotice } from '@/components/ui/form-lock-notice'
-import { useApplicationForm } from '@/hooks/use-application-form'
 
 interface MultiStepFormProps {
   onComplete?: (data: FormStepData) => Promise<void>
@@ -28,116 +30,184 @@ export function MultiStepForm({
     message: string
   } | null>(null)
 
-  const {
-    formData,
-    isLoading,
-    isSaving,
-    hasUnsavedChanges,
-    paymentStatus,
-    updateStepData,
-    submitApplication,
-    checkDuplicateSubmission,
-    getStepCompletionStatus,
-  } = useApplicationForm({
-    onError,
-  })
+  const [formData, setFormData] = useState<Partial<FormStepData>>({})
+  const [isLoading, setIsLoading] = useState(false)
 
-  const completedSteps = getStepCompletionStatus()
+  // Track completed steps based on form data
+  const getCompletedSteps = (): FormStep[] => {
+    const completed: FormStep[] = []
+    if (formData.personal) completed.push('personal')
+    if (formData.address) completed.push('address')
+    if (formData.contact) completed.push('contact')
+    if (formData.education) completed.push('education')
+    if (formData.marital) completed.push('marital')
+    if (formData.children !== undefined) completed.push('children')
+    if (formData.photo) completed.push('photo')
 
-  // Handle step completion
+    // Review step completion is handled by the review form itself
+
+    return completed
+  }
+
+  const completedSteps = getCompletedSteps()
+
+  // Handle step completion - just store in local state
   const handleStepComplete = useCallback((step: FormStep, data: any) => {
-    updateStepData(step, data)
-  }, [updateStepData])
+    setFormData(prev => ({
+      ...prev,
+      [step]: data
+    }))
+  }, [])
 
   // Navigation functions
-  const goToNextStep = useCallback(async () => {
-    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
+  const goToNextStep = useCallback(() => {
+    const steps: FormStep[] = ['personal', 'address', 'contact', 'education', 'marital', 'children', 'photo', 'review']
     const currentIndex = steps.indexOf(currentStep)
     if (currentIndex < steps.length - 1) {
-      const nextStep = steps[currentIndex + 1]
-
-      // Check for duplicates when entering the review step
-      if (nextStep === 'review') {
-        const duplicateCheck = await checkDuplicateSubmission()
-        if (duplicateCheck.success && duplicateCheck.data) {
-          setDuplicateCheckResult(duplicateCheck.data)
-        }
-      }
-
-      setCurrentStep(nextStep)
+      setCurrentStep(steps[currentIndex + 1])
     }
-  }, [currentStep, checkDuplicateSubmission])
+  }, [currentStep])
 
   const goToPreviousStep = useCallback(() => {
-    // Prevent navigation if payment is pending or verified (form locked)
-    if (formData.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) {
-      return
-    }
-
-    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
+    const steps: FormStep[] = ['personal', 'address', 'contact', 'education', 'marital', 'children', 'photo', 'review']
     const currentIndex = steps.indexOf(currentStep)
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1])
     }
-  }, [currentStep, paymentStatus, formData.payment?.paymentReference])
+  }, [currentStep])
 
-  const goToStep = useCallback(async (step: FormStep) => {
-    const steps: FormStep[] = ['personal', 'contact', 'education', 'photo', 'review', 'payment']
+  const goToStep = useCallback((step: FormStep) => {
+    const steps: FormStep[] = ['personal', 'address', 'contact', 'education', 'marital', 'children', 'photo', 'review']
     const stepIndex = steps.indexOf(step)
     const currentIndex = steps.indexOf(currentStep)
 
-    // Prevent any navigation if payment is pending or verified (form locked)
-    if (formData.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED') && step !== currentStep) {
-      return
-    }
-
     // Allow navigation to completed steps or the next immediate step
     if (completedSteps.includes(step) || stepIndex <= currentIndex + 1) {
-      // Check for duplicates when entering the review step
-      if (step === 'review') {
-        const duplicateCheck = await checkDuplicateSubmission()
-        if (duplicateCheck.success && duplicateCheck.data) {
-          setDuplicateCheckResult(duplicateCheck.data)
-        }
-      }
-
       setCurrentStep(step)
     }
-  }, [currentStep, completedSteps, paymentStatus, checkDuplicateSubmission, formData.payment?.paymentReference])
+  }, [currentStep, completedSteps])
 
-  // Handle personal info submission and auto-save
+  // Handle step submissions - just store in local state
   const handlePersonalInfoSubmit = useCallback((data: PersonalInfo) => {
     handleStepComplete('personal', data)
-    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle contact info submission and auto-save
+  const handleMailingAddressSubmit = useCallback((data: MailingAddress) => {
+    handleStepComplete('address', data)
+  }, [handleStepComplete])
+
   const handleContactInfoSubmit = useCallback((data: ContactInfo) => {
     handleStepComplete('contact', data)
-    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle education work submission and auto-save
-  const handleEducationWorkSubmit = useCallback((data: EducationWork) => {
+  const handleEducationSubmit = useCallback((data: Education) => {
     handleStepComplete('education', data)
-    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle photo upload submission and auto-save
+  const handleMaritalStatusSubmit = useCallback((data: MaritalStatusInfo) => {
+    handleStepComplete('marital', data)
+  }, [handleStepComplete])
+
+  const handleChildrenSubmit = useCallback((data: Children) => {
+    handleStepComplete('children', data)
+  }, [handleStepComplete])
+
   const handlePhotoUploadSubmit = useCallback((data: { file: File; preview: string }) => {
     handleStepComplete('photo', data)
-    // Auto-save will be triggered by the updateStepData call
   }, [handleStepComplete])
 
-  // Handle payment submission and auto-save
-  const handlePaymentSubmit = useCallback((data: Payment) => {
-    handleStepComplete('payment', data)
-    // Auto-save will be triggered by the updateStepData call
-  }, [handleStepComplete])
 
-  // Check if form should be disabled (payment pending or verified = form locked)
-  // Only lock if there's actually a payment reference AND status is pending/verified
-  const isFormDisabled = !!(formData.payment?.paymentReference && (paymentStatus === 'VERIFIED' || paymentStatus === 'PENDING'))
+
+  // Handle final submission with transaction number
+  const handleFinalSubmit = useCallback(async (transactionNumber: string) => {
+    setIsLoading(true)
+    try {
+      // Debug: Log form data structure
+      console.log('Form data before transformation:', formData)
+      console.log('Personal data:', formData.personal)
+      console.log('Address data:', formData.address)
+      console.log('Contact data:', formData.contact)
+      console.log('Education data:', formData.education)
+      console.log('Marital data:', formData.marital)
+      console.log('Children data:', formData.children)
+      
+      // Transform nested form data to flat structure expected by API
+      const applicationData = {
+        // Personal Information
+        familyName: formData.personal?.familyName || '',
+        givenName: formData.personal?.givenName || '',
+        middleName: formData.personal?.middleName || undefined,
+        gender: formData.personal?.gender || 'MALE',
+        dateOfBirth: formData.personal?.dateOfBirth || '',
+        cityOfBirth: formData.personal?.cityOfBirth || '',
+        countryOfBirth: formData.personal?.countryOfBirth || '',
+        countryOfEligibility: formData.personal?.countryOfEligibility || '',
+        eligibilityClaimType: formData.personal?.eligibilityClaimType || undefined,
+        
+        // Mailing Address
+        inCareOf: formData.address?.inCareOf || undefined,
+        addressLine1: formData.address?.addressLine1 || '',
+        addressLine2: formData.address?.addressLine2 || undefined,
+        city: formData.address?.city || '',
+        stateProvince: formData.address?.stateProvince || '',
+        postalCode: formData.address?.postalCode || '',
+        country: formData.address?.country || '',
+        countryOfResidence: formData.address?.countryOfResidence || '',
+        
+        // Contact Information
+        phoneNumber: formData.contact?.phoneNumber || undefined,
+        email: formData.contact?.email || '',
+        
+        // Education
+        educationLevel: formData.education?.educationLevel || 'HIGH_SCHOOL_DIPLOMA',
+        
+        // Marital Status
+        maritalStatus: formData.marital?.maritalStatus || 'UNMARRIED',
+        spouseFamilyName: formData.marital?.spouseFamilyName || undefined,
+        spouseGivenName: formData.marital?.spouseGivenName || undefined,
+        spouseMiddleName: formData.marital?.spouseMiddleName || undefined,
+        spouseGender: formData.marital?.spouseGender || undefined,
+        spouseDateOfBirth: formData.marital?.spouseDateOfBirth || undefined,
+        spouseCityOfBirth: formData.marital?.spouseCityOfBirth || undefined,
+        spouseCountryOfBirth: formData.marital?.spouseCountryOfBirth || undefined,
+        
+        // Children
+        children: formData.children?.children || [],
+      }
+
+      console.log('Transformed application data:', applicationData)
+
+      const response = await fetch('/api/applications/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(applicationData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error?.message || 'Failed to submit application')
+      }
+
+      const result = await response.json()
+      if (result.success && onComplete) {
+        await onComplete(formData as FormStepData)
+      } else {
+        throw new Error(result.error?.message || 'Submission failed')
+      }
+    } catch (error) {
+      console.error('Submission error:', error)
+      if (onError) {
+        onError(error instanceof Error ? error.message : 'Submission failed')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [formData, onComplete, onError])
+
+  // No form locking needed since we don't save until final submission
 
   // Render current step
   const renderCurrentStep = () => {
@@ -148,7 +218,18 @@ export function MultiStepForm({
             initialData={formData.personal}
             onSubmit={handlePersonalInfoSubmit}
             onNext={goToNextStep}
-            isLoading={isLoading || isFormDisabled}
+            isLoading={isLoading}
+          />
+        )
+
+      case 'address':
+        return (
+          <MailingAddressForm
+            initialData={formData.address}
+            onSubmit={handleMailingAddressSubmit}
+            onNext={goToNextStep}
+            onPrevious={goToPreviousStep}
+            isLoading={isLoading}
           />
         )
 
@@ -159,18 +240,40 @@ export function MultiStepForm({
             onSubmit={handleContactInfoSubmit}
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isFormDisabled}
+            isLoading={isLoading}
           />
         )
 
       case 'education':
         return (
-          <EducationWorkForm
+          <EducationForm
             initialData={formData.education}
-            onSubmit={handleEducationWorkSubmit}
+            onSubmit={handleEducationSubmit}
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isFormDisabled}
+            isLoading={isLoading}
+          />
+        )
+
+      case 'marital':
+        return (
+          <MaritalStatusForm
+            initialData={formData.marital}
+            onSubmit={handleMaritalStatusSubmit}
+            onNext={goToNextStep}
+            onPrevious={goToPreviousStep}
+            isLoading={isLoading}
+          />
+        )
+
+      case 'children':
+        return (
+          <ChildrenForm
+            initialData={formData.children}
+            onSubmit={handleChildrenSubmit}
+            onNext={goToNextStep}
+            onPrevious={goToPreviousStep}
+            isLoading={isLoading}
           />
         )
 
@@ -183,51 +286,20 @@ export function MultiStepForm({
               goToNextStep()
             }}
             onPrevious={goToPreviousStep}
-            isLoading={isLoading || isFormDisabled}
+            isLoading={isLoading}
           />
         )
 
       case 'review':
         return (
-          <div className="space-y-6">
-            {duplicateCheckResult && !duplicateCheckResult.canSubmit && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h3 className="font-semibold text-red-800 mb-2">Duplicate Submission Detected</h3>
-                <p className="text-red-700 text-sm">{duplicateCheckResult.message}</p>
-                <p className="text-red-600 text-sm mt-2">
-                  You cannot submit another application until your current application is processed or expires.
-                </p>
-              </div>
-            )}
-
-            <ReviewForm
-              formData={formData as FormStepData}
-              onSubmit={goToNextStep} // Go to payment step instead of submitting
-              onEdit={(step) => {
-                setCurrentStep(step as FormStep)
-              }}
-              onPrevious={goToPreviousStep}
-              isLoading={isLoading}
-              hasValidationErrors={duplicateCheckResult ? !duplicateCheckResult.canSubmit : false}
-            />
-          </div>
-        )
-
-      case 'payment':
-        return (
-          <PaymentForm
-            initialData={formData.payment}
-            onSubmit={handlePaymentSubmit}
-            onNext={async () => {
-              // Submit the application after payment
-              const result = await submitApplication(formData as FormStepData)
-              if (result && onComplete) {
-                await onComplete(formData as FormStepData)
-              }
+          <ReviewForm
+            formData={formData as FormStepData}
+            onSubmit={handleFinalSubmit}
+            onEdit={(step) => {
+              setCurrentStep(step as FormStep)
             }}
-            {...(!(formData.payment?.paymentReference && (paymentStatus === 'PENDING' || paymentStatus === 'VERIFIED')) && { onPrevious: goToPreviousStep })}
+            onPrevious={goToPreviousStep}
             isLoading={isLoading}
-            paymentStatus={paymentStatus}
           />
         )
 
@@ -238,58 +310,15 @@ export function MultiStepForm({
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="relative">
-        <FormStepNavigation
-          currentStep={currentStep}
-          completedSteps={completedSteps}
-          onStepClick={goToStep}
-          paymentStatus={paymentStatus}
-          hasPaymentReference={!!formData.payment?.paymentReference}
-        />
-        {/* Step saving indicator */}
-        {isSaving && (
-          <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
-            <div className="animate-pulse w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-            Saving step
-          </div>
-        )}
-      </div>
+      <FormStepNavigation
+        currentStep={currentStep}
+        completedSteps={completedSteps}
+        onStepClick={goToStep}
+      />
 
-      {/* Form Lock Notice */}
-      {formData.payment?.paymentReference && paymentStatus !== 'REJECTED' && (
-        <FormLockNotice paymentStatus={paymentStatus} className="mb-4" />
-      )}
-
-      {/* Save Status Indicator */}
-      <div className="mb-4 flex justify-between items-center">
+      <div className="mb-4">
         <div className="text-sm text-gray-500">
-          {isFormDisabled ? 'Form is locked - no further changes allowed' : 'Progress is saved when you complete each step'}
-        </div>
-        <div className="flex items-center gap-2">
-          {isFormDisabled && (
-            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              Form locked
-            </div>
-          )}
-          {!isFormDisabled && isSaving && (
-            <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-              Saving step...
-            </div>
-          )}
-          {!isFormDisabled && !isSaving && hasUnsavedChanges && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-200">
-              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-              Complete step to save
-            </div>
-          )}
-          {!isFormDisabled && !isSaving && !hasUnsavedChanges && formData.personal && (
-            <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              Progress saved
-            </div>
-          )}
+          Complete all steps to submit your application. Your data is only saved when you submit the final form.
         </div>
       </div>
 

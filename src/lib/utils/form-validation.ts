@@ -11,19 +11,29 @@ export function validateFormCompletion(formData: Partial<FormStepData>): Validat
   const missingFields: string[] = []
 
   // Personal Information validation
-  if (!formData.personal?.firstName) {
-    missingFields.push('First Name')
-    errors.push('First name is required')
+  if (!formData.personal?.familyName) {
+    missingFields.push('Family Name')
+    errors.push('Family name is required')
   }
   
-  if (!formData.personal?.lastName) {
-    missingFields.push('Last Name')
-    errors.push('Last name is required')
+  if (!formData.personal?.givenName) {
+    missingFields.push('Given Name')
+    errors.push('Given name is required')
+  }
+  
+  if (!formData.personal?.gender) {
+    missingFields.push('Gender')
+    errors.push('Gender is required')
   }
   
   if (!formData.personal?.dateOfBirth) {
     missingFields.push('Date of Birth')
     errors.push('Date of birth is required')
+  }
+  
+  if (!formData.personal?.cityOfBirth) {
+    missingFields.push('City of Birth')
+    errors.push('City of birth is required')
   }
   
   if (!formData.personal?.countryOfBirth) {
@@ -36,51 +46,81 @@ export function validateFormCompletion(formData: Partial<FormStepData>): Validat
     errors.push('Country of eligibility is required')
   }
 
+  // Mailing Address validation
+  if (!formData.address?.addressLine1) {
+    missingFields.push('Address Line 1')
+    errors.push('Address line 1 is required')
+  }
+  
+  if (!formData.address?.city) {
+    missingFields.push('City')
+    errors.push('City is required')
+  }
+  
+  if (!formData.address?.stateProvince) {
+    missingFields.push('State/Province')
+    errors.push('State or province is required')
+  }
+  
+  if (!formData.address?.postalCode) {
+    missingFields.push('Postal Code')
+    errors.push('Postal code is required')
+  }
+  
+  if (!formData.address?.country) {
+    missingFields.push('Country')
+    errors.push('Country is required')
+  }
+  
+  if (!formData.address?.countryOfResidence) {
+    missingFields.push('Country of Residence')
+    errors.push('Country of residence is required')
+  }
+
   // Contact Information validation
   if (!formData.contact?.email) {
     missingFields.push('Email Address')
     errors.push('Email address is required')
   }
-  
-  if (!formData.contact?.phone) {
-    missingFields.push('Phone Number')
-    errors.push('Phone number is required')
-  }
-  
-  if (!formData.contact?.address?.street) {
-    missingFields.push('Street Address')
-    errors.push('Street address is required')
-  }
-  
-  if (!formData.contact?.address?.city) {
-    missingFields.push('City')
-    errors.push('City is required')
-  }
-  
-  if (!formData.contact?.address?.state) {
-    missingFields.push('State/Province')
-    errors.push('State or province is required')
-  }
-  
-  if (!formData.contact?.address?.postalCode) {
-    missingFields.push('Postal Code')
-    errors.push('Postal code is required')
-  }
-  
-  if (!formData.contact?.address?.country) {
-    missingFields.push('Country')
-    errors.push('Country is required')
-  }
 
-  // Education and Work validation
-  if (!formData.education?.education) {
+  // Education validation
+  if (!formData.education?.educationLevel) {
     missingFields.push('Education Level')
     errors.push('Education level is required')
   }
+
+  // Marital Status validation
+  if (!formData.marital?.maritalStatus) {
+    missingFields.push('Marital Status')
+    errors.push('Marital status is required')
+  }
   
-  if (!formData.education?.occupation) {
-    missingFields.push('Occupation')
-    errors.push('Occupation is required')
+  // Spouse validation (if married to non-US citizen/LPR)
+  if (formData.marital?.maritalStatus === 'MARRIED_SPOUSE_NOT_US_CITIZEN_LPR') {
+    if (!formData.marital?.spouseFamilyName) {
+      missingFields.push('Spouse Family Name')
+      errors.push('Spouse family name is required')
+    }
+    if (!formData.marital?.spouseGivenName) {
+      missingFields.push('Spouse Given Name')
+      errors.push('Spouse given name is required')
+    }
+    if (!formData.marital?.spouseGender) {
+      missingFields.push('Spouse Gender')
+      errors.push('Spouse gender is required')
+    }
+    if (!formData.marital?.spouseDateOfBirth) {
+      missingFields.push('Spouse Date of Birth')
+      errors.push('Spouse date of birth is required')
+    }
+    if (!formData.marital?.spouseCityOfBirth) {
+      missingFields.push('Spouse City of Birth')
+      errors.push('Spouse city of birth is required')
+    }
+    if (!formData.marital?.spouseCountryOfBirth) {
+      missingFields.push('Spouse Country of Birth')
+      errors.push('Spouse country of birth is required')
+    }
   }
 
   // Photo validation
@@ -97,34 +137,49 @@ export function validateFormCompletion(formData: Partial<FormStepData>): Validat
 }
 
 export function getFormCompletionPercentage(formData: Partial<FormStepData>): number {
-  const totalFields = 13 // Total required fields (including photo)
   const validation = validateFormCompletion(formData)
-  const completedFields = totalFields - validation.missingFields.length
-  return Math.round((completedFields / totalFields) * 100)
+  const stepValidation = getStepValidationStatus(formData)
+  const totalSteps = 7 // personal, address, contact, education, marital, children, photo
+  const completedSteps = Object.values(stepValidation).filter(Boolean).length
+  return Math.round((completedSteps / totalSteps) * 100)
 }
 
 export function getStepValidationStatus(formData: Partial<FormStepData>) {
   return {
     personal: !!(
-      formData.personal?.firstName &&
-      formData.personal?.lastName &&
+      formData.personal?.familyName &&
+      formData.personal?.givenName &&
+      formData.personal?.gender &&
       formData.personal?.dateOfBirth &&
+      formData.personal?.cityOfBirth &&
       formData.personal?.countryOfBirth &&
       formData.personal?.countryOfEligibility
     ),
+    address: !!(
+      formData.address?.addressLine1 &&
+      formData.address?.city &&
+      formData.address?.stateProvince &&
+      formData.address?.postalCode &&
+      formData.address?.country &&
+      formData.address?.countryOfResidence
+    ),
     contact: !!(
-      formData.contact?.email &&
-      formData.contact?.phone &&
-      formData.contact?.address?.street &&
-      formData.contact?.address?.city &&
-      formData.contact?.address?.state &&
-      formData.contact?.address?.postalCode &&
-      formData.contact?.address?.country
+      formData.contact?.email
     ),
     education: !!(
-      formData.education?.education &&
-      formData.education?.occupation
+      formData.education?.educationLevel
     ),
+    marital: !!(
+      formData.marital?.maritalStatus &&
+      (formData.marital.maritalStatus !== 'MARRIED_SPOUSE_NOT_US_CITIZEN_LPR' ||
+        (formData.marital.spouseFamilyName &&
+         formData.marital.spouseGivenName &&
+         formData.marital.spouseGender &&
+         formData.marital.spouseDateOfBirth &&
+         formData.marital.spouseCityOfBirth &&
+         formData.marital.spouseCountryOfBirth))
+    ),
+    children: true, // Children are optional, so always valid
     photo: !!(
       formData.photo?.file
     ),

@@ -5,7 +5,25 @@ import { applicationSchema } from '@/lib/validations/application'
 
 export async function POST(request: NextRequest) {
   try {
-    const userWithRole = await authServer.getUserWithRole()
+    let userWithRole = await authServer.getUserWithRole()
+    
+    // If user exists in Supabase but not in database, sync them
+    if (userWithRole?.supabaseUser && !userWithRole.dbUser) {
+      try {
+        const dbUser = await authServer.syncUserToDatabase({
+          id: userWithRole.supabaseUser.id,
+          email: userWithRole.supabaseUser.email || '',
+        })
+        userWithRole = { ...userWithRole, dbUser }
+      } catch (syncError) {
+        console.error('Failed to sync user to database:', syncError)
+        return NextResponse.json(
+          { success: false, error: { code: 'USER_SYNC_ERROR', message: 'Failed to sync user data' } },
+          { status: 500 }
+        )
+      }
+    }
+    
     if (!userWithRole?.dbUser) {
       return NextResponse.json(
         { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
@@ -14,98 +32,133 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    
-    // Validate the request body
+
+    // Validate the complete application data
     const validationResult = applicationSchema.safeParse(body)
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: { 
-            code: 'VALIDATION_ERROR', 
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
             message: 'Invalid application data',
             details: validationResult.error.issues
-          } 
+          }
         },
         { status: 400 }
       )
     }
 
-    // Allow multiple applications per user since they can submit for family members
-    // Each application represents a different person's DV lottery entry
+    const data = validationResult.data
 
-    const applicationData = validationResult.data
-
-    // Check if there's a matching draft application for this specific person
-    // Match by name and date of birth to find the correct draft
-    let application = await prisma.application.findFirst({
-      where: {
+    // Create the application with all data
+    const application = await prisma.application.create({
+      data: {
         userId: userWithRole.dbUser.id,
-        status: 'DRAFT',
-        firstName: applicationData.firstName,
-        lastName: applicationData.lastName,
-        dateOfBirth: new Date(applicationData.dateOfBirth)
-      }
+        
+        // Personal Information
+        familyName: data.familyName,
+        givenName: data.givenName,
+        middleName: data.middleName || null,
+        gender: data.gender,
+        dateOfBirth: new Date(data.dateOfBirth),
+        cityOfBirth: data.cityOfBirth,
+        countryOfBirth: data.countryOfBirth,
+        countryOfEligibility: data.countryOfEligibility,
+        eligibilityClaimType: data.eligibilityClaimType || null,
+        
+        // Mailing Address
+        inCareOf: data.inCareOf || null,
+        addressLine1: data.addressLine1,
+        addressLine2: data.addressLine2 || null,
+        city: data.city,
+        stateProvince: data.stateProvince,
+        postalCode: data.postalCode,
+        country: data.country,
+        countryOfResidence: data.countryOfResidence,
+        
+        // Contact Information
+        phoneNumber: data.phoneNumber || null,
+        email: data.email,
+        
+        // Education
+        educationLevel: data.educationLevel,
+        
+        // Marital Status
+        maritalStatus: data.maritalStatus,
+        spouseFamilyName: data.spouseFamilyName || null,
+        spouseGivenName: data.spouseGivenName || null,
+        spouseMiddleName: data.spouseMiddleName || null,
+        spouseGender: data.spouseGender || null,
+        spouseDateOfBirth: data.spouseDateOfBirth ? new Date(data.spouseDateOfBirth) : null,
+        spouseCityOfBirth: data.spouseCityOfBirth || null,
+        spouseCountryOfBirth: data.spouseCountryOfBirth || null,
+        spousePhotoUrl: null, // Will be handled separately
+        
+        // Photo
+        photoUrl: null, // Will be handled separately
+        photoValidated: false,
+        
+        // Payment - starts as pending
+        paymentStatus: 'PENDING',
+        status: 'PAYMENT_PENDING',
+      },
     })
 
-    if (application) {
-      // Update existing draft and change status to PAYMENT_PENDING
-      application = await prisma.application.update({
-        where: {
-          id: application.id,
-        },
-        data: {
-          ...applicationData,
-          status: 'PAYMENT_PENDING',
-          updatedAt: new Date(),
-        },
-      })
-    } else {
-      // Create new application with PAYMENT_PENDING status
-      application = await prisma.application.create({
-        data: {
-          ...applicationData,
-          userId: userWithRole.dbUser.id,
-          status: 'PAYMENT_PENDING',
-        },
+    // Create children records if any
+    if (data.children && data.children.length > 0) {
+      await prisma.child.createMany({
+        data: data.children.map(child => ({
+          applicationId: application.id,
+          familyName: child.familyName,
+          givenName: child.givenName,
+          middleName: child.middleName || null,
+          gender: child.gender,
+          dateOfBirth: new Date(child.dateOfBirth),
+          cityOfBirth: child.cityOfBirth,
+          countryOfBirth: child.countryOfBirth,
+          photoUrl: null, // Will be handled separately
+        })),
       })
     }
 
-    // Log the submission action
+    // Log the submission
     await prisma.auditLog.create({
       data: {
         userId: userWithRole.dbUser.id,
         applicationId: application.id,
-        action: 'APPLICATION_SUBMITTED_FOR_PAYMENT',
+        action: 'APPLICATION_SUBMITTED',
         details: {
-          previousStatus: 'DRAFT',
-          newStatus: 'PAYMENT_PENDING',
+          hasSpouse: !!data.spouseFamilyName,
+          childrenCount: data.children?.length || 0,
           timestamp: new Date().toISOString(),
-          formData: {
-            hasPersonalInfo: !!(applicationData.firstName && applicationData.lastName),
-            hasContactInfo: !!(applicationData.email && applicationData.phone),
-            hasEducationInfo: !!(applicationData.education && applicationData.occupation),
-          }
         },
         ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
       },
     })
 
+    // Fetch the complete application with children
+    const completeApplication = await prisma.application.findUnique({
+      where: { id: application.id },
+      include: {
+        children: true,
+      },
+    })
+
     return NextResponse.json({
       success: true,
-      data: application,
-      message: 'Application submitted successfully. Please proceed to payment.'
+      data: completeApplication,
     })
   } catch (error) {
     console.error('Error submitting application:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to submit application' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to submit application'
+        }
       },
       { status: 500 }
     )
