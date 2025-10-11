@@ -39,7 +39,15 @@ export function ContactInfoForm({
     },
   })
 
-  // No auto-save - data is only submitted when user clicks Next
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        phoneNumber: initialData.phoneNumber || '',
+        email: initialData.email || '',
+      })
+    }
+  }, [initialData, form])
 
   const handleSubmit = (data: ContactInfo) => {
     onSubmit(data)

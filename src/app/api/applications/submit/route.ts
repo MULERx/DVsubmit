@@ -6,7 +6,7 @@ import { applicationSchema } from '@/lib/validations/application'
 export async function POST(request: NextRequest) {
   try {
     let userWithRole = await authServer.getUserWithRole()
-    
+
     // If user exists in Supabase but not in database, sync them
     if (userWithRole?.supabaseUser && !userWithRole.dbUser) {
       try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         )
       }
     }
-    
+
     if (!userWithRole?.dbUser) {
       return NextResponse.json(
         { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const application = await prisma.application.create({
       data: {
         userId: userWithRole.dbUser.id,
-        
+
         // Personal Information
         familyName: data.familyName,
         givenName: data.givenName,
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         countryOfBirth: data.countryOfBirth,
         countryOfEligibility: data.countryOfEligibility,
         eligibilityClaimType: data.eligibilityClaimType || null,
-        
+
         // Mailing Address
         inCareOf: data.inCareOf || null,
         addressLine1: data.addressLine1,
@@ -76,14 +76,14 @@ export async function POST(request: NextRequest) {
         postalCode: data.postalCode,
         country: data.country,
         countryOfResidence: data.countryOfResidence,
-        
+
         // Contact Information
         phoneNumber: data.phoneNumber || null,
         email: data.email,
-        
+
         // Education
         educationLevel: data.educationLevel,
-        
+
         // Marital Status
         maritalStatus: data.maritalStatus,
         spouseFamilyName: data.spouseFamilyName || null,
@@ -93,11 +93,11 @@ export async function POST(request: NextRequest) {
         spouseDateOfBirth: data.spouseDateOfBirth ? new Date(data.spouseDateOfBirth) : null,
         spouseCityOfBirth: data.spouseCityOfBirth || null,
         spouseCountryOfBirth: data.spouseCountryOfBirth || null,
-        spousePhotoUrl: null, // Will be handled separately
-        
+        spousePhotoUrl: data.spousePhotoUrl || null,
+
         // Photo
-        photoUrl: null, // Will be handled separately
-        photoValidated: false,
+        photoUrl: data.photoUrl || null,
+        photoValidated: true,
         status: 'PAYMENT_PENDING',
       },
     })
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
           dateOfBirth: new Date(child.dateOfBirth),
           cityOfBirth: child.cityOfBirth,
           countryOfBirth: child.countryOfBirth,
-          photoUrl: null, // Will be handled separately
+          photoUrl: child.photoUrl || null,
         })),
       })
     }

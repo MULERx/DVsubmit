@@ -88,7 +88,22 @@ export function PersonalInfoForm({
     },
   })
 
-  // No auto-save - data is only submitted when user clicks Next
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        familyName: initialData.familyName || '',
+        givenName: initialData.givenName || '',
+        middleName: initialData.middleName || '',
+        gender: initialData.gender || undefined,
+        dateOfBirth: initialData.dateOfBirth || '',
+        cityOfBirth: initialData.cityOfBirth || '',
+        countryOfBirth: initialData.countryOfBirth || '',
+        countryOfEligibility: initialData.countryOfEligibility || '',
+        eligibilityClaimType: initialData.eligibilityClaimType || '',
+      })
+    }
+  }, [initialData, form])
 
   const handleSubmit = (data: PersonalInfo) => {
     onSubmit(data)

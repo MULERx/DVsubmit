@@ -33,6 +33,8 @@ export function MultiStepForm({
   // Initialize form data with existing application data
   useEffect(() => {
     if (existingApplication) {
+      console.log('Initializing form with existing application:', existingApplication)
+
       const transformedData: Partial<FormStepData> = {
         personal: {
           familyName: existingApplication.familyName,
@@ -80,14 +82,37 @@ export function MultiStepForm({
         },
         children: {
           children: (existingApplication.children || []).map(child => ({
-            ...child,
+            familyName: child.familyName,
+            givenName: child.givenName,
+            middleName: child.middleName || '',
+            gender: child.gender,
             dateOfBirth: typeof child.dateOfBirth === 'string'
               ? child.dateOfBirth
-              : child.dateOfBirth.toISOString().split('T')[0]
+              : child.dateOfBirth.toISOString().split('T')[0],
+            cityOfBirth: child.cityOfBirth,
+            countryOfBirth: child.countryOfBirth,
           })),
         },
-        // Note: Photo data would need to be handled separately if needed
+        // Initialize photo data if available
+        ...(existingApplication.photoUrl && {
+          photo: {
+            file: new File([], 'existing-photo.jpg'), // Placeholder file
+            preview: '',
+            path: existingApplication.photoUrl,
+            signedUrl: existingApplication.photoUrl,
+          }
+        }),
+        ...(existingApplication.spousePhotoUrl && {
+          spousePhoto: {
+            file: new File([], 'existing-spouse-photo.jpg'), // Placeholder file
+            preview: '',
+            path: existingApplication.spousePhotoUrl,
+            signedUrl: existingApplication.spousePhotoUrl,
+          }
+        }),
       }
+
+      console.log('Transformed form data:', transformedData)
       setFormData(transformedData)
     }
   }, [existingApplication])
@@ -110,10 +135,15 @@ export function MultiStepForm({
 
   // Handle step completion - just store in local state
   const handleStepComplete = useCallback((step: FormStep, data: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [step]: data
-    }))
+    console.log(`Completing step ${step} with data:`, data)
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [step]: data
+      }
+      console.log('Updated form data:', updated)
+      return updated
+    })
   }, [])
 
   // Navigation functions
@@ -187,49 +217,96 @@ export function MultiStepForm({
       console.log('Education data:', formData.education)
       console.log('Marital data:', formData.marital)
       console.log('Children data:', formData.children)
+      console.log('Photo data:', formData.photo)
+      console.log('Spouse photo data:', formData.spousePhoto)
+      console.log('Children photos data:', formData.childrenPhotos)
+
+      // Validate that all required data is present
+      if (!formData.personal || !formData.address || !formData.contact || !formData.education || !formData.marital) {
+        const missingSteps = []
+        if (!formData.personal) missingSteps.push('Personal Information')
+        if (!formData.address) missingSteps.push('Mailing Address')
+        if (!formData.contact) missingSteps.push('Contact Information')
+        if (!formData.education) missingSteps.push('Education')
+        if (!formData.marital) missingSteps.push('Marital Status')
+
+        throw new Error(`Missing required form data: ${missingSteps.join(', ')}. Please complete all steps.`)
+      }
+
+      // Additional validation for required fields within each step
+      const requiredFields = [
+        { field: formData.personal.familyName, name: 'Family Name' },
+        { field: formData.personal.givenName, name: 'Given Name' },
+        { field: formData.personal.gender, name: 'Gender' },
+        { field: formData.personal.dateOfBirth, name: 'Date of Birth' },
+        { field: formData.personal.cityOfBirth, name: 'City of Birth' },
+        { field: formData.personal.countryOfBirth, name: 'Country of Birth' },
+        { field: formData.personal.countryOfEligibility, name: 'Country of Eligibility' },
+        { field: formData.address.addressLine1, name: 'Address Line 1' },
+        { field: formData.address.city, name: 'City' },
+        { field: formData.address.stateProvince, name: 'State/Province' },
+        { field: formData.address.postalCode, name: 'Postal Code' },
+        { field: formData.address.country, name: 'Country' },
+        { field: formData.address.countryOfResidence, name: 'Country of Residence' },
+        { field: formData.contact.email, name: 'Email' },
+        { field: formData.education.educationLevel, name: 'Education Level' },
+        { field: formData.marital.maritalStatus, name: 'Marital Status' },
+      ]
+
+      const missingFields = requiredFields.filter(({ field }) => !field || field.trim() === '')
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.map(f => f.name).join(', ')}`)
+      }
 
       // Transform nested form data to flat structure expected by API
       const applicationData = {
         // Personal Information
-        familyName: formData.personal?.familyName || '',
-        givenName: formData.personal?.givenName || '',
-        middleName: formData.personal?.middleName || undefined,
-        gender: formData.personal?.gender || 'MALE',
-        dateOfBirth: formData.personal?.dateOfBirth || '',
-        cityOfBirth: formData.personal?.cityOfBirth || '',
-        countryOfBirth: formData.personal?.countryOfBirth || '',
-        countryOfEligibility: formData.personal?.countryOfEligibility || '',
-        eligibilityClaimType: formData.personal?.eligibilityClaimType || undefined,
+        familyName: formData.personal.familyName,
+        givenName: formData.personal.givenName,
+        middleName: formData.personal.middleName || undefined,
+        gender: formData.personal.gender,
+        dateOfBirth: formData.personal.dateOfBirth,
+        cityOfBirth: formData.personal.cityOfBirth,
+        countryOfBirth: formData.personal.countryOfBirth,
+        countryOfEligibility: formData.personal.countryOfEligibility,
+        eligibilityClaimType: formData.personal.eligibilityClaimType || undefined,
 
         // Mailing Address
-        inCareOf: formData.address?.inCareOf || undefined,
-        addressLine1: formData.address?.addressLine1 || '',
-        addressLine2: formData.address?.addressLine2 || undefined,
-        city: formData.address?.city || '',
-        stateProvince: formData.address?.stateProvince || '',
-        postalCode: formData.address?.postalCode || '',
-        country: formData.address?.country || '',
-        countryOfResidence: formData.address?.countryOfResidence || '',
+        inCareOf: formData.address.inCareOf || undefined,
+        addressLine1: formData.address.addressLine1,
+        addressLine2: formData.address.addressLine2 || undefined,
+        city: formData.address.city,
+        stateProvince: formData.address.stateProvince,
+        postalCode: formData.address.postalCode,
+        country: formData.address.country,
+        countryOfResidence: formData.address.countryOfResidence,
 
         // Contact Information
-        phoneNumber: formData.contact?.phoneNumber || undefined,
-        email: formData.contact?.email || '',
+        phoneNumber: formData.contact.phoneNumber || undefined,
+        email: formData.contact.email,
 
         // Education
-        educationLevel: formData.education?.educationLevel || 'HIGH_SCHOOL_DIPLOMA',
+        educationLevel: formData.education.educationLevel,
 
         // Marital Status
-        maritalStatus: formData.marital?.maritalStatus || 'UNMARRIED',
-        spouseFamilyName: formData.marital?.spouseFamilyName || undefined,
-        spouseGivenName: formData.marital?.spouseGivenName || undefined,
-        spouseMiddleName: formData.marital?.spouseMiddleName || undefined,
-        spouseGender: formData.marital?.spouseGender || undefined,
-        spouseDateOfBirth: formData.marital?.spouseDateOfBirth || undefined,
-        spouseCityOfBirth: formData.marital?.spouseCityOfBirth || undefined,
-        spouseCountryOfBirth: formData.marital?.spouseCountryOfBirth || undefined,
+        maritalStatus: formData.marital.maritalStatus,
+        spouseFamilyName: formData.marital.spouseFamilyName || undefined,
+        spouseGivenName: formData.marital.spouseGivenName || undefined,
+        spouseMiddleName: formData.marital.spouseMiddleName || undefined,
+        spouseGender: formData.marital.spouseGender || undefined,
+        spouseDateOfBirth: formData.marital.spouseDateOfBirth || undefined,
+        spouseCityOfBirth: formData.marital.spouseCityOfBirth || undefined,
+        spouseCountryOfBirth: formData.marital.spouseCountryOfBirth || undefined,
 
-        // Children
-        children: formData.children?.children || [],
+        // Photos
+        photoUrl: formData.photo?.path || undefined,
+        spousePhotoUrl: formData.spousePhoto?.path || undefined,
+
+        // Children (with photo URLs)
+        children: (formData.children?.children || []).map((child, index) => ({
+          ...child,
+          photoUrl: formData.childrenPhotos?.[index]?.path || undefined,
+        })),
       }
 
       console.log('Transformed application data:', applicationData)
@@ -247,13 +324,18 @@ export function MultiStepForm({
         body: JSON.stringify(applicationData),
       })
 
+      const result = await response.json()
+      console.log('API Response:', result)
+
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error('API Error:', errorData)
-        throw new Error(errorData.error?.message || 'Failed to submit application')
+        console.error('API Error Response:', result)
+        if (result.error?.code === 'VALIDATION_ERROR') {
+          console.error('Validation errors:', result.error.details)
+          throw new Error(`Validation failed: ${result.error.details?.map((d: any) => d.message).join(', ') || result.error.message}`)
+        }
+        throw new Error(result.error?.message || `HTTP ${response.status}: Failed to submit application`)
       }
 
-      const result = await response.json()
       if (result.success && onComplete) {
         await onComplete(formData as FormStepData)
       } else {
@@ -275,6 +357,7 @@ export function MultiStepForm({
       case 'personal':
         return (
           <PersonalInfoForm
+            key={existingApplication?.id || 'new'}
             initialData={formData.personal}
             onSubmit={handlePersonalInfoSubmit}
             onNext={goToNextStep}
@@ -285,6 +368,7 @@ export function MultiStepForm({
       case 'address':
         return (
           <MailingAddressForm
+            key={existingApplication?.id || 'new'}
             initialData={formData.address}
             onSubmit={handleMailingAddressSubmit}
             onNext={goToNextStep}
@@ -296,6 +380,7 @@ export function MultiStepForm({
       case 'contact':
         return (
           <ContactInfoForm
+            key={existingApplication?.id || 'new'}
             initialData={formData.contact}
             onSubmit={handleContactInfoSubmit}
             onNext={goToNextStep}
@@ -307,6 +392,7 @@ export function MultiStepForm({
       case 'education':
         return (
           <EducationForm
+            key={existingApplication?.id || 'new'}
             initialData={formData.education}
             onSubmit={handleEducationSubmit}
             onNext={goToNextStep}
@@ -318,6 +404,7 @@ export function MultiStepForm({
       case 'marital':
         return (
           <MaritalStatusForm
+            key={existingApplication?.id || 'new'}
             initialData={formData.marital}
             onSubmit={handleMaritalStatusSubmit}
             onNext={goToNextStep}
@@ -329,6 +416,7 @@ export function MultiStepForm({
       case 'children':
         return (
           <ChildrenForm
+            key={existingApplication?.id || 'new'}
             initialData={formData.children}
             onSubmit={handleChildrenSubmit}
             onNext={goToNextStep}
@@ -340,6 +428,7 @@ export function MultiStepForm({
       case 'photo':
         return (
           <PhotoUploadForm
+            key={existingApplication?.id || 'new'}
             initialData={formData.photo}
             onNext={(data) => {
               handlePhotoUploadSubmit(data)

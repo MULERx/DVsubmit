@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { educationSchema } from '@/lib/validations/application'
@@ -20,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { useEffect } from 'react'
 
 interface EducationFormProps {
   initialData?: Partial<Education>
@@ -57,7 +57,14 @@ export function EducationForm({
     },
   })
 
-  // No auto-save - data is only submitted when user clicks Next
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        educationLevel: initialData.educationLevel || undefined,
+      })
+    }
+  }, [initialData, form])
 
   const handleSubmit = (data: Education) => {
     onSubmit(data)

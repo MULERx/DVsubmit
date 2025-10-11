@@ -88,7 +88,21 @@ export function MailingAddressForm({
     },
   })
 
-  // No auto-save - data is only submitted when user clicks Next
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        inCareOf: initialData.inCareOf || '',
+        addressLine1: initialData.addressLine1 || '',
+        addressLine2: initialData.addressLine2 || '',
+        city: initialData.city || '',
+        stateProvince: initialData.stateProvince || '',
+        postalCode: initialData.postalCode || '',
+        country: initialData.country || '',
+        countryOfResidence: initialData.countryOfResidence || '',
+      })
+    }
+  }, [initialData, form])
 
   const handleSubmit = (data: MailingAddress) => {
     onSubmit(data)

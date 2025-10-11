@@ -91,6 +91,7 @@ export const childSchema = z.object({
   dateOfBirth: z.string().min(1, 'Child date of birth is required'),
   cityOfBirth: z.string().min(1, 'Child city of birth is required').max(50, 'City must be less than 50 characters'),
   countryOfBirth: z.string().min(1, 'Child country of birth is required'),
+  photoUrl: z.string().optional(),
 })
 
 // Children Schema (array of children)
@@ -116,6 +117,12 @@ export const paymentSchema = z.object({
     .regex(/^[A-Z0-9]+$/, 'Payment reference must contain only uppercase letters and numbers'),
 })
 
+// Photo URLs Schema (for submission)
+export const photoUrlsSchema = z.object({
+  photoUrl: z.string().optional(),
+  spousePhotoUrl: z.string().optional(),
+})
+
 // Complete Application Schema
 export const applicationSchema = personalInfoSchema
   .merge(mailingAddressSchema)
@@ -123,6 +130,7 @@ export const applicationSchema = personalInfoSchema
   .merge(educationSchema)
   .merge(maritalStatusSchema)
   .merge(childrenSchema)
+  .merge(photoUrlsSchema)
 
 // User Registration Schema
 export const registerSchema = z.object({

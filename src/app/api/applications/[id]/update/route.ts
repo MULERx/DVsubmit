@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { authServer } from '@/lib/auth/server-auth-helpers'
+import { applicationSchema } from '@/lib/validations/application'
 
 export async function PATCH(
   request: NextRequest,
@@ -15,13 +16,34 @@ export async function PATCH(
       )
     }
 
-    const applicationData = await request.json()
+    const body = await request.json()
+
+    // Validate the complete application data
+    const validationResult = applicationSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid application data',
+            details: validationResult.error.issues
+          }
+        },
+        { status: 400 }
+      )
+    }
+
+    const data = validationResult.data
 
     // Find the application and verify ownership
     const existingApplication = await prisma.application.findFirst({
       where: {
         id: params.id,
         userId: userWithRole.dbUser.id,
+      },
+      include: {
+        children: true,
       },
     })
 
@@ -45,45 +67,46 @@ export async function PATCH(
       where: { id: params.id },
       data: {
         // Personal Information
-        familyName: applicationData.familyName,
-        givenName: applicationData.givenName,
-        middleName: applicationData.middleName,
-        gender: applicationData.gender,
-        dateOfBirth: applicationData.dateOfBirth,
-        cityOfBirth: applicationData.cityOfBirth,
-        countryOfBirth: applicationData.countryOfBirth,
-        countryOfEligibility: applicationData.countryOfEligibility,
-        eligibilityClaimType: applicationData.eligibilityClaimType,
+        familyName: data.familyName,
+        givenName: data.givenName,
+        middleName: data.middleName || null,
+        gender: data.gender,
+        dateOfBirth: new Date(data.dateOfBirth),
+        cityOfBirth: data.cityOfBirth,
+        countryOfBirth: data.countryOfBirth,
+        countryOfEligibility: data.countryOfEligibility,
+        eligibilityClaimType: data.eligibilityClaimType || null,
         
         // Mailing Address
-        inCareOf: applicationData.inCareOf,
-        addressLine1: applicationData.addressLine1,
-        addressLine2: applicationData.addressLine2,
-        city: applicationData.city,
-        stateProvince: applicationData.stateProvince,
-        postalCode: applicationData.postalCode,
-        country: applicationData.country,
-        countryOfResidence: applicationData.countryOfResidence,
+        inCareOf: data.inCareOf || null,
+        addressLine1: data.addressLine1,
+        addressLine2: data.addressLine2 || null,
+        city: data.city,
+        stateProvince: data.stateProvince,
+        postalCode: data.postalCode,
+        country: data.country,
+        countryOfResidence: data.countryOfResidence,
         
         // Contact Information
-        phoneNumber: applicationData.phoneNumber,
-        email: applicationData.email,
+        phoneNumber: data.phoneNumber || null,
+        email: data.email,
         
         // Education
-        educationLevel: applicationData.educationLevel,
+        educationLevel: data.educationLevel,
         
         // Marital Status
-        maritalStatus: applicationData.maritalStatus,
-        spouseFamilyName: applicationData.spouseFamilyName,
-        spouseGivenName: applicationData.spouseGivenName,
-        spouseMiddleName: applicationData.spouseMiddleName,
-        spouseGender: applicationData.spouseGender,
-        spouseDateOfBirth: applicationData.spouseDateOfBirth,
-        spouseCityOfBirth: applicationData.spouseCityOfBirth,
-        spouseCountryOfBirth: applicationData.spouseCountryOfBirth,
+        maritalStatus: data.maritalStatus,
+        spouseFamilyName: data.spouseFamilyName || null,
+        spouseGivenName: data.spouseGivenName || null,
+        spouseMiddleName: data.spouseMiddleName || null,
+        spouseGender: data.spouseGender || null,
+        spouseDateOfBirth: data.spouseDateOfBirth ? new Date(data.spouseDateOfBirth) : null,
+        spouseCityOfBirth: data.spouseCityOfBirth || null,
+        spouseCountryOfBirth: data.spouseCountryOfBirth || null,
         
-        // Children
-        children: applicationData.children,
+        // Photos
+        photoUrl: (data as any).photoUrl || null,
+        spousePhotoUrl: (data as any).spousePhotoUrl || null,
         
         // Reset status to pending for review
         status: 'PAYMENT_PENDING',
@@ -91,9 +114,61 @@ export async function PATCH(
       }
     })
 
+    // Handle children updates
+    if (data.children && data.children.length > 0) {
+      // Delete existing children
+      await prisma.child.deleteMany({
+        where: { applicationId: params.id }
+      })
+
+      // Create new children records
+      await prisma.child.createMany({
+        data: data.children.map(child => ({
+          applicationId: params.id,
+          familyName: child.familyName,
+          givenName: child.givenName,
+          middleName: child.middleName || null,
+          gender: child.gender,
+          dateOfBirth: new Date(child.dateOfBirth),
+          cityOfBirth: child.cityOfBirth,
+          countryOfBirth: child.countryOfBirth,
+          photoUrl: (child as any).photoUrl || null,
+        })),
+      })
+    } else {
+      // If no children in the update, remove existing ones
+      await prisma.child.deleteMany({
+        where: { applicationId: params.id }
+      })
+    }
+
+    // Log the update
+    await prisma.auditLog.create({
+      data: {
+        userId: userWithRole.dbUser.id,
+        applicationId: params.id,
+        action: 'APPLICATION_UPDATED',
+        details: {
+          hasSpouse: !!data.spouseFamilyName,
+          childrenCount: data.children?.length || 0,
+          timestamp: new Date().toISOString(),
+        },
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown',
+      },
+    })
+
+    // Fetch the complete updated application with children
+    const completeApplication = await prisma.application.findUnique({
+      where: { id: params.id },
+      include: {
+        children: true,
+      },
+    })
+
     return NextResponse.json({
       success: true,
-      data: updatedApplication
+      data: completeApplication
     })
 
   } catch (error) {

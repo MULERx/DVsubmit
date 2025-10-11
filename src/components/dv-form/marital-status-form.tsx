@@ -100,7 +100,21 @@ export function MaritalStatusForm({
   const maritalStatus = form.watch('maritalStatus')
   const showSpouseDetails = maritalStatus === 'MARRIED_SPOUSE_NOT_US_CITIZEN_LPR'
 
-  // No auto-save - data is only submitted when user clicks Next
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        maritalStatus: initialData.maritalStatus || undefined,
+        spouseFamilyName: initialData.spouseFamilyName || '',
+        spouseGivenName: initialData.spouseGivenName || '',
+        spouseMiddleName: initialData.spouseMiddleName || '',
+        spouseGender: initialData.spouseGender || undefined,
+        spouseDateOfBirth: initialData.spouseDateOfBirth || '',
+        spouseCityOfBirth: initialData.spouseCityOfBirth || '',
+        spouseCountryOfBirth: initialData.spouseCountryOfBirth || '',
+      })
+    }
+  }, [initialData, form])
 
   const handleSubmit = (data: MaritalStatusInfo) => {
     onSubmit(data)

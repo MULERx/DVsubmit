@@ -87,7 +87,14 @@ export function ChildrenForm({
     name: 'children',
   })
 
-  // No auto-save - data is only submitted when user clicks Next
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        children: initialData.children || [],
+      })
+    }
+  }, [initialData, form])
 
   const handleSubmit = (data: Children) => {
     onSubmit(data)
