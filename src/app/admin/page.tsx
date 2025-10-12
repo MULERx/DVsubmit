@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/auth/auth-context'
 import { SuperAdminOnly } from '@/lib/auth/role-guard'
 import { QuickStatistics } from '@/components/admin/quick-statistics'
 import Link from 'next/link'
+import { FileText, Home } from 'lucide-react'
 
 function AdminDashboard() {
   const { user, userWithRole } = useAuth()
@@ -15,7 +16,13 @@ function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
+              <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity mr-6">
+                <div className="bg-blue-600 text-white p-2 rounded-lg">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <span className="text-lg font-semibold text-gray-900">DVSubmit</span>
+              </Link>
+              <h1 className="text-xl font-semibold text-gray-900">Admin Panel</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700">
@@ -25,10 +32,17 @@ function AdminDashboard() {
                 </span>
               </span>
               <Link
+                href="/"
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+              >
+                <Home className="h-4 w-4" />
+                Home
+              </Link>
+              <Link
                 href="/dashboard"
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
-                Back to Dashboard
+                Dashboard
               </Link>
             </div>
           </div>

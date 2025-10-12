@@ -4,12 +4,10 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth/auth-context'
 import { ApplicationRecord, ApplicationStatus } from '@/lib/types/application'
 import { useUserApplications } from '@/hooks/use-application-queries'
-import { useApplicationDelete } from '@/hooks/use-application-mutations'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { DeleteApplicationDialog } from './delete-application-dialog'
 import { PaymentReferenceDialog } from './payment-reference-dialog'
 import {
   FileText,
@@ -17,7 +15,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
   Upload,
   Copy,
   Edit,
@@ -37,7 +34,6 @@ export function UserDashboard({ className }: UserDashboardProps) {
   const { toast } = useToast()
   const router = useRouter()
   const [downloadingProof, setDownloadingProof] = useState<string | null>(null)
-  const [deletingApplication, setDeletingApplication] = useState<string | null>(null)
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
   const [selectedApplication, setSelectedApplication] = useState<ApplicationRecord | null>(null)
 
@@ -49,8 +45,6 @@ export function UserDashboard({ className }: UserDashboardProps) {
     refetch: refetchApplications
   } = useUserApplications(!!user)
 
-  // Use TanStack Query for deleting applications
-  const deleteApplicationMutation = useApplicationDelete()
 
   // Show error toast if fetch fails
   if (fetchError) {
@@ -166,7 +160,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-12 min-h-[65vh]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )

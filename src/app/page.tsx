@@ -1,17 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from '@/components/ui/button'
 import { LegalAcknowledgmentModal } from '@/components/legal/legal-acknowledgment-modal'
 import { FirstVisitBanner } from '@/components/legal/legal-banner'
 import { useLegalAcknowledgment } from '@/hooks/use-legal-acknowledgment'
-import { FileText, Users, Shield, CheckCircle } from 'lucide-react'
+import { useAuth } from '@/lib/auth/auth-context'
+import { FileText, Shield, CheckCircle, Settings, BarChart3 } from 'lucide-react'
 
 export default function Home() {
   const [showLegalModal, setShowLegalModal] = useState(false)
   const { needsAcknowledgment, acknowledgeTerms, isLoading } = useLegalAcknowledgment()
+  const { isAuthenticated, isAdmin, isSuperAdmin, loading: authLoading } = useAuth()
 
   // Show legal modal for first-time visitors
   useEffect(() => {
@@ -43,12 +44,12 @@ export default function Home() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="bg-blue-600 text-white p-2 rounded-lg">
                 <FileText className="h-6 w-6" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900">DVSubmit</h1>
-            </div>
+            </Link>
             <nav className="flex items-center gap-4">
               <Link href="/terms" className="text-gray-600 hover:text-gray-900 text-sm">
                 Terms
@@ -56,12 +57,43 @@ export default function Home() {
               <Link href="/privacy" className="text-gray-600 hover:text-gray-900 text-sm">
                 Privacy
               </Link>
-              <Link href="/login">
-                <Button variant="outline" size="sm">Sign In</Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm">Get Started</Button>
-              </Link>
+              {authLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                  <span className="text-sm text-gray-600">Loading...</span>
+                </div>
+              ) : (
+                <>
+                  {!isAuthenticated ? (
+                    <>
+                      <Link href="/login">
+                        <Button variant="outline" size="sm">Sign In</Button>
+                      </Link>
+                      <Link href="/register">
+                        <Button size="sm">Get Started</Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      {isSuperAdmin || isAdmin ? (
+                        <Link href="/admin">
+                          <Button variant="outline" size="sm" className="flex items-center gap-2">
+                            <Settings className="h-4 w-4" />
+                            Admin Panel
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link href="/dashboard">
+                          <Button variant="outline" size="sm" className="flex items-center gap-2">
+                            <BarChart3 className="h-4 w-4" />
+                            Dashboard
+                          </Button>
+                        </Link>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </nav>
           </div>
         </div>
@@ -100,16 +132,62 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register">
-              <Button size="lg" className="min-w-40">
-                Start Application
-              </Button>
-            </Link>
-            <Link href="/terms">
-              <Button variant="outline" size="lg">
-                View Terms & Conditions
-              </Button>
-            </Link>
+            {authLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span className="text-gray-600">Loading...</span>
+              </div>
+            ) : (
+              <>
+                {!isAuthenticated ? (
+                  <>
+                    <Link href="/register">
+                      <Button size="lg" className="min-w-40">
+                        Start Application
+                      </Button>
+                    </Link>
+                    <Link href="/terms">
+                      <Button variant="outline" size="lg">
+                        View Terms & Conditions
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    {isSuperAdmin || isAdmin ? (
+                      <>
+                        <Link href="/admin">
+                          <Button size="lg" className="min-w-40 flex items-center gap-2">
+                            <Settings className="h-5 w-5" />
+                            Admin Panel
+                          </Button>
+                        </Link>
+                        <Link href="/dashboard">
+                          <Button variant="outline" size="lg" className="flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5" />
+                            My Dashboard
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/dashboard">
+                          <Button size="lg" className="min-w-40 flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5" />
+                            Dashboard
+                          </Button>
+                        </Link>
+                        <Link href="/dv-form">
+                          <Button variant="outline" size="lg">
+                            Continue Application
+                          </Button>
+                        </Link>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
 
