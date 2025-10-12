@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
   ArrowLeft,
   User,
   Mail,
@@ -70,15 +70,18 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
+          <div className="flex items-center gap-4 mb-2">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Dashboard
+            </Link>
           </div>
-          <div>
+          <div className='pt-6'> 
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <User className="h-8 w-8" />
               Profile Settings
@@ -113,7 +116,7 @@ export default function ProfilePage() {
                     This is your login email and cannot be changed
                   </p>
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-gray-500 flex items-center gap-1">
                     <Shield className="h-4 w-4" />
@@ -126,20 +129,20 @@ export default function ProfilePage() {
                     Your access level in the system
                   </p>
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-gray-500 flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     Account Created
                   </label>
                   <p className="text-gray-900 mt-1">
-                    {userWithRole?.dbUser?.createdAt 
+                    {userWithRole?.dbUser?.createdAt
                       ? formatDate(userWithRole.dbUser.createdAt)
                       : 'N/A'
                     }
                   </p>
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Account ID
@@ -159,9 +162,6 @@ export default function ProfilePage() {
                 <Shield className="h-5 w-5" />
                 Security Settings
               </CardTitle>
-              <CardDescription>
-                Manage your account security and authentication
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -177,88 +177,21 @@ export default function ProfilePage() {
                     <span className="text-xs ml-2">(Coming Soon)</span>
                   </Button>
                 </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Two-Factor Authentication</h4>
-                    <p className="text-sm text-gray-600">
-                      Add an extra layer of security to your account
-                    </p>
-                  </div>
-                  <Button variant="outline" disabled>
-                    Enable 2FA
-                    <span className="text-xs ml-2">(Coming Soon)</span>
-                  </Button>
-                </div>
+
+
               </div>
             </CardContent>
           </Card>
 
-          {/* Preferences */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Preferences
-              </CardTitle>
-              <CardDescription>
-                Customize your experience and notification settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Email Notifications</h4>
-                    <p className="text-sm text-gray-600">
-                      Receive updates about your applications via email
-                    </p>
-                  </div>
-                  <Button variant="outline" disabled>
-                    Manage
-                    <span className="text-xs ml-2">(Coming Soon)</span>
-                  </Button>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Language</h4>
-                    <p className="text-sm text-gray-600">
-                      Choose your preferred language
-                    </p>
-                  </div>
-                  <Button variant="outline" disabled>
-                    English
-                    <span className="text-xs ml-2">(Coming Soon)</span>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Data & Privacy */}
+
           <Card>
-            <CardHeader>
-              <CardTitle>Data & Privacy</CardTitle>
-              <CardDescription>
-                Manage your data and privacy settings
-              </CardDescription>
+            <CardHeader >
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Download My Data</h4>
-                    <p className="text-sm text-gray-600">
-                      Get a copy of all your data stored in our system
-                    </p>
-                  </div>
-                  <Button variant="outline" disabled>
-                    Download
-                    <span className="text-xs ml-2">(Coming Soon)</span>
-                  </Button>
-                </div>
-                
+
+
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium text-gray-900">Delete Account</h4>
@@ -275,28 +208,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Support */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Need Help?</CardTitle>
-              <CardDescription>
-                Get assistance with your account or applications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-3">
-                <Button variant="outline" asChild>
-                  <Link href="/help">
-                    View Help Center
-                  </Link>
-                </Button>
-                <Button variant="outline" disabled>
-                  Contact Support
-                  <span className="text-xs ml-2">(Coming Soon)</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </div>

@@ -50,14 +50,13 @@ export default function DashboardPage() {
               <h1 className="text-xl font-semibold text-gray-900">DVSubmit Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                {user.email}
-                {userWithRole?.role && (
-                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {userWithRole.role}
-                  </span>
-                )}
-              </span>
+
+                <Link
+                  href="/profile"
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                >
+                  Profile
+                </Link>
 
               {/* Admin Links */}
               <AdminOnly>
@@ -85,6 +84,33 @@ export default function DashboardPage() {
           <UserDashboard />
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-auto">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Need help? Contact our support team at{' '}
+              <a
+                href="mailto:support@dvsubmit.com"
+                className="text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                support@dvsubmit.com
+              </a>
+              {' '}or call{' '}
+              <a
+                href="tel:+1-555-0123"
+                className="text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                +251 955 55 55 55
+              </a>
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              © 2024 DVSubmit. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

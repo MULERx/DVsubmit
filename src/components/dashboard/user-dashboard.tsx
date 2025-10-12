@@ -137,17 +137,6 @@ export function UserDashboard({ className }: UserDashboardProps) {
     }
   }
 
-  const handleDeleteApplication = async (applicationId: string, applicantName: string) => {
-    try {
-      setDeletingApplication(applicationId)
-      await deleteApplicationMutation.mutateAsync(applicationId)
-    } catch (error) {
-      console.error('Error deleting application:', error)
-      // Error handling is done in the mutation hook
-    } finally {
-      setDeletingApplication(null)
-    }
-  }
 
   const handleCheckPayment = (application: ApplicationRecord) => {
     setSelectedApplication(application)
@@ -418,71 +407,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
         </Card>
       )}
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">New Application</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Start a new DV lottery application for yourself or a family member.
-            </p>
-            <Button asChild size="sm" className="w-full">
-              <Link href="/dv-form">
-                <FileText className="h-4 w-4 mr-2" />
-                Start Application
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Need Help?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Get assistance with your DV application process.
-            </p>
-            <Button variant="outline" size="sm" asChild className="w-full">
-              <Link href="/help">
-                View Help Center
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Check Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Check the official DV lottery results when available.
-            </p>
-            <Button variant="outline" size="sm" disabled className="w-full">
-              Results (Coming Soon)
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Account Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Update your account information and preferences.
-            </p>
-            <Button variant="outline" size="sm" asChild className="w-full">
-              <Link href="/profile">
-                Manage Account
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Payment Reference Dialog */}
       {selectedApplication && (
