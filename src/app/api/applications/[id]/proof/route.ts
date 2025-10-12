@@ -231,11 +231,11 @@ function generateProofOfSubmissionHTML(application: any): string {
             <h3>Personal Information</h3>
             <div class="detail-item">
                 <span class="detail-label">Full Name:</span>
-                <span class="detail-value">${application.firstName} ${application.lastName}</span>
+                <span class="detail-value">${application.givenName} ${application.familyName}</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Date of Birth:</span>
-                <span class="detail-value">${formatDate(application.dateOfBirth)}</span>
+                <span class="detail-value">${new Date(application.dateOfBirth).toISOString().split('T')[0]}</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Country of Birth:</span>
