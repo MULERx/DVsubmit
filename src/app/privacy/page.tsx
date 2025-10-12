@@ -16,7 +16,7 @@ export default function PrivacyPage() {
             Back to Home
           </Link>
           
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Privacy Policy
           </h1>
           <p className="text-gray-600 mt-2">

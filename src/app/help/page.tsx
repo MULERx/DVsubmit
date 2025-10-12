@@ -17,25 +17,24 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+     
+
+          {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <HelpCircle className="h-8 w-8" />
-              Help Center
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Get help with your DV lottery application process
-            </p>
-          </div>
+          <Link 
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+          
+          <h1 className="text-3xl font-bold text-gray-900">
+             Help Center
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Get help with your DV lottery application process
+          </p>
         </div>
 
         {/* FAQ Sections */}

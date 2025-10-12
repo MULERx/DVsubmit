@@ -17,7 +17,7 @@ export default function TermsPage() {
             Back to Home
           </Link>
           
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Terms of Service & Legal Disclaimer
           </h1>
           <p className="text-gray-600 mt-2">
