@@ -4,7 +4,7 @@ import { authServer } from '@/lib/auth/server-auth-helpers'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userWithRole = await authServer.getUserWithRole()
@@ -24,7 +24,7 @@ export async function GET(
       )
     }
 
-    const applicationId = params.id
+    const { id: applicationId } = await params
 
     // Get the application with user information
     const application = await prisma.application.findUnique({
@@ -32,13 +32,14 @@ export async function GET(
         id: applicationId,
       },
       include: {
+        children: true,
         user: {
           select: {
             id: true,
             email: true,
-            createdAt: true,
-          },
-        },
+            createdAt: true 
+          }
+        }
       },
     })
 
@@ -49,22 +50,6 @@ export async function GET(
       )
     }
 
-    // Log the access
-    await prisma.auditLog.create({
-      data: {
-        userId: userWithRole.dbUser.id,
-        applicationId: application.id,
-        action: 'ADMIN_APPLICATION_VIEWED',
-        details: {
-          adminEmail: userWithRole.dbUser.email,
-          applicantEmail: application.user.email,
-          timestamp: new Date().toISOString(),
-        },
-        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-        userAgent: request.headers.get('user-agent') || 'unknown',
-      },
-    })
-
     return NextResponse.json({
       success: true,
       data: application,
@@ -72,12 +57,12 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching application:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to fetch application' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch application'
+        }
       },
       { status: 500 }
     )

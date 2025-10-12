@@ -12,7 +12,8 @@ import {
   SortingState,
   ColumnFiltersState,
 } from '@tanstack/react-table'
-import { AdminApplication } from '@/hooks/use-admin-applications'
+import { AdminApplicationListItem } from '@/hooks/use-admin-applications-queries'
+import type { ApplicationStatus } from '@/generated/prisma'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -50,10 +51,10 @@ import {
   X
 } from 'lucide-react'
 import Link from 'next/link'
-import { usePaymentActions } from '@/hooks/use-payment-actions'
+import { usePaymentStatusMutation } from '@/hooks/use-admin-application-mutations'
 
 interface ApplicationsTableProps {
-  applications: AdminApplication[]
+  applications: AdminApplicationListItem[]
   pagination: {
     page: number
     limit: number
@@ -75,17 +76,17 @@ export function ApplicationsTable({
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     action: 'approve' | 'reject' | null
-    application: AdminApplication | null
+    application: AdminApplicationListItem | null
   }>({
     isOpen: false,
     action: null,
     application: null
   })
 
-  const paymentActions = usePaymentActions()
+  const paymentMutation = usePaymentStatusMutation()
 
-  const handlePaymentAction = (action: 'approve' | 'reject', application: AdminApplication) => {
-    paymentActions.mutate(
+  const handlePaymentAction = (action: 'approve' | 'reject', application: AdminApplicationListItem) => {
+    paymentMutation.mutate(
       { applicationId: application.id, action },
       {
         onSettled: () => {
@@ -95,7 +96,7 @@ export function ApplicationsTable({
     )
   }
 
-  const openConfirmDialog = (action: 'approve' | 'reject', application: AdminApplication) => {
+  const openConfirmDialog = (action: 'approve' | 'reject', application: AdminApplicationListItem) => {
     setConfirmDialog({
       isOpen: true,
       action,
@@ -105,7 +106,7 @@ export function ApplicationsTable({
 
 
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: ApplicationStatus) => {
     switch (status) {
       case 'PAYMENT_PENDING':
         return (
@@ -161,7 +162,7 @@ export function ApplicationsTable({
     }
   }
 
-  const getPaymentStatusBadge = (status: string, paymentReference?: string) => {
+  const getPaymentStatusBadge = (status: ApplicationStatus, paymentReference?: string | null) => {
     switch (status) {
       case 'PAYMENT_PENDING':
         if (!paymentReference) {
@@ -197,7 +198,7 @@ export function ApplicationsTable({
     }
   }
 
-  const columns: ColumnDef<AdminApplication>[] = [
+  const columns: ColumnDef<AdminApplicationListItem>[] = [
     {
       accessorKey: 'applicant',
       header: ({ column }) => (
@@ -319,7 +320,7 @@ export function ApplicationsTable({
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0"
-                    disabled={paymentActions.isPending}
+                    disabled={paymentMutation.isPending}
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
@@ -531,9 +532,9 @@ export function ApplicationsTable({
                   ? 'bg-green-600 hover:bg-green-700'
                   : 'bg-red-600 hover:bg-red-700'
               }
-              disabled={paymentActions.isPending}
+              disabled={paymentMutation.isPending}
             >
-              {paymentActions.isPending ? (
+              {paymentMutation.isPending ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Processing...
