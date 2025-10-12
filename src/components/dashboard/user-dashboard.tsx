@@ -274,6 +274,20 @@ export function UserDashboard({ className }: UserDashboardProps) {
                         <span className="font-medium">Updated:</span> {formatDate(application.updatedAt)}
                       </div>
                     </div>
+                    {application.status === 'APPLICATION_REJECTED' && application.rejectionNote && (
+                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <div className="flex items-start gap-2">
+                          <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-red-800 mb-1">Rejection Reason:</p>
+                            <p className="text-sm text-red-700 leading-relaxed">{application.rejectionNote}</p>
+                            <p className="text-xs text-red-600 mt-2 italic">
+                              Please review the feedback above and edit your application to address the issues mentioned.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                     {application.status === 'PAYMENT_REJECTED' && (

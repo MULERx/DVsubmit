@@ -115,6 +115,7 @@ export interface ApplicationRecord {
   submittedAt?: Date
   confirmationNumber?: string
   submittedBy?: string
+  rejectionNote?: string
   
   // Metadata
   createdAt: Date
