@@ -67,12 +67,7 @@ export default function DVFormPage() {
               : 'Complete a Diversity Visa lottery application. You can submit multiple applications for different family members.'
             }
           </p>
-          {loading && applicationId && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <span>Loading application data...</span>
-            </div>
-          )}
+        
         </div>
       </div>
 
