@@ -30,7 +30,7 @@ export const PHOTO_STORAGE_CONFIG = {
   bucketName: 'dv-photos',
   maxFileSize: 5 * 1024 * 1024, // 5MB
   allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png'],
-  signedUrlExpirySeconds: 3600, // 1 hour
+  signedUrlExpirySeconds: 7200, // 2 hours (increased for better reliability)
 } as const
 
 /**

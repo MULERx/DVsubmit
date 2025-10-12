@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/hooks/use-toast'
-import type { ApplicationStatus } from '@/generated/prisma'
 
 // Types for mutation inputs
 interface PaymentActionInput {
@@ -10,6 +9,7 @@ interface PaymentActionInput {
 
 interface ApplicationRejectionInput {
   applicationId: string
+  rejectionNote: string
 }
 
 // API functions

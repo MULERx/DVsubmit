@@ -87,6 +87,7 @@ model Application {
   submittedAt          DateTime?
   confirmationNumber   String?
   submittedBy          String?
+  rejectionNote        String?           // Note provided when application is rejected
   
   // Metadata
   createdAt            DateTime          @default(now())

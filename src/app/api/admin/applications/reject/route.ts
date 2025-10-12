@@ -21,11 +21,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { applicationId } = await request.json()
+    const { applicationId, rejectionNote } = await request.json()
 
     if (!applicationId) {
       return NextResponse.json(
         { success: false, error: { code: 'INVALID_REQUEST', message: 'Application ID is required' } },
+        { status: 400 }
+      )
+    }
+
+    if (!rejectionNote || !rejectionNote.trim()) {
+      return NextResponse.json(
+        { success: false, error: { code: 'INVALID_REQUEST', message: 'Rejection note is required' } },
         { status: 400 }
       )
     }
@@ -56,6 +63,7 @@ export async function POST(request: NextRequest) {
       where: { id: applicationId },
       data: {
         status: 'APPLICATION_REJECTED',
+        rejectionNote: rejectionNote.trim(),
         updatedAt: new Date()
       }
     })
@@ -71,6 +79,7 @@ export async function POST(request: NextRequest) {
           applicantEmail: application.user.email,
           applicantName: `${application.givenName} ${application.familyName}`,
           previousStatus: application.status,
+          rejectionNote: rejectionNote.trim(),
           timestamp: new Date().toISOString(),
         },
         ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
@@ -87,12 +96,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error rejecting application:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to reject application' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to reject application'
+        }
       },
       { status: 500 }
     )

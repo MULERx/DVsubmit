@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { useAdminApplication } from '@/hooks/use-admin-application-queries'
 import { usePaymentStatusMutation, useApplicationRejectionMutation } from '@/hooks/use-admin-application-mutations'
 import { useSignedUrl } from '@/hooks/use-photo-queries'
+import { RejectApplicationDialog } from '@/components/admin/reject-application-dialog'
+import { ApprovePaymentDialog, RejectPaymentDialog } from '@/components/admin/payment-confirmation-dialogs'
 import {
   ArrowLeft,
   Clock,
@@ -21,8 +23,7 @@ import {
   Heart,
   Baby,
   FileText,
-  Check,
-  X,
+
   RefreshCw,
   Download,
   Camera,
@@ -57,11 +58,28 @@ function ApplicationDetailPage() {
     }
   }
 
-  // Download image function
-  const downloadImage = async (url: string, filename: string) => {
+  // Download image function using server-side API (recommended)
+  const downloadImage = async (photoPath: string, filename: string) => {
     try {
-      const response = await fetch(url)
+      const response = await fetch('/api/photos/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          path: photoPath,
+          filename: filename
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.statusText}`)
+      }
+
+      // Get the blob from the response
       const blob = await response.blob()
+
+      // Create download link
       const downloadUrl = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = downloadUrl
@@ -72,6 +90,7 @@ function ApplicationDetailPage() {
       window.URL.revokeObjectURL(downloadUrl)
     } catch (error) {
       console.error('Error downloading image:', error)
+      alert(`Failed to download image: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -86,7 +105,7 @@ function ApplicationDetailPage() {
     size?: string
   }) => {
     const { data: signedUrlData, isLoading: isLoadingSignedUrl, error: signedUrlError } = useSignedUrl(photoPath || undefined, !!photoPath)
-    
+
     if (!photoPath) {
       return (
         <div className="flex items-center gap-3 text-gray-500">
@@ -152,14 +171,24 @@ function ApplicationDetailPage() {
             <p className="font-medium text-gray-900">{title}</p>
             <p className="text-sm text-gray-500">Photo uploaded</p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => downloadImage(signedUrlData.signedUrl!, `${title.toLowerCase().replace(/\s+/g, '-')}.jpg`)}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadImage(photoPath!, `${title.toLowerCase().replace(/\s+/g, '-')}.jpg`)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(signedUrlData.signedUrl!, '_blank')}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              View
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -208,44 +237,44 @@ function ApplicationDetailPage() {
     paymentMutation.mutate({ applicationId: application.id, action })
   }
 
-  const handleApplicationRejection = () => {
+  const handleApplicationRejection = (rejectionNote: string) => {
     if (!application) return
-    rejectionMutation.mutate({ applicationId: application.id })
+    rejectionMutation.mutate({ applicationId: application.id, rejectionNote })
   }
 
   const getStatusBadge = (status: ApplicationStatus) => {
     switch (status) {
       case 'PAYMENT_PENDING':
         return (
-          <Badge variant="outline" className="flex items-center gap-1">
+          <Badge variant="outline" className="flex w-fit items-center gap-1">
             <Clock className="h-3 w-3" />
             Payment Pending
           </Badge>
         )
       case 'PAYMENT_VERIFIED':
         return (
-          <Badge variant="default" className="flex items-center gap-1">
+          <Badge variant="default" className="flex w-fit items-center gap-1">
             <CheckCircle className="h-3 w-3" />
             Payment Verified
           </Badge>
         )
       case 'PAYMENT_REJECTED':
         return (
-          <Badge variant="destructive" className="flex items-center gap-1">
+          <Badge variant="destructive" className="flex w-fit items-center gap-1">
             <XCircle className="h-3 w-3" />
             Payment Rejected
           </Badge>
         )
       case 'APPLICATION_REJECTED':
         return (
-          <Badge variant="destructive" className="flex items-center gap-1">
+          <Badge variant="destructive" className="flex w-fit items-center gap-1">
             <XCircle className="h-3 w-3" />
             Application Rejected
           </Badge>
         )
       case 'SUBMITTED':
         return (
-          <Badge variant="default" className="flex items-center gap-1 bg-blue-100 text-blue-800">
+          <Badge variant="default" className="flex w-fit items-center gap-1 bg-blue-100 text-blue-800">
             <Send className="h-3 w-3" />
             Submitted
           </Badge>
@@ -396,121 +425,32 @@ function ApplicationDetailPage() {
           {/* Application Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">
-                  {application.givenName} {application.familyName}
-                  {application.middleName && <span className="text-gray-600"> {application.middleName}</span>}
-                </h2>
-                <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-                  <span>Application ID: {application.id}</span>
-                  <span>•</span>
-                  <span>User: {application.user.email}</span>
-                  <span>•</span>
-                  <span>Country: {application.countryOfEligibility}</span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                {getStatusBadge(application.status)}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const allInfo = [
-                      `Name: ${application.givenName} ${application.middleName || ''} ${application.familyName}`.trim(),
-                      `Gender: ${application.gender}`,
-                      `Date of Birth: ${formatDate(application.dateOfBirth)}`,
-                      `City of Birth: ${application.cityOfBirth}`,
-                      `Country of Birth: ${application.countryOfBirth}`,
-                      `Country of Eligibility: ${application.countryOfEligibility}`,
-                      application.eligibilityClaimType ? `Eligibility Claim: ${application.eligibilityClaimType}` : '',
-                      `Email: ${application.email}`,
-                      application.phoneNumber ? `Phone: ${application.phoneNumber}` : '',
-                      application.inCareOf ? `In Care Of: ${application.inCareOf}` : '',
-                      `Address: ${application.addressLine1}`,
-                      application.addressLine2 ? `Address Line 2: ${application.addressLine2}` : '',
-                      `City: ${application.city}`,
-                      `State/Province: ${application.stateProvince}`,
-                      `Postal Code: ${application.postalCode}`,
-                      `Country: ${application.country}`,
-                      `Country of Residence: ${application.countryOfResidence}`,
-                      `Education: ${formatEducationLevel(application.educationLevel)}`,
-                      `Marital Status: ${formatMaritalStatus(application.maritalStatus)}`,
-                    ].filter(Boolean).join('\n')
 
-                    copyToClipboard(allInfo, 'all-info')
-                  }}
-                  className="text-xs"
-                >
-                  {copiedField === 'all-info' ? (
-                    <>
-                      <CheckCheck className="h-3 w-3 mr-1" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copy All Info
-                    </>
-                  )}
-                </Button>
+              <div className="flex items-center space-x-4">
+
                 <div className="flex space-x-2">
                   {canManagePayment && (
                     <>
-                      <Button
-                        onClick={() => handlePaymentAction('approve')}
+                      <ApprovePaymentDialog
+                        onApprove={() => handlePaymentAction('approve')}
+                        isApproving={paymentMutation.isPending && paymentMutation.variables?.action === 'approve'}
                         disabled={paymentMutation.isPending || rejectionMutation.isPending}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {paymentMutation.isPending && paymentMutation.variables?.action === 'approve' ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Approving...
-                          </>
-                        ) : (
-                          <>
-                            <Check className="h-4 w-4 mr-2" />
-                            Approve Payment
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handlePaymentAction('reject')}
+                        paymentReference={application.paymentReference || undefined}
+                      />
+                      <RejectPaymentDialog
+                        onReject={() => handlePaymentAction('reject')}
+                        isRejecting={paymentMutation.isPending && paymentMutation.variables?.action === 'reject'}
                         disabled={paymentMutation.isPending || rejectionMutation.isPending}
-                      >
-                        {paymentMutation.isPending && paymentMutation.variables?.action === 'reject' ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Rejecting...
-                          </>
-                        ) : (
-                          <>
-                            <X className="h-4 w-4 mr-2" />
-                            Reject Payment
-                          </>
-                        )}
-                      </Button>
+                        paymentReference={application.paymentReference || undefined}
+                      />
                     </>
                   )}
                   {canRejectApplication && (
-                    <Button
-                      variant="destructive"
-                      onClick={handleApplicationRejection}
+                    <RejectApplicationDialog
+                      onReject={handleApplicationRejection}
+                      isRejecting={rejectionMutation.isPending}
                       disabled={paymentMutation.isPending || rejectionMutation.isPending}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      {rejectionMutation.isPending ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Rejecting Application...
-                        </>
-                      ) : (
-                        <>
-                          <X className="h-4 w-4 mr-2" />
-                          Reject Application
-                        </>
-                      )}
-                    </Button>
+                    />
                   )}
                 </div>
               </div>
@@ -519,19 +459,6 @@ function ApplicationDetailPage() {
 
 
 
-          {/* Copy Instructions */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <Copy className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium text-blue-900">DV Form Reference</h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  This page is designed to help you fill out the official DV lottery form.
-                  Hover over any field to see a copy button, or use "Copy All Info" to get all basic information at once.
-                </p>
-              </div>
-            </div>
-          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content */}
@@ -836,17 +763,7 @@ function ApplicationDetailPage() {
                       photoPath={application.photoUrl}
                       title={`${application.givenName} ${application.familyName}`}
                     />
-                    {application.photoUrl && (
-                      <div className="mt-3 ml-36">
-                        <p className="text-xs text-gray-500">
-                          Validation Status: {application.photoValidated ? (
-                            <span className="text-green-600 font-medium">Validated</span>
-                          ) : (
-                            <span className="text-orange-600 font-medium">Pending</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
+
                   </div>
 
                   {/* Spouse Photo */}
@@ -930,6 +847,15 @@ function ApplicationDetailPage() {
                       <p className="text-sm text-gray-900">{application.submittedBy}</p>
                     </div>
                   )}
+
+                  {application.rejectionNote && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Rejection Note</label>
+                      <div className="mt-1 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-800">{application.rejectionNote}</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -967,17 +893,17 @@ function ApplicationDetailPage() {
                         <label className="text-sm font-medium text-gray-500">Payment Status</label>
                         <div className="mt-1">
                           {application.status === 'PAYMENT_VERIFIED' ? (
-                            <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800">
+                            <Badge variant="default" className="flex w-fit items-center gap-1 bg-green-100 text-green-800">
                               <CheckCircle className="h-3 w-3" />
                               Verified
                             </Badge>
                           ) : application.status === 'PAYMENT_REJECTED' ? (
-                            <Badge variant="destructive" className="flex items-center gap-1">
+                            <Badge variant="destructive" className="flex w-fit items-center gap-1">
                               <XCircle className="h-3 w-3" />
                               Rejected
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="flex items-center gap-1 text-orange-600 border-orange-200">
+                            <Badge variant="outline" className="flex w-fit items-center gap-1 text-orange-600 border-orange-200">
                               <Clock className="h-3 w-3" />
                               Pending Verification
                             </Badge>
@@ -1011,18 +937,18 @@ function ApplicationDetailPage() {
                     <div className="mt-1">
                       {application.photoUrl ? (
                         application.photoValidated ? (
-                          <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800">
+                          <Badge variant="default" className="flex items-center w-fit gap-1 bg-green-100 text-green-800">
                             <CheckCircle className="h-3 w-3" />
                             Validated
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="flex items-center gap-1 text-orange-600 border-orange-200">
+                          <Badge variant="outline" className="flex items-center w-fit gap-1 text-orange-600 border-orange-200">
                             <Clock className="h-3 w-3" />
                             Pending Validation
                           </Badge>
                         )
                       ) : (
-                        <Badge variant="outline" className="flex items-center gap-1 text-gray-500">
+                        <Badge variant="outline" className="flex items-center w-fit gap-1 text-gray-500">
                           <XCircle className="h-3 w-3" />
                           No Photo
                         </Badge>
@@ -1040,12 +966,12 @@ function ApplicationDetailPage() {
                               {child.givenName} {child.familyName}
                             </span>
                             {child.photoUrl ? (
-                              <Badge variant="outline" className="text-xs h-5 px-2">
+                              <Badge variant="outline" className="text-xs  w-fit h-5 px-2">
                                 <CheckCircle className="h-2 w-2 mr-1" />
                                 Uploaded
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-xs h-5 px-2 text-gray-500">
+                              <Badge variant="outline" className="text-xs w-fit h-5 px-2 text-gray-500">
                                 <XCircle className="h-2 w-2 mr-1" />
                                 Missing
                               </Badge>
@@ -1061,12 +987,12 @@ function ApplicationDetailPage() {
                       <label className="text-sm font-medium text-gray-500">Spouse Photo</label>
                       <div className="mt-1">
                         {application.spousePhotoUrl ? (
-                          <Badge variant="outline" className="flex items-center gap-1 text-green-600">
+                          <Badge variant="outline" className="flex w-fit items-center gap-1 text-green-600">
                             <CheckCircle className="h-3 w-3" />
                             Uploaded
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="flex items-center gap-1 text-gray-500">
+                          <Badge variant="outline" className="flex  w-fit items-center gap-1 text-gray-500">
                             <XCircle className="h-3 w-3" />
                             Missing
                           </Badge>
@@ -1101,53 +1027,7 @@ function ApplicationDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {application.confirmationNumber && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        // This would trigger a download of the proof of submission
-                        window.open(`/api/applications/${application.id}/proof`, '_blank')
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Proof of Submission
-                    </Button>
-                  )}
 
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      // This would trigger a download of the complete application data
-                      window.open(`/api/admin/applications/${application.id}/export`, '_blank')
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export Application Data
-                  </Button>
-
-
-
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      // This would open an audit log for this application
-                      window.open(`/admin/applications/${application.id}/audit`, '_blank')
-                    }}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    View Audit Log
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>
