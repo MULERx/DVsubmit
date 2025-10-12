@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, X, Check, AlertTriangle, Image as ImageIcon, Cloud } from 'lucide-react'
 import { PhotoValidationResult } from '@/lib/types/application'
-import { 
-  validatePhotoFile, 
-  createImagePreview, 
-  revokeImagePreview, 
+import {
+  validatePhotoFile,
+  createImagePreview,
+  revokeImagePreview,
   formatFileSize,
-  DV_PHOTO_REQUIREMENTS 
+  DV_PHOTO_REQUIREMENTS
 } from '@/lib/utils/photo-validation'
-import { usePhotoUpload } from '@/hooks/use-photo-upload'
+import { useSignedUrl, usePhotoUpload, usePhotoDelete } from '@/hooks/use-photo-queries'
 
 interface PhotoUploadFormProps {
   onNext: (data: { file: File; preview: string; path?: string; signedUrl?: string }) => void
@@ -23,9 +23,9 @@ interface PhotoUploadFormProps {
   applicationId?: string
 }
 
-export function PhotoUploadForm({ 
-  onNext, 
-  onPrevious, 
+export function PhotoUploadForm({
+  onNext,
+  onPrevious,
   initialData,
   isLoading = false,
   applicationId
@@ -40,20 +40,37 @@ export function PhotoUploadForm({
   const [isValidating, setIsValidating] = useState(false)
   const [storagePath, setStoragePath] = useState<string | undefined>(initialData?.path)
   const [signedUrl, setSignedUrl] = useState<string | undefined>(initialData?.signedUrl)
+  const [isExistingPhoto, setIsExistingPhoto] = useState<boolean>(!!initialData?.path)
+  const [imageMetadata, setImageMetadata] = useState<{ width?: number; height?: number; size?: number } | null>(null)
 
+  // TanStack Query hooks
+  const photoUploadMutation = usePhotoUpload()
+  const photoDeleteMutation = usePhotoDelete()
   const {
-    isUploading,
-    uploadProgress,
-    error: uploadError,
-    uploadedPhoto,
-    uploadPhoto,
-    deletePhoto,
-    clearError,
-    clearPhoto
-  } = usePhotoUpload()
+    data: signedUrlData,
+    isLoading: isLoadingSignedUrl,
+    error: signedUrlError
+  } = useSignedUrl(initialData?.path, !!initialData?.path && !signedUrl)
 
   const validatePhoto = useCallback(async (file: File): Promise<PhotoValidationResult> => {
     return await validatePhotoFile(file)
+  }, [])
+
+  // Function to get image metadata from URL
+  const getImageMetadata = useCallback((imageUrl: string): Promise<{ width: number; height: number; size?: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        resolve({
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        })
+      }
+      img.onerror = () => {
+        reject(new Error('Failed to load image'))
+      }
+      img.src = imageUrl
+    })
   }, [])
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -62,8 +79,9 @@ export function PhotoUploadForm({
 
     setIsValidating(true)
     setUploadedFile(file)
-    clearError()
-    
+    setIsExistingPhoto(false) // Reset existing photo state
+    setImageMetadata(null) // Reset metadata
+
     // Create preview
     const previewUrl = createImagePreview(file)
     setPreview(previewUrl)
@@ -75,14 +93,26 @@ export function PhotoUploadForm({
 
       // If validation passes, upload to Supabase Storage
       if (validationResult.isValid) {
-        const uploadResult = await uploadPhoto(file, applicationId)
-        
-        if (uploadResult.success && uploadResult.data) {
-          setStoragePath(uploadResult.data.path)
-          setSignedUrl(uploadResult.data.signedUrl)
+        const formData = new FormData()
+        formData.append('photo', file)
+        if (applicationId) {
+          formData.append('applicationId', applicationId)
+        }
+
+        // Debug logging
+        console.log('Uploading photo:')
+        console.log('- File:', file.name, file.size, file.type)
+        console.log('- ApplicationId:', applicationId)
+        console.log('- FormData keys:', Array.from(formData.keys()))
+
+        const result = await photoUploadMutation.mutateAsync(formData)
+
+        if (result.success && result.data) {
+          setStoragePath(result.data.path)
+          setSignedUrl(result.data.signedUrl)
           // Update preview to use the signed URL for consistency
-          if (uploadResult.data.signedUrl) {
-            setPreview(uploadResult.data.signedUrl)
+          if (result.data.signedUrl) {
+            setPreview(result.data.signedUrl)
           }
         }
       }
@@ -95,7 +125,7 @@ export function PhotoUploadForm({
     } finally {
       setIsValidating(false)
     }
-  }, [validatePhoto, uploadPhoto, applicationId, clearError])
+  }, [validatePhoto, photoUploadMutation, applicationId])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -128,9 +158,13 @@ export function PhotoUploadForm({
   })
 
   const removePhoto = useCallback(async () => {
-    // Delete from storage if it exists
-    if (storagePath) {
-      await deletePhoto(storagePath)
+    try {
+      // Delete from storage if it exists
+      if (storagePath) {
+        await photoDeleteMutation.mutateAsync(storagePath)
+      }
+    } catch (error) {
+      console.error('Error deleting photo:', error)
     }
 
     // Clean up local state
@@ -139,18 +173,18 @@ export function PhotoUploadForm({
     setValidation(null)
     setStoragePath(undefined)
     setSignedUrl(undefined)
-    
+    setIsExistingPhoto(false)
+    setImageMetadata(null)
+
     if (preview) {
       revokeImagePreview(preview)
     }
-    
-    clearPhoto()
-  }, [storagePath, preview, deletePhoto, clearPhoto])
+  }, [storagePath, preview, photoDeleteMutation])
 
   const handleNext = () => {
     if (uploadedFile && validation?.isValid && storagePath) {
-      onNext({ 
-        file: uploadedFile, 
+      onNext({
+        file: uploadedFile,
         preview,
         path: storagePath,
         signedUrl: signedUrl
@@ -158,18 +192,25 @@ export function PhotoUploadForm({
     }
   }
 
-  // Handle initial data and refresh signed URL if needed
+  // Handle signed URL data from TanStack Query
   useEffect(() => {
-    if (initialData?.file && initialData?.path && !signedUrl) {
-      // If we have a file and path but no signed URL, we might need to refresh it
-      // This handles the case where the signed URL has expired
-      const refreshSignedUrl = async () => {
-        // You might want to add a function to refresh the signed URL here
-        // For now, we'll just use the existing preview or show a placeholder
+    if (signedUrlData?.success && signedUrlData.signedUrl) {
+      setSignedUrl(signedUrlData.signedUrl)
+      setPreview(signedUrlData.signedUrl)
+
+      // Get image metadata for existing photos
+      const fetchMetadata = async () => {
+        try {
+          const metadata = await getImageMetadata(signedUrlData.signedUrl!)
+          setImageMetadata(metadata)
+        } catch (error) {
+          console.error('Error getting image metadata:', error)
+        }
       }
-      refreshSignedUrl()
+
+      fetchMetadata()
     }
-  }, [initialData, signedUrl])
+  }, [signedUrlData, getImageMetadata])
 
   // Clean up preview URL on unmount (only if it's a blob URL)
   useEffect(() => {
@@ -235,8 +276,8 @@ export function PhotoUploadForm({
             {...getRootProps()}
             className={`
               border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-              ${isDragActive 
-                ? 'border-blue-400 bg-blue-50' 
+              ${isDragActive
+                ? 'border-blue-400 bg-blue-50'
                 : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
               }
             `}
@@ -290,40 +331,52 @@ export function PhotoUploadForm({
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 <div className="flex-1 space-y-3">
                   <div>
-                    <p className="font-medium text-gray-900">{uploadedFile.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {formatFileSize(uploadedFile.size)}
+                    <p className="font-medium text-gray-900">
+                      {isExistingPhoto ? 'Existing Photo' : uploadedFile.name}
                     </p>
+                    <p className="text-sm text-gray-500">
+                      {isExistingPhoto ? 'Previously uploaded' : formatFileSize(uploadedFile.size)}
+                    </p>
+                    {/* Show dimensions from validation metadata (new photos) or image metadata (existing photos) */}
                     {validation?.metadata && (
                       <p className="text-sm text-gray-500">
                         {validation.metadata.width} × {validation.metadata.height} pixels
                       </p>
                     )}
+                    {isExistingPhoto && imageMetadata && (
+                      <p className="text-sm text-gray-500">
+                        {imageMetadata.width} × {imageMetadata.height} pixels
+                      </p>
+                    )}
                   </div>
 
-                  {(isValidating || isUploading) && (
+                  {(isValidating || photoUploadMutation.isPending || isLoadingSignedUrl) && (
                     <div className="flex items-center gap-2 text-blue-600">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                       <span className="text-sm">
-                        {isValidating ? 'Validating photo...' : 'Uploading to secure storage...'}
+                        {isValidating
+                          ? 'Validating photo...'
+                          : photoUploadMutation.isPending
+                            ? 'Uploading to secure storage...'
+                            : 'Loading photo...'
+                        }
                       </span>
-                      {isUploading && uploadProgress > 0 && (
-                        <span className="text-xs">({uploadProgress}%)</span>
-                      )}
                     </div>
                   )}
 
-                  {uploadError && (
+                  {(photoUploadMutation.error || signedUrlError) && (
                     <div className="flex items-start gap-2 text-red-600">
                       <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{uploadError}</span>
+                      <span className="text-sm">
+                        {photoUploadMutation.error?.message || signedUrlError?.message || 'An error occurred'}
+                      </span>
                     </div>
                   )}
 
-                  {storagePath && !isUploading && (
+                  {storagePath && !photoUploadMutation.isPending && (
                     <div className="flex items-center gap-2 text-green-600">
                       <Cloud className="h-4 w-4" />
                       <span className="text-sm font-medium">Securely stored in cloud</span>
@@ -382,21 +435,21 @@ export function PhotoUploadForm({
 
       {/* Navigation */}
       <div className="flex justify-between items-center pt-6 border-t">
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={onPrevious}
           disabled={isLoading}
         >
           Previous
         </Button>
-        
-        <Button 
+
+        <Button
           onClick={handleNext}
-          disabled={isLoading || !uploadedFile || !validation?.isValid || isValidating || isUploading || !storagePath}
+          disabled={isLoading || !uploadedFile || !validation?.isValid || isValidating || photoUploadMutation.isPending || !storagePath}
           className="min-w-32"
         >
-          {isLoading ? 'Processing...' : isUploading ? 'Uploading...' : 'Next'}
+          {isLoading ? 'Processing...' : photoUploadMutation.isPending ? 'Uploading...' : 'Next'}
         </Button>
       </div>
     </div>

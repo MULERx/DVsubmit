@@ -1,20 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MultiStepForm } from '@/components/dv-form/multi-step-form'
-import { FormStepData, ApplicationRecord } from '@/lib/types/application'
+import { FormStepData } from '@/lib/types/application'
 import { Toaster } from '@/components/ui/toaster'
+import { useApplication } from '@/hooks/use-application-queries'
 
 export default function DVFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [existingApplication, setExistingApplication] = useState<ApplicationRecord | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const applicationId = searchParams.get('applicationId')
+
+  // Use TanStack Query to fetch existing application
+  const {
+    data: existingApplication,
+    isLoading: loading,
+    error: fetchError,
+    isError
+  } = useApplication(applicationId, !!applicationId)
 
   const handleComplete = async (data: FormStepData) => {
     setIsSubmitting(true)
@@ -23,7 +30,7 @@ export default function DVFormPage() {
       console.log('Application completed:', data)
       // Show success message briefly then redirect
       alert('Application submitted successfully! Redirecting to dashboard...')
-      
+
       // Redirect to dashboard after successful submission
       router.push('/dashboard')
     } catch (error) {
@@ -38,40 +45,15 @@ export default function DVFormPage() {
     setError(errorMessage)
   }
 
-  // Load existing application if applicationId is provided
-  useEffect(() => {
-    if (applicationId) {
-      loadExistingApplication(applicationId)
-    }
-  }, [applicationId])
-
-  const loadExistingApplication = async (id: string) => {
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/applications/${id}`)
-      if (!response.ok) {
-        throw new Error('Failed to load application')
-      }
-      const result = await response.json()
-      if (result.success && result.data) {
-        setExistingApplication(result.data)
-      } else {
-        throw new Error(result.error?.message || 'Failed to load application')
-      }
-    } catch (error) {
-      console.error('Error loading application:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load application')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Handle fetch error from TanStack Query
+  const displayError = error || (isError && fetchError ? fetchError.message : null)
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4 mb-2">
-            <Link 
+            <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
@@ -85,11 +67,17 @@ export default function DVFormPage() {
             {existingApplication ? 'Edit DV Lottery Application' : 'DV Lottery Application'}
           </h1>
           <p className="text-gray-600 mt-2">
-            {existingApplication 
+            {existingApplication
               ? `Edit the application for ${existingApplication.givenName} ${existingApplication.familyName}. Make necessary corrections and resubmit.`
               : 'Complete a Diversity Visa lottery application. You can submit multiple applications for different family members.'
             }
           </p>
+          {loading && applicationId && (
+            <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span>Loading application data...</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -114,10 +102,10 @@ export default function DVFormPage() {
 
 
 
-      {error && (
+      {displayError && (
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">{error}</p>
+            <p className="text-red-800">{displayError}</p>
             <button
               onClick={() => setError(null)}
               className="mt-2 text-sm text-red-600 hover:text-red-800 underline"

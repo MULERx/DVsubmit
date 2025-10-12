@@ -43,7 +43,7 @@ export function ReviewForm({
     resolver: zodResolver(transactionSchema),
     mode: 'onChange', // Enable real-time validation
     defaultValues: {
-      transactionNumber: '',
+      transactionNumber: formData.payment?.paymentReference || '',
     },
   })
 

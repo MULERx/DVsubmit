@@ -237,7 +237,7 @@ export function MailingAddressForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Country *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select country" />
@@ -263,7 +263,7 @@ export function MailingAddressForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Country where you live today *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select country where you currently live" />

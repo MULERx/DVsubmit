@@ -96,7 +96,7 @@ export async function DELETE(
     }
 
     // Prevent deletion of submitted applications
-    if (application.status === 'SUBMITTED' || application.status === 'CONFIRMED') {
+    if (application.status === 'SUBMITTED' ) {
       return NextResponse.json(
         { 
           success: false, 
@@ -130,7 +130,7 @@ export async function DELETE(
         action: 'APPLICATION_DELETED',
         details: {
           deletedApplicationId: applicationId,
-          applicantName: `${application.firstName} ${application.lastName}`,
+          applicantName: `${application.givenName} ${application.familyName}`,
           status: application.status,
           timestamp: new Date().toISOString(),
         },

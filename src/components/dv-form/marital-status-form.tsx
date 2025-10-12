@@ -138,7 +138,7 @@ export function MaritalStatusForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Current marital status *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select your marital status" />
@@ -229,7 +229,7 @@ export function MaritalStatusForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Spouse Gender *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select spouse's gender" />
@@ -289,7 +289,7 @@ export function MaritalStatusForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Spouse Country of Birth *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select spouse's country of birth" />

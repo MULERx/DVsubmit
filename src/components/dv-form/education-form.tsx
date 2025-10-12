@@ -88,7 +88,7 @@ export function EducationForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Highest level of education achieved *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select your highest education level" />

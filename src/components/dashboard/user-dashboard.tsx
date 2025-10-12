@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/lib/auth/auth-context'
-import { ApplicationService } from '@/lib/services/application-service'
 import { ApplicationRecord, ApplicationStatus } from '@/lib/types/application'
+import { useUserApplications } from '@/hooks/use-application-queries'
+import { useApplicationDelete } from '@/hooks/use-application-mutations'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,43 +36,29 @@ export function UserDashboard({ className }: UserDashboardProps) {
   const { user, userWithRole } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
-  const [applications, setApplications] = useState<ApplicationRecord[]>([])
-  const [loading, setLoading] = useState(true)
   const [downloadingProof, setDownloadingProof] = useState<string | null>(null)
   const [deletingApplication, setDeletingApplication] = useState<string | null>(null)
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
   const [selectedApplication, setSelectedApplication] = useState<ApplicationRecord | null>(null)
 
-  useEffect(() => {
-    if (user) {
-      loadApplications()
-    }
-  }, [user])
+  // Use TanStack Query to fetch applications
+  const {
+    data: applications = [],
+    isLoading: loading,
+    error: fetchError,
+    refetch: refetchApplications
+  } = useUserApplications(!!user)
 
-  const loadApplications = async () => {
-    try {
-      setLoading(true)
-      const response = await ApplicationService.getApplications()
+  // Use TanStack Query for deleting applications
+  const deleteApplicationMutation = useApplicationDelete()
 
-      if (response.success && response.data) {
-        setApplications(response.data)
-      } else {
-        toast({
-          title: 'Error',
-          description: response.error?.message || 'Failed to load applications',
-          variant: 'destructive',
-        })
-      }
-    } catch (error) {
-      console.error('Error loading applications:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load applications',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
-    }
+  // Show error toast if fetch fails
+  if (fetchError) {
+    toast({
+      title: 'Error',
+      description: fetchError.message || 'Failed to load applications',
+      variant: 'destructive',
+    })
   }
 
   const getStatusBadge = (status: ApplicationStatus) => {
@@ -153,29 +140,10 @@ export function UserDashboard({ className }: UserDashboardProps) {
   const handleDeleteApplication = async (applicationId: string, applicantName: string) => {
     try {
       setDeletingApplication(applicationId)
-
-      const response = await fetch(`/api/applications/${applicationId}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete application')
-      }
-
-      // Remove the application from the local state
-      setApplications(prev => prev.filter(app => app.id !== applicationId))
-
-      toast({
-        title: 'Application Deleted',
-        description: `Application for ${applicantName} has been deleted successfully.`,
-      })
+      await deleteApplicationMutation.mutateAsync(applicationId)
     } catch (error) {
       console.error('Error deleting application:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to delete application. Please try again.',
-        variant: 'destructive',
-      })
+      // Error handling is done in the mutation hook
     } finally {
       setDeletingApplication(null)
     }
@@ -191,8 +159,8 @@ export function UserDashboard({ className }: UserDashboardProps) {
   }
 
   const handlePaymentReferenceSuccess = () => {
-    // Reload applications to get updated status
-    loadApplications()
+    // Reload applications to get updated status using TanStack Query
+    refetchApplications()
   }
 
   const formatDate = (date: Date | string) => {

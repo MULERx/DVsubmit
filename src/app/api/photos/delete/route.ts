@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverPhotoStorageService } from '@/lib/services/photo-storage'
 
-export async function POST(request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   try {
     const { path } = await request.json()
 
@@ -12,24 +12,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate signed URL for the photo
-    const result = await serverPhotoStorageService.getSignedUrl(path)
+    // Delete the photo from storage
+    const result = await serverPhotoStorageService.deletePhoto(path)
 
     if (!result.success) {
       return NextResponse.json(
-        { error: result.error || 'Failed to generate signed URL' },
+        { error: result.error || 'Failed to delete photo' },
         { status: 500 }
       )
     }
 
     return NextResponse.json({
       success: true,
-      signedUrl: result.data?.signedUrl,
-      expiresIn: result.data?.expiresIn
+      message: 'Photo deleted successfully'
     })
 
   } catch (error) {
-    console.error('Signed URL API error:', error)
+    console.error('Delete photo API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

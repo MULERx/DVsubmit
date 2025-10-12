@@ -212,7 +212,7 @@ export function ChildrenForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Gender *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select child's gender" />
@@ -272,7 +272,7 @@ export function ChildrenForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Country of Birth *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select child's country of birth" />

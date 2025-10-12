@@ -22,7 +22,15 @@ export async function POST(request: NextRequest) {
     const applicationId = formData.get('applicationId') as string | null
     const performAdvancedValidation = formData.get('advancedValidation') === 'true'
 
+    // Debug logging
+    console.log('Photo upload request received:')
+    console.log('- File:', file ? `${file.name} (${file.size} bytes, ${file.type})` : 'null')
+    console.log('- ApplicationId:', applicationId)
+    console.log('- AdvancedValidation:', performAdvancedValidation)
+    console.log('- FormData keys:', Array.from(formData.keys()))
+
     if (!file) {
+      console.error('No photo file provided in FormData')
       return NextResponse.json(
         { success: false, error: 'No photo file provided' },
         { status: 400 }
@@ -30,11 +38,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform basic validation first using server-side validation
+    console.log('Starting photo validation...')
     const basicValidation = await validatePhotoFileServer(file)
+    console.log('Validation result:', basicValidation)
+
     if (!basicValidation.isValid) {
+      console.error('Photo validation failed:', basicValidation.errors)
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Photo validation failed',
           details: {
             errors: basicValidation.errors,
@@ -48,7 +60,6 @@ export async function POST(request: NextRequest) {
 
     // Advanced validation is not available in server environment
     // It requires browser APIs like Canvas and Image
-    let advancedValidation = null
     if (performAdvancedValidation) {
       console.warn('Advanced validation is not available in server environment. Skipping advanced validation.')
     }
@@ -62,9 +73,9 @@ export async function POST(request: NextRequest) {
 
     if (!uploadResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: uploadResult.error || 'Upload failed' 
+        {
+          success: false,
+          error: uploadResult.error || 'Upload failed'
         },
         { status: 500 }
       )
@@ -90,9 +101,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Photo upload API error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error'
       },
       { status: 500 }
     )
@@ -135,9 +146,9 @@ export async function DELETE(request: NextRequest) {
 
     if (!deleteResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: deleteResult.error || 'Delete failed' 
+        {
+          success: false,
+          error: deleteResult.error || 'Delete failed'
         },
         { status: 500 }
       )
@@ -151,9 +162,9 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Photo delete API error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error'
       },
       { status: 500 }
     )
