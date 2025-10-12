@@ -123,13 +123,13 @@ export function PaymentReferenceDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit"  disabled={isSubmitting}>
               {isSubmitting ? 'Updating...' : 'Update Payment Reference'}
             </Button>
           </DialogFooter>

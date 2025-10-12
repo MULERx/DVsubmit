@@ -48,18 +48,18 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity mr-6">
-                <div className="bg-blue-600 text-white p-2 rounded-lg">
-                  <FileText className="h-5 w-5" />
+              <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity mr-3 sm:mr-6">
+                <div className="bg-blue-600 text-white p-1.5 sm:p-2 rounded-lg">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <span className="text-lg font-semibold text-gray-900">DVSubmit</span>
+                <span className="text-base sm:text-lg font-semibold text-gray-900">DVSubmit</span>
               </Link>
-              <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+              <h1 className="hidden sm:block text-xl font-semibold text-gray-900">Dashboard</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Link
                 href="/"
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+                className="hidden sm:flex text-sm text-indigo-600 hover:text-indigo-700 font-medium items-center gap-1"
               >
                 <Home className="h-4 w-4" />
                 Home
@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/profile"
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
                 Profile
               </Link>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
               <AdminOnly>
                 <Link
                   href="/admin"
-                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                  className="hidden sm:block text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                 >
                   Admin Panel
                 </Link>
@@ -84,7 +84,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={handleSignOut}
-                className="text-sm cursor-pointer text-gray-500 hover:text-gray-700"
+                className="text-xs sm:text-sm cursor-pointer text-gray-500 hover:text-gray-700"
               >
                 Sign Out
               </button>
@@ -93,33 +93,35 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 ">
-        <div className="px-4 py-6 sm:px-0">
+      <main className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+        <div className="py-2 sm:py-6">
           <UserDashboard />
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8">
+      <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-3 mb-4 md:mb-0">
-              <div className="bg-blue-600 text-white p-2 rounded-lg">
+            <div className="flex items-center gap-3 mb-6 md:mb-0">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2 rounded-xl shadow-lg">
                 <FileText className="h-5 w-5" />
               </div>
-              <span className="text-lg font-semibold">DVSubmit</span>
+              <span className="text-xl font-semibold">DVSubmit</span>
             </div>
-            <div className="flex items-center gap-6 text-sm">
-              <Link href="/terms" className="hover:text-gray-300">
-                Terms of Service
-              </Link>
-              <Link href="/privacy" className="hover:text-gray-300">
-                Privacy Policy
-              </Link>
-              <Link href="/help" className="hover:text-gray-300">
-                Help
-              </Link>
-              <span className="text-gray-400">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 text-sm">
+              <div className="flex items-center gap-6">
+                <Link href="/terms" className="hover:text-gray-300 transition-colors">
+                  Terms of Service
+                </Link>
+                <Link href="/privacy" className="hover:text-gray-300 transition-colors">
+                  Privacy Policy
+                </Link>
+                <Link href="/help" className="hover:text-gray-300 transition-colors">
+                  Help
+                </Link>
+              </div>
+              <span className="text-gray-400 text-center sm:text-left">
                 © 2024 DVSubmit. All rights reserved.
               </span>
             </div>

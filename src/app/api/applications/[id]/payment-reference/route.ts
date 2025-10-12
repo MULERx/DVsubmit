@@ -4,7 +4,7 @@ import { authServer } from '@/lib/auth/server-auth-helpers'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userWithRole = await authServer.getUserWithRole()
@@ -16,6 +16,7 @@ export async function PATCH(
     }
 
     const { paymentReference } = await request.json()
+    const { id: applicationId } = await params
 
     if (!paymentReference || typeof paymentReference !== 'string') {
       return NextResponse.json(
@@ -27,7 +28,7 @@ export async function PATCH(
     // Find the application and verify ownership
     const application = await prisma.application.findFirst({
       where: {
-        id: params.id,
+        id: applicationId,
         userId: userWithRole.dbUser.id,
       },
     })
@@ -49,7 +50,7 @@ export async function PATCH(
 
     // Update the payment reference and reset status to PAYMENT_PENDING
     const updatedApplication = await prisma.application.update({
-      where: { id: params.id },
+      where: { id: applicationId },
       data: {
         paymentReference: paymentReference.trim(),
         status: 'PAYMENT_PENDING',
@@ -65,12 +66,12 @@ export async function PATCH(
   } catch (error) {
     console.error('Error updating payment reference:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to update payment reference' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to update payment reference'
+        }
       },
       { status: 500 }
     )
