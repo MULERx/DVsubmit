@@ -35,9 +35,6 @@ export async function GET(request: NextRequest) {
       where: {
         userId: userWithRole.dbUser.id,
       },
-      include: {
-        children: true,
-      },
       orderBy: {
         updatedAt: 'desc',
       },
@@ -61,6 +58,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
-// POST method removed - applications are now only created via the submit endpoint
-// No draft functionality means no partial application creation

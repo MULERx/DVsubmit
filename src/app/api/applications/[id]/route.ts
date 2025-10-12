@@ -23,6 +23,9 @@ export async function GET(
         id: applicationId,
         userId: userWithRole.dbUser.id,
       },
+      include:{
+        children: true
+      }
     })
 
     if (!application) {

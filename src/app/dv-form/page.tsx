@@ -27,11 +27,6 @@ export default function DVFormPage() {
     setIsSubmitting(true)
     setError(null)
     try {
-      console.log('Application completed:', data)
-      // Show success message briefly then redirect
-      alert('Application submitted successfully! Redirecting to dashboard...')
-
-      // Redirect to dashboard after successful submission
       router.push('/dashboard')
     } catch (error) {
       console.error('Submission failed:', error)
