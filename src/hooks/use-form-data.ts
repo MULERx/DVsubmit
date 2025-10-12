@@ -29,6 +29,19 @@ export const useFormData = (existingApplication?: ApplicationRecord | null) => {
         transformedData.spousePhoto = createPhotoData(existingApplication.spousePhotoUrl)
       }
 
+      // Add children photos if available
+      if (existingApplication.children && existingApplication.children.length > 0) {
+        const childrenPhotos: { [childIndex: number]: { file: File; preview: string; path?: string; signedUrl?: string } } = {}
+        existingApplication.children.forEach((child, index) => {
+          if (child.photoUrl) {
+            childrenPhotos[index] = createPhotoData(child.photoUrl)
+          }
+        })
+        if (Object.keys(childrenPhotos).length > 0) {
+          transformedData.childrenPhotos = childrenPhotos
+        }
+      }
+
       console.log('Transformed form data:', transformedData)
       console.log('Setting formData.personal:', transformedData.personal)
       setFormData(transformedData)
@@ -61,6 +74,29 @@ export const useFormData = (existingApplication?: ApplicationRecord | null) => {
           }
         }
 
+        // Fetch signed URLs for children photos
+        if (existingApplication.children && transformedData.childrenPhotos) {
+          const childrenPhotosUpdates: { [childIndex: number]: { file: File; preview: string; path?: string; signedUrl?: string } } = {}
+          
+          for (let index = 0; index < existingApplication.children.length; index++) {
+            const child = existingApplication.children[index]
+            if (child.photoUrl && transformedData.childrenPhotos[index]) {
+              const signedUrl = await getSignedUrl(child.photoUrl)
+              if (signedUrl) {
+                childrenPhotosUpdates[index] = {
+                  ...transformedData.childrenPhotos[index],
+                  signedUrl,
+                  preview: signedUrl
+                }
+              }
+            }
+          }
+          
+          if (Object.keys(childrenPhotosUpdates).length > 0) {
+            updates.childrenPhotos = childrenPhotosUpdates
+          }
+        }
+
         // Update form data with signed URLs
         if (Object.keys(updates).length > 0) {
           setFormData(prev => ({
@@ -74,7 +110,8 @@ export const useFormData = (existingApplication?: ApplicationRecord | null) => {
       signedUrlsFetched.current = true
 
       // Fetch signed URLs if we have photo paths
-      if (existingApplication.photoUrl || existingApplication.spousePhotoUrl) {
+      const hasChildrenPhotos = existingApplication.children?.some(child => child.photoUrl)
+      if (existingApplication.photoUrl || existingApplication.spousePhotoUrl || hasChildrenPhotos) {
         fetchSignedUrls()
       }
     }

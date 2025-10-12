@@ -21,14 +21,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { useEffect } from 'react'
+import { PersonalPhotoUpload } from './personal-photo-upload'
+import { useEffect, useState } from 'react'
 
 interface MaritalStatusFormProps {
   initialData?: Partial<MaritalStatusInfo>
-  onSubmit: (data: MaritalStatusInfo) => void
+  onSubmit: (data: MaritalStatusInfo & { spousePhoto?: { file: File; preview: string; path?: string; signedUrl?: string } }) => void
   onNext: () => void
   onPrevious: () => void
   isLoading?: boolean
+  applicationId?: string
+  initialSpousePhoto?: { file: File; preview: string; path?: string; signedUrl?: string }
 }
 
 const maritalStatuses = [
@@ -81,8 +84,14 @@ export function MaritalStatusForm({
   onSubmit, 
   onNext, 
   onPrevious, 
-  isLoading = false 
+  isLoading = false,
+  applicationId,
+  initialSpousePhoto
 }: MaritalStatusFormProps) {
+  const [spousePhoto, setSpousePhoto] = useState<{ file: File; preview: string; path?: string; signedUrl?: string } | null>(
+    initialSpousePhoto || null
+  )
+
   const form = useForm<MaritalStatusInfo>({
     resolver: zodResolver(maritalStatusSchema),
     defaultValues: {
@@ -117,8 +126,17 @@ export function MaritalStatusForm({
   }, [initialData, form])
 
   const handleSubmit = (data: MaritalStatusInfo) => {
-    onSubmit(data)
+    const submitData = { ...data }
+    if (showSpouseDetails && spousePhoto) {
+      onSubmit({ ...submitData, spousePhoto })
+    } else {
+      onSubmit(submitData)
+    }
     onNext()
+  }
+
+  const handleSpousePhotoChange = (photoData: { file: File; preview: string; path?: string; signedUrl?: string } | null) => {
+    setSpousePhoto(photoData)
   }
 
   return (
@@ -306,6 +324,19 @@ export function MaritalStatusForm({
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+              </div>
+
+              {/* Spouse Photo Upload */}
+              <div className="mt-6">
+                <PersonalPhotoUpload
+                  onPhotoChange={handleSpousePhotoChange}
+                  initialData={initialSpousePhoto}
+                  applicationId={applicationId}
+                  label="Spouse Photo"
+                  description="Upload a recent passport-style photo of your spouse that meets DV lottery requirements."
+                  required={true}
+                  disabled={isLoading}
                 />
               </div>
             </div>

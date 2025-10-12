@@ -459,6 +459,101 @@ export function ReviewForm({
             )}
           </CardContent>
         </Card>
+
+        {/* Spouse Photo */}
+        {formData.marital?.maritalStatus === 'MARRIED_SPOUSE_NOT_US_CITIZEN_LPR' && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                {formData.spousePhoto ? (
+                  <Check className="h-5 w-5 text-green-600" />
+                ) : (
+                  <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                )}
+                Spouse Photo
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit('marital')}
+                disabled={isLoading}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {formData.spousePhoto ? (
+                <div className="flex items-center gap-4">
+                  <img
+                    src={formData.spousePhoto.signedUrl || formData.spousePhoto.preview}
+                    alt="Spouse photo"
+                    className="w-20 h-20 object-cover rounded-lg border"
+                  />
+                  <div>
+                    <p className="text-gray-900 font-medium">{formData.spousePhoto.file.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {(formData.spousePhoto.file.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                    <p className="text-sm text-green-600">✓ Photo meets DV requirements</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-900">Not provided</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Children Photos */}
+        {formData.children?.children && formData.children.children.length > 0 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                {formData.childrenPhotos && Object.keys(formData.childrenPhotos).length === formData.children.children.length ? (
+                  <Check className="h-5 w-5 text-green-600" />
+                ) : (
+                  <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                )}
+                Children Photos
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit('children')}
+                disabled={isLoading}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {formData.children.children.map((child, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    {child.givenName} {child.familyName}
+                  </h4>
+                  {formData.childrenPhotos?.[index] ? (
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={formData.childrenPhotos[index].signedUrl || formData.childrenPhotos[index].preview}
+                        alt={`${child.givenName} photo`}
+                        className="w-16 h-16 object-cover rounded-lg border"
+                      />
+                      <div>
+                        <p className="text-gray-900 font-medium">{formData.childrenPhotos[index].file.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {(formData.childrenPhotos[index].file.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                        <p className="text-sm text-green-600">✓ Photo meets DV requirements</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-900">Photo not provided</p>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Payment Section */}

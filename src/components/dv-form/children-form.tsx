@@ -21,15 +21,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { useEffect } from 'react'
+import { PersonalPhotoUpload } from './personal-photo-upload'
+import { useEffect, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 
 interface ChildrenFormProps {
   initialData?: Partial<Children>
-  onSubmit: (data: Children) => void
+  onSubmit: (data: Children & { childrenPhotos?: { [childIndex: number]: { file: File; preview: string; path?: string; signedUrl?: string } } }) => void
   onNext: () => void
   onPrevious: () => void
   isLoading?: boolean
+  applicationId?: string
+  initialChildrenPhotos?: { [childIndex: number]: { file: File; preview: string; path?: string; signedUrl?: string } }
 }
 
 // Common countries
@@ -73,8 +76,20 @@ export function ChildrenForm({
   onSubmit, 
   onNext, 
   onPrevious, 
-  isLoading = false 
+  isLoading = false,
+  applicationId,
+  initialChildrenPhotos
 }: ChildrenFormProps) {
+  const [childrenPhotos, setChildrenPhotos] = useState<{ [childIndex: number]: { file: File; preview: string; path?: string; signedUrl?: string } }>(
+    initialChildrenPhotos || {}
+  )
+
+  // Debug logging
+  useEffect(() => {
+    console.log('ChildrenForm - initialChildrenPhotos:', initialChildrenPhotos)
+    console.log('ChildrenForm - childrenPhotos state:', childrenPhotos)
+  }, [initialChildrenPhotos, childrenPhotos])
+
   const form = useForm<Children>({
     resolver: zodResolver(childrenSchema),
     defaultValues: {
@@ -96,9 +111,34 @@ export function ChildrenForm({
     }
   }, [initialData, form])
 
+  // Update children photos when initialChildrenPhotos changes
+  useEffect(() => {
+    if (initialChildrenPhotos && Object.keys(initialChildrenPhotos).length > 0) {
+      console.log('Updating childrenPhotos state with:', initialChildrenPhotos)
+      setChildrenPhotos(initialChildrenPhotos)
+    }
+  }, [initialChildrenPhotos])
+
   const handleSubmit = (data: Children) => {
-    onSubmit(data)
+    const submitData = { ...data }
+    if (Object.keys(childrenPhotos).length > 0) {
+      onSubmit({ ...submitData, childrenPhotos })
+    } else {
+      onSubmit(submitData)
+    }
     onNext()
+  }
+
+  const handleChildPhotoChange = (childIndex: number, photoData: { file: File; preview: string; path?: string; signedUrl?: string } | null) => {
+    setChildrenPhotos(prev => {
+      const updated = { ...prev }
+      if (photoData) {
+        updated[childIndex] = photoData
+      } else {
+        delete updated[childIndex]
+      }
+      return updated
+    })
   }
 
   const addChild = () => {
@@ -110,6 +150,26 @@ export function ChildrenForm({
       dateOfBirth: '',
       cityOfBirth: '',
       countryOfBirth: '',
+    })
+  }
+
+  const removeChild = (index: number) => {
+    remove(index)
+    // Also remove the photo for this child
+    setChildrenPhotos(prev => {
+      const updated = { ...prev }
+      delete updated[index]
+      // Reindex remaining photos
+      const reindexed: typeof updated = {}
+      Object.keys(updated).forEach(key => {
+        const oldIndex = parseInt(key)
+        if (oldIndex > index) {
+          reindexed[oldIndex - 1] = updated[oldIndex]
+        } else {
+          reindexed[oldIndex] = updated[oldIndex]
+        }
+      })
+      return reindexed
     })
   }
 
@@ -142,7 +202,7 @@ export function ChildrenForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => remove(index)}
+                  onClick={() => removeChild(index)}
                   disabled={isLoading}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -289,6 +349,19 @@ export function ChildrenForm({
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+              </div>
+
+              {/* Child Photo Upload */}
+              <div className="mt-4">
+                <PersonalPhotoUpload
+                  onPhotoChange={(photoData) => handleChildPhotoChange(index, photoData)}
+                  initialData={childrenPhotos[index]}
+                  applicationId={applicationId}
+                  label={`Child ${index + 1} Photo`}
+                  description="Upload a recent passport-style photo of this child that meets DV lottery requirements."
+                  required={true}
+                  disabled={isLoading}
                 />
               </div>
             </div>

@@ -27,7 +27,7 @@ export function MultiStepForm({
   existingApplication
 }: MultiStepFormProps) {
   // Custom hooks for form management
-  const { formData, updateStepData } = useFormData(existingApplication)
+  const { formData, updateStepData, setFormData } = useFormData(existingApplication)
   const {
     currentStep,
     goToNextStep,
@@ -113,12 +113,22 @@ export function MultiStepForm({
     updateStepData('education', data)
   }, [updateStepData])
 
-  const handleMaritalStatusSubmit = useCallback((data: MaritalStatusInfo) => {
-    updateStepData('marital', data)
+  const handleMaritalStatusSubmit = useCallback((data: MaritalStatusInfo & { spousePhoto?: { file: File; preview: string; path?: string; signedUrl?: string } }) => {
+    const { spousePhoto, ...maritalData } = data
+    updateStepData('marital', maritalData)
+    if (spousePhoto) {
+      // Update spouse photo data directly
+      setFormData(prev => ({ ...prev, spousePhoto }))
+    }
   }, [updateStepData])
 
-  const handleChildrenSubmit = useCallback((data: Children) => {
-    updateStepData('children', data)
+  const handleChildrenSubmit = useCallback((data: Children & { childrenPhotos?: { [childIndex: number]: { file: File; preview: string; path?: string; signedUrl?: string } } }) => {
+    const { childrenPhotos, ...childrenData } = data
+    updateStepData('children', childrenData)
+    if (childrenPhotos) {
+      // Update children photos data directly
+      setFormData(prev => ({ ...prev, childrenPhotos }))
+    }
   }, [updateStepData])
 
   const handlePhotoUploadSubmit = useCallback((data: { file: File; preview: string; path?: string; signedUrl?: string }) => {
@@ -230,10 +240,14 @@ export function MultiStepForm({
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
             isLoading={isLoading}
+            applicationId={existingApplication?.id}
+            initialSpousePhoto={formData.spousePhoto}
           />
         )
 
       case 'children':
+        // Debug logging
+        console.log('MultiStepForm - Rendering children step with photos:', formData.childrenPhotos)
         return (
           <ChildrenForm
             initialData={formData.children}
@@ -241,6 +255,8 @@ export function MultiStepForm({
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
             isLoading={isLoading}
+            applicationId={existingApplication?.id}
+            initialChildrenPhotos={formData.childrenPhotos}
           />
         )
 
