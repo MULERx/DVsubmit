@@ -4,7 +4,7 @@ import { authServer } from '@/lib/auth/server-auth-helpers'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userWithRole = await authServer.getUserWithRole()
@@ -15,7 +15,7 @@ export async function GET(
       )
     }
 
-    const applicationId = params.id
+    const {id: applicationId} = await params
 
     // Get the application and verify ownership
     const application = await prisma.application.findFirst({

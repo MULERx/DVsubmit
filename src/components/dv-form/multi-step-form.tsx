@@ -121,7 +121,7 @@ export function MultiStepForm({
     updateStepData('children', data)
   }, [updateStepData])
 
-  const handlePhotoUploadSubmit = useCallback((data: { file: File; preview: string }) => {
+  const handlePhotoUploadSubmit = useCallback((data: { file: File; preview: string; path?: string; signedUrl?: string }) => {
     updateStepData('photo', data)
   }, [updateStepData])
 
@@ -137,7 +137,7 @@ export function MultiStepForm({
           paymentReference: transactionNumber
         }
       }
-      
+
       console.log('Form data before transformation:', updatedFormData)
 
       // Validate form completeness
@@ -254,6 +254,7 @@ export function MultiStepForm({
             }}
             onPrevious={goToPreviousStep}
             isLoading={isLoading}
+            applicationId={existingApplication?.id}
           />
         )
 

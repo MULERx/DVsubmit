@@ -131,6 +131,9 @@ export const applicationSchema = personalInfoSchema
   .merge(maritalStatusSchema)
   .merge(childrenSchema)
   .merge(photoUrlsSchema)
+  .merge(z.object({
+    paymentReference: z.string().optional()
+  }))
 
 // User Registration Schema
 export const registerSchema = z.object({

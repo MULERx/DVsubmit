@@ -20,14 +20,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('photo') as File
     const applicationId = formData.get('applicationId') as string | null
-    const performAdvancedValidation = formData.get('advancedValidation') === 'true'
-
-    // Debug logging
-    console.log('Photo upload request received:')
-    console.log('- File:', file ? `${file.name} (${file.size} bytes, ${file.type})` : 'null')
-    console.log('- ApplicationId:', applicationId)
-    console.log('- AdvancedValidation:', performAdvancedValidation)
-    console.log('- FormData keys:', Array.from(formData.keys()))
 
     if (!file) {
       console.error('No photo file provided in FormData')
@@ -38,9 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform basic validation first using server-side validation
-    console.log('Starting photo validation...')
     const basicValidation = await validatePhotoFileServer(file)
-    console.log('Validation result:', basicValidation)
 
     if (!basicValidation.isValid) {
       console.error('Photo validation failed:', basicValidation.errors)
@@ -58,11 +48,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Advanced validation is not available in server environment
-    // It requires browser APIs like Canvas and Image
-    if (performAdvancedValidation) {
-      console.warn('Advanced validation is not available in server environment. Skipping advanced validation.')
-    }
 
     // Upload photo to Supabase Storage using server-side service
     const uploadResult = await serverPhotoStorageService.uploadPhoto(
@@ -93,7 +78,6 @@ export async function POST(request: NextRequest) {
             warnings: basicValidation.warnings,
             metadata: basicValidation.metadata
           },
-          advanced: null // Advanced validation not available in server environment
         }
       }
     })

@@ -50,7 +50,7 @@ export function PhotoUploadForm({
     data: signedUrlData,
     isLoading: isLoadingSignedUrl,
     error: signedUrlError
-  } = useSignedUrl(initialData?.path, !!initialData?.path && !signedUrl)
+  } = useSignedUrl(storagePath, !!storagePath && !signedUrl && !!uploadedFile)
 
   const validatePhoto = useCallback(async (file: File): Promise<PhotoValidationResult> => {
     return await validatePhotoFile(file)
@@ -78,6 +78,10 @@ export function PhotoUploadForm({
     if (!file) return
 
     setIsValidating(true)
+    
+    // Store the previous photo path for deletion if upload succeeds
+    const previousPhotoPath = storagePath
+
     setUploadedFile(file)
     setIsExistingPhoto(false) // Reset existing photo state
     setImageMetadata(null) // Reset metadata
@@ -103,11 +107,25 @@ export function PhotoUploadForm({
         console.log('Uploading photo:')
         console.log('- File:', file.name, file.size, file.type)
         console.log('- ApplicationId:', applicationId)
+        console.log('- Previous photo path:', previousPhotoPath)
         console.log('- FormData keys:', Array.from(formData.keys()))
 
         const result = await photoUploadMutation.mutateAsync(formData)
 
         if (result.success && result.data) {
+          // Delete the previous photo if it exists and upload was successful
+          if (previousPhotoPath && previousPhotoPath !== result.data.path) {
+            try {
+              console.log('Deleting previous photo:', previousPhotoPath)
+              await photoDeleteMutation.mutateAsync(previousPhotoPath)
+            } catch (deleteError) {
+              console.error('Failed to delete previous photo:', deleteError)
+              // Don't fail the upload if deletion fails, just log it
+            }
+          }
+
+
+
           setStoragePath(result.data.path)
           setSignedUrl(result.data.signedUrl)
           // Update preview to use the signed URL for consistency
@@ -125,7 +143,7 @@ export function PhotoUploadForm({
     } finally {
       setIsValidating(false)
     }
-  }, [validatePhoto, photoUploadMutation, applicationId])
+  }, [validatePhoto, photoUploadMutation, photoDeleteMutation, applicationId, storagePath])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -158,16 +176,9 @@ export function PhotoUploadForm({
   })
 
   const removePhoto = useCallback(async () => {
-    try {
-      // Delete from storage if it exists
-      if (storagePath) {
-        await photoDeleteMutation.mutateAsync(storagePath)
-      }
-    } catch (error) {
-      console.error('Error deleting photo:', error)
-    }
-
-    // Clean up local state
+    const pathToDelete = storagePath
+    
+    // Clean up local state first to stop any ongoing queries
     setUploadedFile(null)
     setPreview('')
     setValidation(null)
@@ -178,6 +189,15 @@ export function PhotoUploadForm({
 
     if (preview) {
       revokeImagePreview(preview)
+    }
+
+    try {
+      // Delete from storage if it exists (this will also update the database)
+      if (pathToDelete) {
+        await photoDeleteMutation.mutateAsync(pathToDelete)
+      }
+    } catch (error) {
+      console.error('Error deleting photo:', error)
     }
   }, [storagePath, preview, photoDeleteMutation])
 
@@ -194,7 +214,7 @@ export function PhotoUploadForm({
 
   // Handle signed URL data from TanStack Query
   useEffect(() => {
-    if (signedUrlData?.success && signedUrlData.signedUrl) {
+    if (signedUrlData?.success && signedUrlData.signedUrl && signedUrlData.signedUrl != '') {
       setSignedUrl(signedUrlData.signedUrl)
       setPreview(signedUrlData.signedUrl)
 
@@ -353,7 +373,7 @@ export function PhotoUploadForm({
                     )}
                   </div>
 
-                  {(isValidating || photoUploadMutation.isPending || isLoadingSignedUrl) && (
+                  {(isValidating || photoUploadMutation.isPending || photoDeleteMutation.isPending || isLoadingSignedUrl) && (
                     <div className="flex items-center gap-2 text-blue-600">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                       <span className="text-sm">
@@ -361,17 +381,22 @@ export function PhotoUploadForm({
                           ? 'Validating photo...'
                           : photoUploadMutation.isPending
                             ? 'Uploading to secure storage...'
-                            : 'Loading photo...'
+                            : photoDeleteMutation.isPending
+                              ? 'Deleting photo and updating records...'
+                              : 'Loading photo...'
                         }
                       </span>
                     </div>
                   )}
 
-                  {(photoUploadMutation.error || signedUrlError) && (
+                  {(photoUploadMutation.error || photoDeleteMutation.error || signedUrlError) && (
                     <div className="flex items-start gap-2 text-red-600">
                       <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                       <span className="text-sm">
-                        {photoUploadMutation.error?.message || signedUrlError?.message || 'An error occurred'}
+                        {photoUploadMutation.error?.message || 
+                         photoDeleteMutation.error?.message || 
+                         signedUrlError?.message || 
+                         'An error occurred'}
                       </span>
                     </div>
                   )}
@@ -446,10 +471,13 @@ export function PhotoUploadForm({
 
         <Button
           onClick={handleNext}
-          disabled={isLoading || !uploadedFile || !validation?.isValid || isValidating || photoUploadMutation.isPending || !storagePath}
+          disabled={isLoading || !uploadedFile || !validation?.isValid || isValidating || photoUploadMutation.isPending || photoDeleteMutation.isPending || !storagePath}
           className="min-w-32"
         >
-          {isLoading ? 'Processing...' : photoUploadMutation.isPending ? 'Uploading...' : 'Next'}
+          {isLoading ? 'Processing...' : 
+           photoUploadMutation.isPending ? 'Uploading...' : 
+           photoDeleteMutation.isPending ? 'Processing...' : 
+           'Next'}
         </Button>
       </div>
     </div>

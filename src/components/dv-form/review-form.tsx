@@ -22,7 +22,7 @@ const transactionSchema = z.object({
 
 interface ReviewFormProps {
   formData: FormStepData
-  onSubmit: (transactionNumber: string) => void
+  onSubmit: (transactionNumber: string) => Promise<void>
   onEdit: (step: string) => void
   onPrevious: () => void
   isLoading?: boolean

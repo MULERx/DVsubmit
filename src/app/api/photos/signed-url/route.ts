@@ -16,9 +16,15 @@ export async function POST(request: NextRequest) {
     const result = await serverPhotoStorageService.getSignedUrl(path)
 
     if (!result.success) {
+      // Check if it's a "not found" error
+      const isNotFound = result.error?.includes('Object not found') || result.error?.includes('not found')
+      
       return NextResponse.json(
-        { error: result.error || 'Failed to generate signed URL' },
-        { status: 500 }
+        { 
+          success: false,
+          error: result.error || 'Failed to generate signed URL' 
+        },
+        { status: isNotFound ? 404 : 500 }
       )
     }
 

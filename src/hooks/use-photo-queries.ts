@@ -56,7 +56,14 @@ export function useSignedUrl(path: string | undefined, enabled: boolean = true) 
     enabled: enabled && !!path,
     staleTime: 30 * 60 * 1000, // 30 minutes
     gcTime: 60 * 60 * 1000, // 1 hour
-    retry: 2,
+    retry: (failureCount, error) => {
+      // Don't retry if the photo doesn't exist (404)
+      if (error.message.includes('404') || error.message.includes('not found')) {
+        return false
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2
+    },
   })
 }
 
@@ -111,14 +118,24 @@ export function usePhotoDelete() {
 
   return useMutation({
     mutationFn: deletePhoto,
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast({
         title: 'Success',
         description: 'Photo deleted successfully',
       })
       
+      // Cancel any ongoing queries for this specific photo path
+      queryClient.cancelQueries({ queryKey: ['photo', 'signed-url', variables] })
+      
+      // Remove the specific signed URL query from cache
+      queryClient.removeQueries({ queryKey: ['photo', 'signed-url', variables] })
+      
       // Invalidate all photo-related queries
       queryClient.invalidateQueries({ queryKey: ['photo'] })
+      
+      // Invalidate application queries since the database was updated
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
+      queryClient.invalidateQueries({ queryKey: ['application'] })
     },
     onError: (error: Error) => {
       toast({
@@ -129,3 +146,4 @@ export function usePhotoDelete() {
     },
   })
 }
+

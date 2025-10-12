@@ -225,5 +225,8 @@ export function transformFormDataForSubmission(formData: FormStepData) {
       ...child,
       photoUrl: formData.childrenPhotos?.[index]?.path || undefined,
     })),
+
+    // Payment Reference
+    paymentReference: formData.payment?.paymentReference || undefined,
   }
 }

@@ -5,7 +5,7 @@ import { applicationSchema } from '@/lib/validations/application'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userWithRole = await authServer.getUserWithRole()
@@ -16,7 +16,8 @@ export async function PATCH(
       )
     }
 
-    const body = await request.json()
+    const body = await request.json();
+    const { id: applicationId } = await params
 
     // Validate the complete application data
     const validationResult = applicationSchema.safeParse(body)
@@ -39,7 +40,7 @@ export async function PATCH(
     // Find the application and verify ownership
     const existingApplication = await prisma.application.findFirst({
       where: {
-        id: params.id,
+        id: applicationId,
         userId: userWithRole.dbUser.id,
       },
       include: {
@@ -63,8 +64,8 @@ export async function PATCH(
     }
 
     // Update the application and reset status to PAYMENT_PENDING
-    const updatedApplication = await prisma.application.update({
-      where: { id: params.id },
+    await prisma.application.update({
+      where: { id: applicationId },
       data: {
         // Personal Information
         familyName: data.familyName,
@@ -76,7 +77,7 @@ export async function PATCH(
         countryOfBirth: data.countryOfBirth,
         countryOfEligibility: data.countryOfEligibility,
         eligibilityClaimType: data.eligibilityClaimType || null,
-        
+
         // Mailing Address
         inCareOf: data.inCareOf || null,
         addressLine1: data.addressLine1,
@@ -86,14 +87,14 @@ export async function PATCH(
         postalCode: data.postalCode,
         country: data.country,
         countryOfResidence: data.countryOfResidence,
-        
+
         // Contact Information
         phoneNumber: data.phoneNumber || null,
         email: data.email,
-        
+
         // Education
         educationLevel: data.educationLevel,
-        
+
         // Marital Status
         maritalStatus: data.maritalStatus,
         spouseFamilyName: data.spouseFamilyName || null,
@@ -103,28 +104,32 @@ export async function PATCH(
         spouseDateOfBirth: data.spouseDateOfBirth ? new Date(data.spouseDateOfBirth) : null,
         spouseCityOfBirth: data.spouseCityOfBirth || null,
         spouseCountryOfBirth: data.spouseCountryOfBirth || null,
-        
+
         // Photos
         photoUrl: (data as any).photoUrl || null,
         spousePhotoUrl: (data as any).spousePhotoUrl || null,
-        
+
+        // Payment
+        paymentReference: (data as any).paymentReference || null,
+
         // Reset status to pending for review
         status: 'PAYMENT_PENDING',
         updatedAt: new Date()
-      }
+      },
+      select: { id: true }
     })
 
     // Handle children updates
     if (data.children && data.children.length > 0) {
       // Delete existing children
       await prisma.child.deleteMany({
-        where: { applicationId: params.id }
+        where: { applicationId: applicationId }
       })
 
       // Create new children records
       await prisma.child.createMany({
         data: data.children.map(child => ({
-          applicationId: params.id,
+          applicationId: applicationId,
           familyName: child.familyName,
           givenName: child.givenName,
           middleName: child.middleName || null,
@@ -138,7 +143,7 @@ export async function PATCH(
     } else {
       // If no children in the update, remove existing ones
       await prisma.child.deleteMany({
-        where: { applicationId: params.id }
+        where: { applicationId: applicationId }
       })
     }
 
@@ -146,7 +151,7 @@ export async function PATCH(
     await prisma.auditLog.create({
       data: {
         userId: userWithRole.dbUser.id,
-        applicationId: params.id,
+        applicationId: applicationId,
         action: 'APPLICATION_UPDATED',
         details: {
           hasSpouse: !!data.spouseFamilyName,
@@ -156,11 +161,12 @@ export async function PATCH(
         ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
       },
+      select: {id: true}
     })
 
     // Fetch the complete updated application with children
     const completeApplication = await prisma.application.findUnique({
-      where: { id: params.id },
+      where: { id: applicationId },
       include: {
         children: true,
       },
@@ -174,12 +180,12 @@ export async function PATCH(
   } catch (error) {
     console.error('Error updating application:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to update application' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to update application'
+        }
       },
       { status: 500 }
     )

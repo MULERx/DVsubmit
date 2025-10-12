@@ -98,6 +98,10 @@ export async function POST(request: NextRequest) {
         // Photo
         photoUrl: data.photoUrl || null,
         photoValidated: true,
+
+        // Payment
+        paymentReference: data.paymentReference || null,
+        
         status: 'PAYMENT_PENDING',
       },
     })
