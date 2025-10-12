@@ -291,20 +291,20 @@ export function MultiStepForm({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto px-3">
       <FormStepNavigation
         currentStep={currentStep}
         completedSteps={completedSteps}
         onStepClick={handleGoToStep}
       />
 
-      <div className="mb-4">
+      <div className="mb-3">
         <div className="text-sm text-gray-500">
           Complete all steps to submit your application. Your data is only saved when you submit the final form.
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border p-8">
+      <div className="bg-white rounded-lg shadow-sm border p-6 sm:p-8">
         {renderCurrentStep()}
       </div>
     </div>

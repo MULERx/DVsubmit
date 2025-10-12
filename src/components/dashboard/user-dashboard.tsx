@@ -187,7 +187,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
               Manage DV lottery applications for yourself and family members.
             </p>
           </div>
-          <Button asChild size="sm" className="sm:size-lg w-full sm:w-auto">
+          <Button asChild size="sm" >
             <Link href="/dv-form">
               <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               New Application

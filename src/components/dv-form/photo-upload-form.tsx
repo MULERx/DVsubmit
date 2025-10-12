@@ -401,19 +401,14 @@ export function PhotoUploadForm({
                     </div>
                   )}
 
-                  {storagePath && !photoUploadMutation.isPending && (
-                    <div className="flex items-center gap-2 text-green-600">
-                      <Cloud className="h-4 w-4" />
-                      <span className="text-sm font-medium">Securely stored in cloud</span>
-                    </div>
-                  )}
+           
 
                   {validation && !isValidating && (
                     <div className="space-y-2">
                       {validation.isValid ? (
                         <div className="flex items-center gap-2 text-green-600">
                           <Check className="h-4 w-4" />
-                          <span className="text-sm font-medium">Photo meets all requirements</span>
+                          <span className="text-xs font-medium">Photo meets all requirements</span>
                         </div>
                       ) : (
                         <div className="space-y-1">

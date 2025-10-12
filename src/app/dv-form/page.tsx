@@ -58,10 +58,10 @@ export default function DVFormPage() {
               Back to Dashboard
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {existingApplication ? 'Edit DV Lottery Application' : 'DV Lottery Application'}
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 mt-1 sm:mt-2 text-sm">
             {existingApplication
               ? `Edit the application for ${existingApplication.givenName} ${existingApplication.familyName}. Make necessary corrections and resubmit.`
               : 'Complete a Diversity Visa lottery application. You can submit multiple applications for different family members.'
@@ -83,7 +83,7 @@ export default function DVFormPage() {
               </svg>
             </div>
             <div className="text-sm text-yellow-800">
-              <span className="font-semibold">Important:</span> This is not a government service.
+              <span className="font-semibold text-sm">Important:</span> This is not a government service.
               You can submit applications for multiple eligible family members. Each application requires a separate 399 ETB service fee (non-refundable after submission).
             </div>
           </div>

@@ -383,12 +383,7 @@ export function PersonalPhotoUpload({
                   </div>
                 )}
 
-                {storagePath && !photoUploadMutation.isPending && (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <Cloud className="h-3 w-3" />
-                    <span className="text-xs font-medium">Stored securely</span>
-                  </div>
-                )}
+            
 
                 {validation && !isValidating && (
                   <div className="space-y-1">
