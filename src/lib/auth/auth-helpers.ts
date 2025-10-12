@@ -110,15 +110,69 @@ export const authClient = {
   // Reset password
   async resetPassword(email: string) {
     const supabase = createClient()
+    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?type=recovery`
+    
+    console.log('🔧 Sending password reset email with redirect URL:', redirectUrl)
+    
     return await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password`,
+      redirectTo: redirectUrl,
     })
+  },
+
+  // Get session from URL (for handling auth callbacks)
+  async getSessionFromUrl() {
+    const supabase = createClient()
+    return await supabase.auth.getSession()
   },
 
   // Update password
   async updatePassword(password: string) {
     const supabase = createClient()
     return await supabase.auth.updateUser({ password })
+  },
+
+  // Set session with tokens (for password reset)
+  async setSession(accessToken: string, refreshToken: string) {
+    const supabase = createClient()
+    return await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
+  },
+
+  // Handle password reset token using the session approach
+  async handleResetToken(token: string) {
+    const supabase = createClient()
+    
+    // Try to get the current session first
+    const { data: currentSession } = await supabase.auth.getSession()
+    
+    if (currentSession?.session) {
+      // If we already have a session, we're good
+      return { data: currentSession, error: null }
+    }
+    
+    // If no session, the token might be a refresh token or access token
+    // Let's try to set it as a session directly
+    try {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: token
+      })
+      
+      if (error) {
+        // If that doesn't work, try the exchange approach
+        console.log('Direct session set failed, trying refresh...')
+        const refreshResult = await supabase.auth.refreshSession({
+          refresh_token: token
+        })
+        return refreshResult
+      }
+      
+      return { data, error: null }
+    } catch (err) {
+      return { data: null, error: err }
+    }
   },
 
   // Listen to auth changes
@@ -193,6 +247,14 @@ export const authErrors = {
         return 'An account with this email already exists'
       case 'Password should be at least 6 characters':
         return 'Password must be at least 6 characters long'
+      case 'Invalid refresh token':
+      case 'refresh_token_not_found':
+        return 'Your session has expired. Please request a new password reset link.'
+      case 'Token has expired':
+      case 'invalid_token':
+        return 'The password reset link has expired. Please request a new one.'
+      case 'User not found':
+        return 'No account found with this email address'
       default:
         return errorObj.message || 'Authentication failed'
     }

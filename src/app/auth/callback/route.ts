@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const type = searchParams.get('type')
   const next = searchParams.get('next') ?? '/dashboard'
 
   if (code) {
@@ -26,6 +27,12 @@ export async function GET(request: NextRequest) {
       } catch (syncError) {
         console.error('Failed to sync user to database:', syncError)
         // Continue with redirect even if sync fails
+      }
+
+      // Check if this is a password recovery
+      if (type === 'recovery') {
+        console.log('Password recovery callback detected, redirecting to reset password page')
+        return NextResponse.redirect(`${origin}/auth/reset-password`)
       }
 
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
