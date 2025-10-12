@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { withAuth } from '@/lib/auth/auth-context'
 import Link from 'next/link'
 import { CheckCircle, XCircle, Clock, Eye, AlertCircle } from 'lucide-react'
+import { usePaymentStatusMutation } from '@/hooks/use-admin-application-mutations'
 
 interface Application {
   id: string
@@ -45,6 +46,8 @@ function PaymentVerificationPage() {
   const [verificationAction, setVerificationAction] = useState<'approve' | 'reject' | null>(null)
   const [notes, setNotes] = useState('')
 
+  const paymentMutation = usePaymentStatusMutation()
+
   useEffect(() => {
     fetchApplications()
   }, [pagination.page])
@@ -70,41 +73,28 @@ function PaymentVerificationPage() {
     }
   }
 
-  const handleVerifyPayment = async (applicationId: string, action: 'approve' | 'reject') => {
+  const handleVerifyPayment = (applicationId: string, action: 'approve' | 'reject') => {
     setProcessingId(applicationId)
-    try {
-      const response = await fetch('/api/admin/payments/verify', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+    paymentMutation.mutate(
+      { applicationId, action },
+      {
+        onSuccess: () => {
+          // Remove the processed application from the list
+          setApplications(applications.filter(app => app.id !== applicationId))
+          setShowModal(false)
+          setSelectedApp(null)
+          setNotes('')
+          setVerificationAction(null)
+          setError('')
         },
-        body: JSON.stringify({
-          applicationId,
-          action,
-          notes: notes.trim() || undefined,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        // Remove the processed application from the list
-        setApplications(applications.filter(app => app.id !== applicationId))
-        setShowModal(false)
-        setSelectedApp(null)
-        setNotes('')
-        setVerificationAction(null)
-        
-        // Show success message
-        setError('')
-      } else {
-        setError(data.error?.message || `Failed to ${action} payment`)
+        onError: (error) => {
+          setError(error.message || `Failed to ${action} payment`)
+        },
+        onSettled: () => {
+          setProcessingId(null)
+        }
       }
-    } catch {
-      setError(`Failed to ${action} payment`)
-    } finally {
-      setProcessingId(null)
-    }
+    )
   }
 
   const openVerificationModal = (app: Application, action: 'approve' | 'reject') => {

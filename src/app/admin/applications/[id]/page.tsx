@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAdminApplication } from '@/hooks/use-admin-application-queries'
-import { usePaymentStatusMutation, useApplicationRejectionMutation } from '@/hooks/use-admin-application-mutations'
+import { usePaymentStatusMutation, useApplicationRejectionMutation, useApplicationSubmissionMutation } from '@/hooks/use-admin-application-mutations'
 import { useSignedUrl } from '@/hooks/use-photo-queries'
 import { RejectApplicationDialog } from '@/components/admin/reject-application-dialog'
 import { ApprovePaymentDialog, RejectPaymentDialog } from '@/components/admin/payment-confirmation-dialogs'
+import { SubmitApplicationDialog } from '@/components/admin/submit-application-dialog'
 import {
   ArrowLeft,
   Clock,
@@ -46,6 +47,7 @@ function ApplicationDetailPage() {
   const { data: application, isLoading, error, refetch } = useAdminApplication(applicationId)
   const paymentMutation = usePaymentStatusMutation()
   const rejectionMutation = useApplicationRejectionMutation()
+  const submissionMutation = useApplicationSubmissionMutation()
 
   // Copy functionality
   const copyToClipboard = async (text: string, fieldId: string) => {
@@ -242,6 +244,11 @@ function ApplicationDetailPage() {
     rejectionMutation.mutate({ applicationId: application.id, rejectionNote })
   }
 
+  const handleApplicationSubmission = (confirmationNumber: string) => {
+    if (!application) return
+    submissionMutation.mutate({ applicationId: application.id, confirmationNumber })
+  }
+
   const getStatusBadge = (status: ApplicationStatus) => {
     switch (status) {
       case 'PAYMENT_PENDING':
@@ -388,6 +395,7 @@ function ApplicationDetailPage() {
 
   const canManagePayment = application.status === 'PAYMENT_PENDING' && application.paymentReference
   const canRejectApplication = application.status === 'PAYMENT_VERIFIED' || application.status === 'PAYMENT_PENDING'
+  const canSubmitApplication = application.status === 'PAYMENT_VERIFIED'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -434,13 +442,13 @@ function ApplicationDetailPage() {
                       <ApprovePaymentDialog
                         onApprove={() => handlePaymentAction('approve')}
                         isApproving={paymentMutation.isPending && paymentMutation.variables?.action === 'approve'}
-                        disabled={paymentMutation.isPending || rejectionMutation.isPending}
+                        disabled={paymentMutation.isPending || rejectionMutation.isPending || submissionMutation.isPending}
                         paymentReference={application.paymentReference || undefined}
                       />
                       <RejectPaymentDialog
                         onReject={() => handlePaymentAction('reject')}
                         isRejecting={paymentMutation.isPending && paymentMutation.variables?.action === 'reject'}
-                        disabled={paymentMutation.isPending || rejectionMutation.isPending}
+                        disabled={paymentMutation.isPending || rejectionMutation.isPending || submissionMutation.isPending}
                         paymentReference={application.paymentReference || undefined}
                       />
                     </>
@@ -449,7 +457,15 @@ function ApplicationDetailPage() {
                     <RejectApplicationDialog
                       onReject={handleApplicationRejection}
                       isRejecting={rejectionMutation.isPending}
-                      disabled={paymentMutation.isPending || rejectionMutation.isPending}
+                      disabled={paymentMutation.isPending || rejectionMutation.isPending || submissionMutation.isPending}
+                    />
+                  )}
+                  {canSubmitApplication && (
+                    <SubmitApplicationDialog
+                      onSubmit={handleApplicationSubmission}
+                      isSubmitting={submissionMutation.isPending}
+                      disabled={paymentMutation.isPending || rejectionMutation.isPending || submissionMutation.isPending}
+                      applicantName={`${application.givenName} ${application.familyName}`}
                     />
                   )}
                 </div>
@@ -848,7 +864,7 @@ function ApplicationDetailPage() {
                     </div>
                   )}
 
-                  {application.rejectionNote && (
+                  {application.status === 'APPLICATION_REJECTED' && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Rejection Note</label>
                       <div className="mt-1 p-3 bg-red-50 border border-red-200 rounded-md">
@@ -889,7 +905,7 @@ function ApplicationDetailPage() {
                         </div>
                       )}
 
-                      <div>
+                     {application.status !== 'SUBMITTED' && <div>
                         <label className="text-sm font-medium text-gray-500">Payment Status</label>
                         <div className="mt-1">
                           {application.status === 'PAYMENT_VERIFIED' ? (
@@ -902,14 +918,14 @@ function ApplicationDetailPage() {
                               <XCircle className="h-3 w-3" />
                               Rejected
                             </Badge>
-                          ) : (
+                          ) :  application.status === 'PAYMENT_PENDING' &&(
                             <Badge variant="outline" className="flex w-fit items-center gap-1 text-orange-600 border-orange-200">
                               <Clock className="h-3 w-3" />
                               Pending Verification
                             </Badge>
                           )}
                         </div>
-                      </div>
+                      </div>}
                     </>
                   ) : (
                     <div className="text-center py-4">
