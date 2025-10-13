@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/profile"
-                className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
                 Profile
               </Link>
@@ -84,7 +84,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={handleSignOut}
-                className="text-xs sm:text-sm cursor-pointer text-gray-500 hover:text-gray-700"
+                className="text-sm cursor-pointer text-gray-500 hover:text-gray-700"
               >
                 Sign Out
               </button>

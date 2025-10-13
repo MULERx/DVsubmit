@@ -169,19 +169,9 @@ export default function Home() {
               professional assistance to ensure your application meets all requirements.
             </p>
 
-            {/* Important Disclaimer */}
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-6 mb-6 mb-8 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center gap-2 text-amber-800 font-semibold mb-2">
-                <Shield className="h-5 w-5" />
-                Important Notice
-              </div>
-              <p className="text-sm sm:text-base text-amber-700">
-                This is a private service. We are NOT affiliated with the U.S. Government.
-                Selection in the DV lottery is not guaranteed.
-              </p>
-            </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center items-center">
               {authLoading ? (
                 <div className="flex items-center justify-center gap-3 py-3">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -192,7 +182,7 @@ export default function Home() {
                   {!isAuthenticated ? (
                     <>
                       <Link href="/register">
-                        <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg px-8 py-3 text-base font-semibold">
+                        <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  px-8 py-3 text-base font-semibold">
                           Start Application
                         </Button>
                       </Link>
@@ -202,7 +192,7 @@ export default function Home() {
                       {isSuperAdmin || isAdmin ? (
                         <>
                           <Link href="/admin">
-                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg flex items-center gap-2 px-8 py-3 text-base font-semibold">
+                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  flex items-center gap-2 px-8 py-3 text-base font-semibold">
                               <Settings className="h-5 w-5" />
                               Admin Panel
                             </Button>
@@ -217,13 +207,13 @@ export default function Home() {
                       ) : (
                         <>
                           <Link href="/dashboard">
-                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg flex items-center gap-2 px-8 py-3 text-base font-semibold">
+                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  flex items-center gap-2 px-8 py-3 text-base font-semibold">
                               <BarChart3 className="h-5 w-5" />
                               Dashboard
                             </Button>
                           </Link>
                           <Link href="/dv-form">
-                            <Button variant="outline" size="lg" className="border-gray-300 hover:bg-gray-50 px-8 py-3 text-base">
+                            <Button variant="outline" size="lg" className="border-gray-300 hover:bg-gray-50 px-4 sm:px-8 py-3 text-sm sm:text-base">
                               Continue Application
                             </Button>
                           </Link>
@@ -238,7 +228,7 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center hover:shadow-md transition-shadow">
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ">
