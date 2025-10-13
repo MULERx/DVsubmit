@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 
 interface PaymentReferenceDialogProps {
   isOpen: boolean
@@ -20,7 +21,26 @@ interface PaymentReferenceDialogProps {
   applicationId: string
   currentPaymentReference?: string
   applicantName: string
-  onSuccess?: () => void
+}
+
+// API function for updating payment reference
+const updatePaymentReference = async ({ applicationId, paymentReference }: { applicationId: string; paymentReference: string }) => {
+  const response = await fetch(`/api/applications/${applicationId}/payment-reference`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      paymentReference: paymentReference.trim()
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.error?.message || 'Failed to update payment reference')
+  }
+
+  return response.json()
 }
 
 export function PaymentReferenceDialog({
@@ -29,15 +49,39 @@ export function PaymentReferenceDialog({
   applicationId,
   currentPaymentReference,
   applicantName,
-  onSuccess
 }: PaymentReferenceDialogProps) {
   const [paymentReference, setPaymentReference] = useState(currentPaymentReference || '')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: updatePaymentReference,
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Payment reference updated successfully. Your application will be reviewed again.',
+      })
+
+      // Invalidate and refetch user applications
+      queryClient.invalidateQueries({
+        queryKey: ['applications', 'user']
+      })
+
+      onClose()
+    },
+    onError: (error: Error) => {
+      console.error('Error updating payment reference:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update payment reference',
+        variant: 'destructive',
+      })
+    }
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!paymentReference.trim()) {
       toast({
         title: 'Error',
@@ -47,44 +91,14 @@ export function PaymentReferenceDialog({
       return
     }
 
-    setIsSubmitting(true)
-    try {
-      const response = await fetch(`/api/applications/${applicationId}/payment-reference`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          paymentReference: paymentReference.trim()
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error?.message || 'Failed to update payment reference')
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Payment reference updated successfully. Your application will be reviewed again.',
-      })
-
-      onSuccess?.()
-      onClose()
-    } catch (error) {
-      console.error('Error updating payment reference:', error)
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update payment reference',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+    mutation.mutate({
+      applicationId,
+      paymentReference: paymentReference.trim()
+    })
   }
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!mutation.isPending) {
       onClose()
     }
   }
@@ -95,11 +109,11 @@ export function PaymentReferenceDialog({
         <DialogHeader>
           <DialogTitle>Update Payment Reference</DialogTitle>
           <DialogDescription>
-            Update the payment reference for {applicantName}&apos;s application. 
+            Update the payment reference for {applicantName}&apos;s application.
             Your application will be reviewed again after updating.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -111,7 +125,7 @@ export function PaymentReferenceDialog({
                 value={paymentReference}
                 onChange={(e) => setPaymentReference(e.target.value)}
                 placeholder="Enter your payment reference number"
-                disabled={isSubmitting}
+                disabled={mutation.isPending}
                 required
               />
               <p className="text-sm text-gray-500">
@@ -119,18 +133,18 @@ export function PaymentReferenceDialog({
               </p>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button
               type="button"
               variant="ghost"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={mutation.isPending}
             >
               Cancel
             </Button>
-            <Button type="submit"  disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : 'Update Payment Reference'}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? 'Updating...' : 'Update Payment Reference'}
             </Button>
           </DialogFooter>
         </form>
