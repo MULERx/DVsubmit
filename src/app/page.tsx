@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from "next/link"
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { LegalAcknowledgmentModal } from '@/components/legal/legal-acknowledgment-modal'
 import { useLegalAcknowledgment } from '@/hooks/use-legal-acknowledgment'
@@ -45,9 +46,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2 rounded-xl ">
-                <FileText className="h-5 w-5" />
-              </div>
+              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20}  className=" sm:h-12 h-10 w-10 sm:w-12" />
               <h1 className="text-xl font-bold text-gray-900">DVSubmit</h1>
             </Link>
 
@@ -320,9 +319,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-3 mb-6 md:mb-0">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2 rounded-xl shadow-lg">
-                <FileText className="h-5 w-5" />
-              </div>
+              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="h-5 w-5" />
               <span className="text-xl font-semibold">DVSubmit</span>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 text-sm">

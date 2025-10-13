@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { withAuth } from '@/lib/auth/auth-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { useAdminApplication } from '@/hooks/use-admin-application-queries'
 import { usePaymentStatusMutation, useApplicationRejectionMutation, useApplicationSubmissionMutation } from '@/hooks/use-admin-application-mutations'
@@ -821,7 +822,7 @@ function ApplicationDetailPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
+                    <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12"  />
                     Application Status
                   </CardTitle>
                 </CardHeader>

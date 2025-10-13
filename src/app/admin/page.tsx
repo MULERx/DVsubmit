@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/auth/auth-context'
 import { SuperAdminOnly } from '@/lib/auth/role-guard'
 import { QuickStatistics } from '@/components/admin/quick-statistics'
 import Link from 'next/link'
+import Image from 'next/image'
 import { FileText, Home } from 'lucide-react'
 
 function AdminDashboard() {
@@ -17,9 +18,7 @@ function AdminDashboard() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity mr-6">
-                <div className="bg-blue-600 text-white p-2 rounded-lg">
-                  <FileText className="h-5 w-5" />
-                </div>
+                <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="h-5 w-5" />
                 <span className="text-lg font-semibold text-gray-900">DVSubmit</span>
               </Link>
               <h1 className="text-xl font-semibold text-gray-900">Admin Panel</h1>

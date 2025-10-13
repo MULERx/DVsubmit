@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth/auth-context'
 import { AdminOnly } from '@/lib/auth/role-guard'
 import { UserDashboard } from '@/components/dashboard/user-dashboard'
 import Link from 'next/link'
+import Image from 'next/image'
 import { FileText, Home } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -50,7 +51,7 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity mr-3 sm:mr-6">
                 <div className="bg-blue-600 text-white p-1.5 sm:p-2 rounded-lg">
-                  <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12"  />
                 </div>
                 <span className="text-base sm:text-lg font-semibold text-gray-900">DVSubmit</span>
               </Link>
@@ -104,9 +105,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-3 mb-6 md:mb-0">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2 rounded-xl shadow-lg">
-                <FileText className="h-5 w-5" />
-              </div>
+              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12"  />
               <span className="text-xl font-semibold">DVSubmit</span>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 text-sm">
