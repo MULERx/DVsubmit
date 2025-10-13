@@ -49,12 +49,10 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity mr-3 sm:mr-6">
-                <div className="bg-blue-600 text-white p-1.5 sm:p-2 rounded-lg">
-                  <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12"  />
-                </div>
-                <span className="text-base sm:text-lg font-semibold text-gray-900">DVSubmit</span>
-              </Link>
+           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"  priority alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12"  />
+              <span className="text-xl font-bold text-gray-900">DVSubmit</span>
+            </Link>
               <h1 className="hidden sm:block text-xl font-semibold text-gray-900">Dashboard</h1>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">

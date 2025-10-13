@@ -46,7 +46,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20}  className=" sm:h-12 h-10 w-10 sm:w-12" />
+              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} priority className=" sm:h-12 h-10 w-10 sm:w-12" />
               <h1 className="text-xl font-bold text-gray-900">DVSubmit</h1>
             </Link>
 
