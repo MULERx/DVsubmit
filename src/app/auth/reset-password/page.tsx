@@ -1,23 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FileText, Eye, EyeOff, ArrowLeft, AlertCircle, RefreshCw } from 'lucide-react'
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/validations/auth'
 import { useResetPasswordMutation } from '@/hooks/use-auth-mutations'
+import { useAuth } from '@/lib/auth/auth-context'
 
 export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isValidSession, setIsValidSession] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const { user, loading: authLoading } = useAuth()
 
   const {
     register,
@@ -29,118 +29,26 @@ export default function ResetPasswordPage() {
 
   const resetPasswordMutation = useResetPasswordMutation()
 
-  // Check if we have valid session/tokens for password reset
+  // Check if user is authenticated (required for password reset)
   useEffect(() => {
-    const checkSession = async () => {
+    if (authLoading) return
 
-      // Additional debug: Check if this looks like a malformed email link
-      const hasError = searchParams.get('error')
-      const hasTokens = searchParams.get('access_token') || searchParams.get('token')
-
-      if (hasError && !hasTokens) {
-        console.warn('🚨 This looks like a Supabase configuration issue!')
-        console.log('Expected URL format: /auth/reset-password?token=...&type=recovery')
-        console.log('Actual URL format: /auth/reset-password?error=...')
-        console.log('👉 Check your Supabase email template and Site URL configuration')
-      }
-
-      // Check for error parameters first
-      const urlError = searchParams.get('error')
-      const errorCode = searchParams.get('error_code')
-      const errorDescription = searchParams.get('error_description')
-
-      if (urlError) {
-        let errorMessage = 'An error occurred with the password reset link.'
-
-        if (errorCode === 'otp_expired' || urlError === 'access_denied') {
-          errorMessage = `🚨 Supabase Configuration Issue Detected
-
-This error occurs immediately because of incorrect Supabase dashboard settings.
-
-**Required Fixes:**
-1. Go to Supabase Dashboard → Settings → General
-   Set Site URL to: ${process.env.NEXT_PUBLIC_APP_URL}
-
-2. Go to Authentication → URL Configuration  
-   Add Redirect URL: ${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password
-
-3. Go to Authentication → Email Templates → Reset Password
-   Use: {{ .SiteURL }}/auth/reset-password?token={{ .TokenHash }}&type=recovery
-
-**Not a link expiration issue** - this happens instantly due to config mismatch.`
-        } else if (errorDescription) {
-          errorMessage = decodeURIComponent(errorDescription)
-        }
-
-        setError(errorMessage)
-        setIsLoading(false)
-        return
-      }
-
-      // Check if we have the necessary URL parameters or session
-      const accessToken = searchParams.get('access_token')
-      const refreshToken = searchParams.get('refresh_token')
-      const token = searchParams.get('token') // Supabase sends this for password reset
-      const type = searchParams.get('type')
-
-      // Check if we have an active session (which should be established by clicking the email link)
-      try {
-        const supabase = (await import('@/lib/supabase/client')).createClient()
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-          setError('Failed to get session. Please try clicking the email link again.')
-          setIsLoading(false)
-          return
-        }
-
-        if (sessionData?.session?.user) {
-          console.log('✅ Active session found - user can reset password')
-          setIsValidSession(true)
-        } else {
-          console.log('❌ No active session found')
-
-          // Check if we have URL parameters as fallback
-          const token = searchParams.get('token')
-          const type = searchParams.get('type')
-
-          if (type === 'recovery' && token) {
-            console.log('Found recovery token in URL, allowing password reset')
-            setIsValidSession(true)
-          } else {
-            console.log('No session and no valid tokens, redirecting to forgot password')
-            router.push('/forgot-password')
-            return
-          }
-        }
-      } catch (error) {
-        console.error('Error checking session:', error)
-        setError('Failed to verify session')
-        setIsLoading(false)
-        return
-      }
-
+    if (!user) {
+      // User is not authenticated, redirect to forgot password
+      setError('Your password reset session has expired. Please request a new reset link.')
       setIsLoading(false)
+      return
     }
 
-    checkSession()
-  }, [searchParams, router])
+    // User is authenticated, they can reset their password
+    setIsLoading(false)
+  }, [user, authLoading, router])
 
   const onSubmit = (data: ResetPasswordFormData) => {
-    const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
-    const token = searchParams.get('token')
-
-    resetPasswordMutation.mutate({
-      ...data,
-      accessToken: accessToken || undefined,
-      refreshToken: refreshToken || undefined,
-      token: token || undefined,
-    })
+    resetPasswordMutation.mutate(data)
   }
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -148,8 +56,8 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
     )
   }
 
-  // Show error state if there's an error
-  if (error) {
+  // Show error state if user is not authenticated
+  if (error || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         {/* Header */}
@@ -181,23 +89,20 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
                 <AlertCircle className="h-10 w-10" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                Link Expired
+                Session Expired
               </h1>
-              <div className="text-gray-600 mb-8 text-left">
-                <div className="whitespace-pre-line text-sm leading-relaxed">
-                  {error}
+              <div className="text-gray-600 mb-8">
+                <p className="mb-4">
+                  {error || 'Your password reset session has expired. Please request a new reset link.'}
+                </p>
+                <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">
+                  <p className="font-medium mb-2">How password reset works:</p>
+                  <ol className="text-left space-y-1">
+                    <li>1. Click the link in your email</li>
+                    <li>2. You'll be automatically signed in</li>
+                    <li>3. Set your new password on this page</li>
+                  </ol>
                 </div>
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-xs text-yellow-800 font-medium mb-1">Debug Info (Development Only):</p>
-                    <p className="text-xs text-yellow-700">
-                      Current App URL: {process.env.NEXT_PUBLIC_APP_URL}
-                    </p>
-                    <p className="text-xs text-yellow-700">
-                      Check console for detailed URL parameters
-                    </p>
-                  </div>
-                )}
               </div>
               <div className="space-y-3">
                 <Link
@@ -221,12 +126,6 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
     )
   }
 
-  if (!isValidSession) {
-    return null // Will redirect
-  }
-
-
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header */}
@@ -240,11 +139,11 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
               <span className="text-xl font-bold text-gray-900">DVSubmit</span>
             </Link>
             <Link
-              href="/login"
+              href="/dashboard"
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span className="text-sm font-medium">Back to Sign In</span>
+              <span className="text-sm font-medium">Back to Dashboard</span>
             </Link>
           </div>
         </div>
@@ -257,7 +156,7 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="text-center mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Reset your password
+                Set new password
               </h1>
               <p className="text-gray-600 text-sm mt-2">
                 Enter your new password below.
@@ -281,8 +180,9 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="new-password"
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.password ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                        errors.password ? 'border-red-300' : 'border-gray-300'
+                      }`}
                       placeholder="Enter your new password"
                       {...register('password')}
                     />
@@ -312,8 +212,9 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
                       id="confirm-password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       autoComplete="new-password"
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                        errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                      }`}
                       placeholder="Confirm your new password"
                       {...register('confirmPassword')}
                     />
@@ -330,7 +231,7 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                    <p className="mt-1 text-red-600 text-sm">{errors.confirmPassword.message}</p>
                   )}
                 </div>
               </div>
@@ -353,12 +254,12 @@ This error occurs immediately because of incorrect Supabase dashboard settings.
 
             <div className="mt-6 text-center">
               <p className="text-gray-600">
-                Remember your password?{' '}
+                Want to cancel?{' '}
                 <Link
-                  href="/login"
+                  href="/dashboard"
                   className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
                 >
-                  Sign in here
+                  Go to dashboard
                 </Link>
               </p>
             </div>

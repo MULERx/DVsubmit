@@ -7,7 +7,7 @@ import type {
   LoginFormData,
   RegisterFormData,
   ForgotPasswordFormData,
-  ResetPasswordMutationData
+  ResetPasswordFormData
 } from '@/lib/validations/auth'
 
 export function useLoginMutation() {
@@ -115,14 +115,14 @@ export function useResetPasswordMutation() {
   const router = useRouter()
 
   return useMutation({
-    mutationFn: async (data: ResetPasswordMutationData) => {
+    mutationFn: async (data: ResetPasswordFormData) => {
       const { authErrors } = await import('@/lib/auth/auth-helpers')
       const supabase = (await import('@/lib/supabase/client')).createClient()
       
       console.log('Attempting password update...')
       
-      // According to latest Supabase docs, if user clicked the email link,
-      // they should already have an active session. Just update the password.
+      // Step 2: Update password for authenticated user
+      // User should already have an active session from clicking the email link
       const result = await supabase.auth.updateUser({ 
         password: data.password 
       })
@@ -137,14 +137,44 @@ export function useResetPasswordMutation() {
     },
     onSuccess: () => {
       toast({
-        title: 'Password updated',
-        description: 'Your password has been successfully updated.',
+        title: 'Password updated successfully',
+        description: 'You can now sign in with your new password.',
       })
       router.push('/dashboard')
     },
     onError: (error: Error) => {
       toast({
         title: 'Password update failed',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+export function useResendConfirmationMutation() {
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (email: string) => {
+    
+      const result = await authClient.resendConfirmation(email)
+
+      if (result && typeof result === 'object' && 'error' in result && result.error) {
+        throw new Error(authErrors.getErrorMessage(result.error))
+      }
+
+      return result
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Confirmation email sent',
+        description: 'Please check your email for the confirmation link.',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to send confirmation email',
         description: error.message,
         variant: 'destructive',
       })

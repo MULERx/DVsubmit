@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FileText, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
 import { registerSchema, type RegisterFormData } from '@/lib/validations/auth'
-import { useRegisterMutation, useGoogleSignInMutation } from '@/hooks/use-auth-mutations'
+import { useRegisterMutation, useGoogleSignInMutation, useResendConfirmationMutation } from '@/hooks/use-auth-mutations'
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -24,6 +24,7 @@ export default function RegisterPage() {
 
   const registerMutation = useRegisterMutation()
   const googleSignInMutation = useGoogleSignInMutation()
+  const resendConfirmationMutation = useResendConfirmationMutation()
 
   const onSubmit = (data: RegisterFormData) => {
     registerMutation.mutate(data, {
@@ -36,6 +37,12 @@ export default function RegisterPage() {
 
   const handleGoogleSignIn = () => {
     googleSignInMutation.mutate()
+  }
+
+  const handleResendConfirmation = () => {
+    if (registeredEmail) {
+      resendConfirmationMutation.mutate(registeredEmail)
+    }
   }
 
   const isLoading = registerMutation.isPending || googleSignInMutation.isPending
@@ -73,15 +80,36 @@ export default function RegisterPage() {
               <p className="font-semibold text-gray-900 mb-6">
                 {registeredEmail}
               </p>
-              <p className="text-gray-600 mb-8">
-                Please check your email and click the confirmation link to activate your account.
-              </p>
-              <Link
-                href="/login"
-                className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-xl  transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] inline-block"
-              >
-                Back to Sign In
-              </Link>
+              <div className="text-gray-600 mb-8 space-y-2">
+                <p>
+                  Please check your email and click the confirmation link to activate your account.
+                </p>
+                <p className="text-sm text-gray-500">
+                  Don't see the email? Check your spam folder or try resending.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Link
+                  href="/login"
+                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-xl  transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] inline-block text-center"
+                >
+                  Back to Sign In
+                </Link>
+                {/* <button
+                  onClick={handleResendConfirmation}
+                  disabled={resendConfirmationMutation.isPending}
+                  className="w-full cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resendConfirmationMutation.isPending ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                      Sending...
+                    </div>
+                  ) : (
+                    'Resend confirmation email'
+                  )}
+                </button> */}
+              </div>
             </div>
           </div>
         </div>

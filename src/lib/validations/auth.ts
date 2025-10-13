@@ -52,8 +52,3 @@ export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
-export type ResetPasswordMutationData = ResetPasswordFormData & {
-  accessToken?: string
-  refreshToken?: string
-  token?: string
-}

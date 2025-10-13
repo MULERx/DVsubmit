@@ -130,10 +130,11 @@ export const authClient = {
     }
   },
 
-  // Reset password
+  // Reset password - Step 1: Send reset email
+  // Following official Supabase docs: https://supabase.com/docs/guides/auth/passwords
   async resetPassword(email: string) {
     const supabase = createClient()
-    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?type=recovery`
+    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password`
     
     console.log('🔧 Sending password reset email with redirect URL:', redirectUrl)
     
@@ -152,6 +153,18 @@ export const authClient = {
   async updatePassword(password: string) {
     const supabase = createClient()
     return await supabase.auth.updateUser({ password })
+  },
+
+  // Resend confirmation email
+  async resendConfirmation(email: string) {
+    const supabase = createClient()
+    return await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      },
+    })
   },
 
   // Set session with tokens (for password reset)
@@ -265,7 +278,7 @@ export const authErrors = {
       case 'Invalid login credentials':
         return 'Invalid email or password'
       case 'Email not confirmed':
-        return 'Please check your email and click the confirmation link'
+        return 'Please check your email and click the confirmation link to verify your account'
       case 'User already registered':
         return 'An account with this email already exists'
       case 'Password should be at least 6 characters':
@@ -278,12 +291,24 @@ export const authErrors = {
         return 'The password reset link has expired. Please request a new one.'
       case 'User not found':
         return 'No account found with this email address'
+      case 'New password should be different from the old password':
+        return 'Your new password must be different from your current password'
+      case 'Password should be at least 6 characters':
+        return 'Password must be at least 6 characters long'
       case 'Account has been deleted and cannot be restored':
         return 'This account has been deleted and cannot be restored. Please contact support if you believe this is an error.'
+      case 'For security purposes, you can only request this once every 60 seconds':
+        return 'Please wait 60 seconds before requesting another confirmation email.'
+      case 'Email rate limit exceeded':
+        return 'Too many email requests. Please wait a few minutes before trying again.'
       default:
         // Check if message contains "deleted" for partial matches
         if (errorObj.message?.includes('deleted')) {
           return 'This account has been deleted and cannot be restored. Please contact support if you believe this is an error.'
+        }
+        // Check for rate limiting messages
+        if (errorObj.message?.includes('rate limit') || errorObj.message?.includes('60 seconds')) {
+          return 'Please wait before requesting another confirmation email.'
         }
         return errorObj.message || 'Authentication failed'
     }

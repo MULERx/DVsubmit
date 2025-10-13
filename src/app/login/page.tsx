@@ -6,28 +6,45 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FileText, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
-import { useLoginMutation, useGoogleSignInMutation } from '@/hooks/use-auth-mutations'
+import { useLoginMutation, useGoogleSignInMutation, useResendConfirmationMutation } from '@/hooks/use-auth-mutations'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    getValues,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
 
   const loginMutation = useLoginMutation()
   const googleSignInMutation = useGoogleSignInMutation()
+  const resendConfirmationMutation = useResendConfirmationMutation()
 
   const onSubmit = (data: LoginFormData) => {
-    loginMutation.mutate(data)
+    setUnverifiedEmail(null) // Reset unverified email state
+    loginMutation.mutate(data, {
+      onError: (error) => {
+        // Check if error is about email not being confirmed
+        if (error.message.includes('Please check your email and click the confirmation link')) {
+          setUnverifiedEmail(data.email)
+        }
+      }
+    })
   }
 
   const handleGoogleSignIn = () => {
     googleSignInMutation.mutate()
+  }
+
+  const handleResendConfirmation = () => {
+    if (unverifiedEmail) {
+      resendConfirmationMutation.mutate(unverifiedEmail)
+    }
   }
 
   const isLoading = loginMutation.isPending || googleSignInMutation.isPending
@@ -72,6 +89,18 @@ export default function LoginPage() {
               {loginMutation.error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                   <div className="text-sm text-red-700">{loginMutation.error.message}</div>
+                  {unverifiedEmail && (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={handleResendConfirmation}
+                        disabled={resendConfirmationMutation.isPending}
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium underline disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {resendConfirmationMutation.isPending ? 'Sending...' : 'Resend confirmation email'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -128,10 +157,16 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end">
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/auth/confirm-email"
+                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  Resend confirmation email
+                </Link>
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700  transition-colors"
+                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   Forgot your password?
                 </Link>
