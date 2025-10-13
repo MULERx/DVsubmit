@@ -26,7 +26,10 @@ export const authServer = {
     if (!supabaseUser) return null
 
     const dbUser = await prisma.user.findUnique({
-      where: { supabaseId: supabaseUser.id },
+      where: { 
+        supabaseId: supabaseUser.id,
+        deletedAt: null // Exclude soft-deleted users
+      },
       select: {
         id: true,
         email: true,
@@ -42,12 +45,20 @@ export const authServer = {
     }
   },
 
+  // Get current user (alias for getUser for consistency)
+  async getCurrentUser() {
+    return await this.getUser()
+  },
+
   // Create or update user in database after Supabase auth
   async syncUserToDatabase(supabaseUser: { id: string; email: string }) {
     try {
-      // First check if user exists by supabaseId
+      // First check if user exists by supabaseId (exclude soft-deleted)
       const existingUserBySupabaseId = await prisma.user.findUnique({
-        where: { supabaseId: supabaseUser.id },
+        where: { 
+          supabaseId: supabaseUser.id,
+          deletedAt: null
+        },
       })
 
       if (existingUserBySupabaseId) {
@@ -70,9 +81,12 @@ export const authServer = {
         return existingUserBySupabaseId
       }
 
-      // Check if user exists by email (in case of account linking or re-registration)
+      // Check if user exists by email (in case of account linking or re-registration, exclude soft-deleted)
       const existingUserByEmail = await prisma.user.findUnique({
-        where: { email: supabaseUser.email },
+        where: { 
+          email: supabaseUser.email,
+          deletedAt: null
+        },
       })
 
       if (existingUserByEmail) {
@@ -205,6 +219,9 @@ export const authServer = {
     }
 
     return await prisma.user.findMany({
+      where: {
+        deletedAt: null // Exclude soft-deleted users
+      },
       select: {
         id: true,
         email: true,
@@ -219,5 +236,11 @@ export const authServer = {
       },
       orderBy: { createdAt: 'desc' },
     })
+  },
+
+  // Sign out user
+  async signOut() {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
   },
 }

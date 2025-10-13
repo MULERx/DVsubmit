@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { Button } from '@/components/ui/button'
 import { LegalAcknowledgmentModal } from '@/components/legal/legal-acknowledgment-modal'
-import { FirstVisitBanner } from '@/components/legal/legal-banner'
 import { useLegalAcknowledgment } from '@/hooks/use-legal-acknowledgment'
 import { useAuth } from '@/lib/auth/auth-context'
 import { FileText, Shield, CheckCircle, Settings, BarChart3, Menu, X } from 'lucide-react'
@@ -153,14 +152,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Legal Banner */}
-      {!isLoading && needsAcknowledgment && (
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <FirstVisitBanner />
-          </div>
-        </div>
-      )}
+
 
       {/* Hero Section */}
       <main className="relative">

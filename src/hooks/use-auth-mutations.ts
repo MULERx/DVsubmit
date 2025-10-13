@@ -151,3 +151,44 @@ export function useResetPasswordMutation() {
     },
   })
 }
+
+export function useDeleteAccountMutation() {
+  const { signOut } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/auth/delete-account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete account')
+      }
+
+      return response.json()
+    },
+    onSuccess: async () => {
+      toast({
+        title: 'Account deleted',
+        description: 'Your account has been successfully deleted.',
+      })
+      
+      // Sign out and redirect to home page
+      await signOut()
+      router.push('/')
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Account deletion failed',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}

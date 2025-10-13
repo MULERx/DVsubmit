@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

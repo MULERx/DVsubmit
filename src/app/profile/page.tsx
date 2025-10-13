@@ -5,17 +5,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  ArrowLeft,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import {
   User,
   Mail,
   Shield,
   Calendar,
-  Settings
+  Trash2
 } from 'lucide-react'
 import Link from 'next/link'
+import { useDeleteAccountMutation } from '@/hooks/use-auth-mutations'
 
 export default function ProfilePage() {
   const { user, userWithRole, loading } = useAuth()
+  const deleteAccountMutation = useDeleteAccountMutation()
+
+  const handleDeleteAccount = () => {
+    deleteAccountMutation.mutate()
+  }
 
   if (loading) {
     return (
@@ -81,7 +97,7 @@ export default function ProfilePage() {
               Back to Dashboard
             </Link>
           </div>
-          <div className='pt-6'> 
+          <div className='pt-6'>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <User className="h-8 w-8" />
               Profile Settings
@@ -185,24 +201,66 @@ export default function ProfilePage() {
 
 
 
-          <Card>
-            <CardHeader >
+          {/* Danger Zone */}
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600">
+                <Trash2 className="h-5 w-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription>
+                Irreversible and destructive actions
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
                   <div>
-                    <h4 className="font-medium text-gray-900">Delete Account</h4>
-                    <p className="text-sm text-gray-600">
-                      Permanently delete your account and all associated data
+                    <h4 className="font-medium text-red-900">Delete Account</h4>
+                    <p className="text-sm text-red-700">
+                      This will deactivate your account and remove access to all your data. This action cannot be undone.
                     </p>
                   </div>
-                  <Button variant="destructive" disabled>
-                    Delete Account
-                    <span className="text-xs ml-2">(Coming Soon)</span>
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" disabled={deleteAccountMutation.isPending}>
+                        {deleteAccountMutation.isPending ? 'Deleting...' : 'Delete Account'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                          <div>
+                            <p>
+                              This action cannot be undone. This will permanently deactivate your account
+                              and remove your access to all applications and data associated with your account.
+                            </p>
+                            <p className="mt-4">
+                              <strong>Your account will be:</strong>
+                            </p>
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                              <li>Immediately deactivated</li>
+                              <li>Removed from all applications</li>
+                              <li>Unable to sign in again</li>
+                            </ul>
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteAccountMutation.isPending}>
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-red-600 hover:bg-red-700"
+                          disabled={deleteAccountMutation.isPending}
+                        >
+                          {deleteAccountMutation.isPending ? 'Deleting...' : 'Yes, delete my account'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardContent>
