@@ -71,13 +71,13 @@ export default function Home() {
                 <div className="flex items-center gap-2 sm:gap-3">
                   {!isAuthenticated ? (
                     <>
-                      <Link href="/login" className="hidden sm:block">
-                        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                      <Link href="/login" className="hidden  sm:block">
+                        <Button variant="ghost" size="sm" className="text-gray-600 cursor-pointer hover:text-gray-900">
                           Sign In
                         </Button>
                       </Link>
                       <Link href="/register">
-                        <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 ">
+                        <Button size="sm" className="bg-gradient-to-r cursor-pointer from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 ">
                           Get Started
                         </Button>
                       </Link>
@@ -140,7 +140,7 @@ export default function Home() {
                 {!isAuthenticated && (
                   <Link
                     href="/login"
-                    className="block text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                    className="block cursor-pointer text-gray-600 hover:text-gray-900 font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Sign In
@@ -313,7 +313,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 sm:p-8 text-center">
             <h3 className="font-semibold text-red-800 mb-3 text-lg">Legal Disclaimer</h3>
-            <p className="text-red-700 mb-4 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-red-700 mb-4 leading-relaxed max-w-3xl mx-auto text-sm">
               DVSubmit is a private company providing DV lottery assistance services. We are not
               affiliated with the U.S. Government or Department of State. Using our service does
               not guarantee selection in the DV lottery.

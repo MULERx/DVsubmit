@@ -46,7 +46,7 @@ export function LegalAcknowledgmentModal({
                   <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-red-800">Not a Government Service</h3>
-                    <p className="text-red-700 text-sm mt-1">
+                    <p className="text-red-700 text-xs sm:text-sm mt-1">
                       DVSubmit is a private company. We are NOT affiliated with the U.S. Government 
                       or Department of State.
                     </p>
@@ -59,7 +59,7 @@ export function LegalAcknowledgmentModal({
                   <Shield className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-yellow-800">No Selection Guarantee</h3>
-                    <p className="text-yellow-700 text-sm mt-1">
+                    <p className="text-yellow-700 text-xs sm:text-sm mt-1">
                       Using our service does NOT guarantee selection in the DV lottery. 
                       Selection is determined by the U.S. Department of State.
                     </p>
@@ -67,7 +67,7 @@ export function LegalAcknowledgmentModal({
                 </div>
               </div>
               
-              <div className="text-sm text-gray-700">
+              <div className="text-xs sm:text-sm text-gray-700">
                 <p>
                   We provide assistance with DV lottery applications for a service fee of 399 ETB. 
                   By continuing, you acknowledge that you understand these important disclaimers.
@@ -186,12 +186,12 @@ export function LegalAcknowledgmentModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-100">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 sm:pb-4">
           <div>
             <CardTitle className="text-xl">{title || modalContent.title}</CardTitle>
-            <p className="text-sm text-gray-600 mt-1">{modalContent.subtitle}</p>
+            <p className="text-sm text-gray-600 sm:mt-1">{modalContent.subtitle}</p>
           </div>
           <Button
             variant="ghost"
@@ -215,7 +215,7 @@ export function LegalAcknowledgmentModal({
                 onChange={(e) => setAcknowledged(e.target.checked)}
                 className="mt-1"
               />
-              <label htmlFor="legal-disclaimer-acknowledgment" className="text-sm text-gray-700 cursor-pointer">
+              <label htmlFor="legal-disclaimer-acknowledgment" className="text-xs sm:text-sm text-gray-700 cursor-pointer">
                 I have read and understand that this is not a government service and that 
                 selection in the DV lottery is not guaranteed.
               </label>
@@ -237,10 +237,11 @@ export function LegalAcknowledgmentModal({
             )}
             
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={onClose}>
+              <Button className='cursor-pointer' variant="outline" onClick={onClose}>
                 Cancel
               </Button>
               <Button 
+              className='cursor-pointer'
                 onClick={handleAcknowledge}
                 disabled={requiresBothAcknowledgments ? (!acknowledged || !termsAcknowledged) : !acknowledged}
               >

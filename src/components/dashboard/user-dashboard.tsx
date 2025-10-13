@@ -149,7 +149,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:gap-6">
+            <div className="grid gap-3 md:gap-6">
               {pendingApplications.map((application) => (
                 <ApplicationCard
                   key={application.id}

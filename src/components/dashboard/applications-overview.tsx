@@ -54,7 +54,7 @@ export function ApplicationsOverview({ applications }: ApplicationsOverviewProps
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 mb-6 sm:mb-8">
       {overviewCards.map((card) => {
         const Icon = card.icon
         return (
