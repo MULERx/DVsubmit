@@ -27,7 +27,15 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error syncing user:', error)
+    
+    // Handle deleted account error specifically
+    if (error instanceof Error && error.message.includes('Account has been deleted')) {
+      return NextResponse.json(
+        { error: 'Account has been deleted and cannot be restored' },
+        { status: 403 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to sync user to database' },
       { status: 500 }

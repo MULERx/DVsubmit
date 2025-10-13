@@ -45,7 +45,7 @@ export const authClient = {
     // If signin successful, ensure user is synced to database
     if (result.data.user && !result.error) {
       try {
-        await fetch('/api/auth/sync-user', {
+        const syncResponse = await fetch('/api/auth/sync-user', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -54,8 +54,31 @@ export const authClient = {
             supabaseUser: result.data.user,
           }),
         })
+
+        if (!syncResponse.ok) {
+          const errorData = await syncResponse.json()
+          
+          // If account is deleted, sign out the user and return error
+          if (syncResponse.status === 403 && errorData.error?.includes('deleted')) {
+            await supabase.auth.signOut()
+            return {
+              data: { user: null, session: null },
+              error: { message: errorData.error }
+            }
+          }
+          
+          throw new Error(errorData.error || 'Failed to sync user')
+        }
       } catch (error) {
         console.error('Failed to sync user to database:', error)
+        
+        // If it's a deleted account error, pass it through
+        if (error instanceof Error && error.message.includes('deleted')) {
+          return {
+            data: { user: null, session: null },
+            error: { message: error.message }
+          }
+        }
       }
     }
 
@@ -255,7 +278,13 @@ export const authErrors = {
         return 'The password reset link has expired. Please request a new one.'
       case 'User not found':
         return 'No account found with this email address'
+      case 'Account has been deleted and cannot be restored':
+        return 'This account has been deleted and cannot be restored. Please contact support if you believe this is an error.'
       default:
+        // Check if message contains "deleted" for partial matches
+        if (errorObj.message?.includes('deleted')) {
+          return 'This account has been deleted and cannot be restored. Please contact support if you believe this is an error.'
+        }
         return errorObj.message || 'Authentication failed'
     }
   },

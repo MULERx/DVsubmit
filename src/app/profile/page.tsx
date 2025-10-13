@@ -85,7 +85,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-4 mb-2">
             <Link
               href="/dashboard"
@@ -97,18 +97,18 @@ export default function ProfilePage() {
               Back to Dashboard
             </Link>
           </div>
-          <div className='pt-6'>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <div className='mt-3 sm:pt-6'>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
               <User className="h-8 w-8" />
               Profile Settings
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 mt-1 sm:mt-2 text-sm">
               Manage your account information and preferences
             </p>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="sm:space-y-6 space-y-4">
           {/* Account Information */}
           <Card>
             <CardHeader>
@@ -121,7 +121,7 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <label className="text-sm font-medium text-gray-500 flex items-center gap-1">
                     <Mail className="h-4 w-4" />
@@ -133,7 +133,7 @@ export default function ProfilePage() {
                   </p>
                 </div>
 
-                <div>
+                {userWithRole?.role && userWithRole.role !== 'USER' && <div>
                   <label className="text-sm font-medium text-gray-500 flex items-center gap-1">
                     <Shield className="h-4 w-4" />
                     Account Role
@@ -144,7 +144,7 @@ export default function ProfilePage() {
                   <p className="text-xs text-gray-500 mt-1">
                     Your access level in the system
                   </p>
-                </div>
+                </div>}
 
                 <div>
                   <label className="text-sm font-medium text-gray-500 flex items-center gap-1">
@@ -181,7 +181,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2  justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium text-gray-900">Password</h4>
                     <p className="text-sm text-gray-600">
@@ -214,7 +214,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2  justify-between p-4 border border-red-200 rounded-lg bg-red-50">
                   <div>
                     <h4 className="font-medium text-red-900">Delete Account</h4>
                     <p className="text-sm text-red-700">
@@ -223,7 +223,7 @@ export default function ProfilePage() {
                   </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" disabled={deleteAccountMutation.isPending}>
+                      <Button variant="destructive" className='cursor-pointer' disabled={deleteAccountMutation.isPending}>
                         {deleteAccountMutation.isPending ? 'Deleting...' : 'Delete Account'}
                       </Button>
                     </AlertDialogTrigger>
@@ -248,12 +248,12 @@ export default function ProfilePage() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleteAccountMutation.isPending}>
+                        <AlertDialogCancel className='cursor-pointer' disabled={deleteAccountMutation.isPending}>
                           Cancel
                         </AlertDialogCancel>
-                        <AlertDialogAction
+                        <AlertDialogAction 
                           onClick={handleDeleteAccount}
-                          className="bg-red-600 hover:bg-red-700"
+                          className="bg-red-600 hover:bg-red-700 cursor-pointer"
                           disabled={deleteAccountMutation.isPending}
                         >
                           {deleteAccountMutation.isPending ? 'Deleting...' : 'Yes, delete my account'}

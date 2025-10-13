@@ -3,13 +3,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { authClient, authValidation } from './auth-helpers'
+import { UserRole } from '@/generated/prisma'
 
 interface UserWithRole {
   supabaseUser: User
   dbUser: {
     id: string
     email: string
-    role: string
+    role: UserRole
     createdAt: string
     updatedAt: string
   } | null
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     authClient.getSession().then(async (session) => {
       const currentUser = session?.user ?? null
       setUser(currentUser)
-      
+
       if (currentUser) {
         try {
           const roleData = await authClient.getUserWithRole()
@@ -68,14 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Failed to get user role:', error)
         }
       }
-      
+
       setLoading(false)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = authClient.onAuthStateChange(async (user) => {
       setUser(user)
-      
+
       if (user) {
         try {
           const roleData = await authClient.getUserWithRole()
@@ -87,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUserWithRole(null)
       }
-      
+
       setLoading(false)
     })
 

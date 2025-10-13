@@ -28,7 +28,7 @@ export const authServer = {
     const dbUser = await prisma.user.findUnique({
       where: { 
         supabaseId: supabaseUser.id,
-        deletedAt: null // Exclude soft-deleted users
+        deletedAt: null 
       },
       select: {
         id: true,
@@ -53,15 +53,19 @@ export const authServer = {
   // Create or update user in database after Supabase auth
   async syncUserToDatabase(supabaseUser: { id: string; email: string }) {
     try {
-      // First check if user exists by supabaseId (exclude soft-deleted)
+      // First check if user exists by supabaseId (including soft-deleted)
       const existingUserBySupabaseId = await prisma.user.findUnique({
         where: { 
-          supabaseId: supabaseUser.id,
-          deletedAt: null
+          supabaseId: supabaseUser.id
         },
       })
 
       if (existingUserBySupabaseId) {
+        // If user is soft-deleted, prevent login
+        if (existingUserBySupabaseId.deletedAt) {
+          throw new Error('Account has been deleted and cannot be restored')
+        }
+
         // Update existing user if email changed
         if (existingUserBySupabaseId.email !== supabaseUser.email) {
           const updatedUser = await prisma.user.update({
@@ -116,22 +120,17 @@ export const authServer = {
 
       return newUser
     } catch (error) {
-      console.error('Error syncing user to database:', error)
       
       // If it's still a unique constraint error, try to find and return the existing user
       if (error instanceof Error && error.message.includes('Unique constraint failed')) {
         try {
           const existingUser = await prisma.user.findUnique({
-            where: { email: supabaseUser.email },
+            where: { supabaseId: supabaseUser.id },
           })
           if (existingUser) {
-            // Update with supabaseId if it's different
-            if (existingUser.supabaseId !== supabaseUser.id) {
-              const updatedUser = await prisma.user.update({
-                where: { email: supabaseUser.email },
-                data: { supabaseId: supabaseUser.id },
-              })
-              return updatedUser
+            // If user is soft-deleted, prevent login
+            if (existingUser.deletedAt) {
+              throw new Error('Account has been deleted and cannot be restored')
             }
             return existingUser
           }
