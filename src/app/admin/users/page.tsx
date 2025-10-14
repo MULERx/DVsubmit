@@ -1,16 +1,50 @@
 'use client'
 
+import { useState } from 'react'
 import { withAuth } from '@/lib/auth/auth-context'
 import { AdminHeader } from '@/components/admin/admin-header'
-import { useAdminUsers, useUpdateUserRole } from '@/hooks/use-admin-users'
+import { useAdminUsers, useUpdateUserRole, useBlockAdminUser, useUnblockAdminUser } from '@/hooks/use-admin-users'
 import { SuperAdminOnly } from '@/lib/auth/role-guard'
+import { UserX, UserCheck } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 function UserManagementPage() {
-  const { data: users = [], isLoading,isFetching, error, refetch } = useAdminUsers()
+  const { data: users = [], isLoading, isFetching, error, refetch } = useAdminUsers()
   const updateUserRoleMutation = useUpdateUserRole()
+  const blockMutation = useBlockAdminUser()
+  const unblockMutation = useUnblockAdminUser()
+  
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false)
+  const [userToBlock, setUserToBlock] = useState<any>(null)
 
   const handleUpdateUserRole = (userId: string, newRole: string) => {
     updateUserRoleMutation.mutate({ userId, role: newRole })
+  }
+
+  const handleBlockClick = (user: any) => {
+    setUserToBlock(user)
+    setBlockDialogOpen(true)
+  }
+
+  const handleConfirmBlock = () => {
+    if (userToBlock) {
+      blockMutation.mutate(userToBlock.id)
+      setBlockDialogOpen(false)
+      setUserToBlock(null)
+    }
+  }
+
+  const handleUnblock = (userId: string) => {
+    unblockMutation.mutate(userId)
   }
 
   const getRoleBadgeColor = (role: string) => {
@@ -23,6 +57,17 @@ function UserManagementPage() {
       default:
         return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const getStatusBadge = (user: any) => {
+    if (user.blocked) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 ml-2">
+          Blocked
+        </span>
+      )
+    }
+    return null
   }
 
   if (isLoading) {
@@ -112,11 +157,20 @@ function UserManagementPage() {
                               <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
                                 {user.role}
                               </span>
+                              {getStatusBadge(user)}
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
-                            
+                              <p>
+                                {user._count?.applications || 0} application{user._count?.applications !== 1 ? 's' : ''}
+                              </p>
                               <span className="mx-2">•</span>
                               <p>Joined {new Date(user.createdAt).toLocaleDateString()}</p>
+                              {user.blocked && user.blockedAt && (
+                                <>
+                                  <span className="mx-2">•</span>
+                                  <p>Blocked {new Date(user.blockedAt).toLocaleDateString()}</p>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -124,13 +178,42 @@ function UserManagementPage() {
                           <select
                             value={user.role}
                             onChange={(e) => handleUpdateUserRole(user.id, e.target.value)}
-                            disabled={updateUserRoleMutation.isPending}
+                            disabled={updateUserRoleMutation.isPending || user.blocked}
                             className="text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
                           >
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
                             <option value="SUPER_ADMIN">Super Admin</option>
                           </select>
+                          
+                          {user.blocked ? (
+                            <button
+                              onClick={() => handleUnblock(user.id)}
+                              disabled={unblockMutation.isPending}
+                              className="text-green-600 hover:text-green-900 p-1 rounded-md hover:bg-green-50 disabled:opacity-50"
+                              title="Unblock admin user"
+                            >
+                              {unblockMutation.isPending ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                              ) : (
+                                <UserCheck className="h-4 w-4" />
+                              )}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleBlockClick(user)}
+                              disabled={blockMutation.isPending}
+                              className="text-red-600 hover:text-red-900 p-1 rounded-md hover:bg-red-50 disabled:opacity-50"
+                              title="Block admin user"
+                            >
+                              {blockMutation.isPending ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                              ) : (
+                                <UserX className="h-4 w-4" />
+                              )}
+                            </button>
+                          )}
+                          
                           {updateUserRoleMutation.isPending && (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
                           )}
@@ -165,6 +248,34 @@ function UserManagementPage() {
             )}
           </div>
         </main>
+
+        {/* Block Confirmation Dialog */}
+        <AlertDialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Block Admin User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to block {userToBlock?.email}? This will prevent them from accessing their admin account and performing admin actions.
+                {userToBlock?.role === 'SUPER_ADMIN' && (
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Warning:</strong> You are about to block a Super Admin user. This action should be used with extreme caution.
+                    </p>
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmBlock}
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              >
+                Block Admin User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </SuperAdminOnly>
   )

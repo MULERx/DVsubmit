@@ -25,9 +25,16 @@ export async function GET() {
         id: true,
         email: true,
         role: true,
+        blocked: true,
+        blockedAt: true,
+        blockedBy: true,
         createdAt: true,
         updatedAt: true,
-       
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
