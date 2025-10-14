@@ -27,7 +27,7 @@ function ApplicantsManagementPage() {
     const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null)
     const [modalOpen, setModalOpen] = useState(false)
 
-    const { data, isLoading, error, refetch } = useApplicants({
+    const { data, isLoading,isFetching, error, refetch } = useApplicants({
         page,
         limit,
         search,
@@ -126,10 +126,10 @@ function ApplicantsManagementPage() {
                                 <div className="flex items-center space-x-3">
                                     <button
                                         onClick={() => refetch()}
-                                        disabled={isLoading}
+                                        disabled={isFetching || isLoading}
                                         className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                                     >
-                                        <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                                        <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
                                         Refresh
                                     </button>
                                     <button
