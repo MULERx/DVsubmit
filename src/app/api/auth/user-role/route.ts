@@ -12,6 +12,19 @@ export async function GET() {
       )
     }
 
+    // Check if user is blocked
+    if (userWithRole.dbUser?.blocked) {
+      return NextResponse.json(
+        { 
+          error: 'Account blocked',
+          message: 'Your account has been blocked. Please contact support for assistance.',
+          blocked: true,
+          blockedAt: userWithRole.dbUser.blockedAt
+        },
+        { status: 403 }
+      )
+    }
+
     return NextResponse.json({
       supabaseUser: {
         id: userWithRole.supabaseUser.id,

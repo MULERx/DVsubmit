@@ -5,7 +5,7 @@ import { AdminOnly } from "@/lib/auth/role-guard";
 import { UserDashboard } from "@/components/dashboard/user-dashboard";
 import Link from "next/link";
 import Image from "next/image";
-import { FileText, Home } from "lucide-react";
+import { FileText, Home, LogOut } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, signOut, loading } = useAuth();
@@ -99,10 +99,12 @@ export default function DashboardPage() {
                 </Link>
               </AdminOnly>
 
+
               <button
                 onClick={handleSignOut}
-                className="text-sm cursor-pointer text-gray-500 hover:text-gray-700"
+                className="text-sm cursor-pointer text-red-600 hover:text-red-700 font-medium flex items-center gap-1 transition-colors"
               >
+                <LogOut className="h-4 w-4" />
                 Sign Out
               </button>
             </div>

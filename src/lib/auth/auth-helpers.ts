@@ -123,10 +123,21 @@ export const authClient = {
       if (response.ok) {
         return await response.json()
       }
+      
+      // Handle blocked user
+      if (response.status === 403) {
+        const errorData = await response.json()
+        if (errorData.blocked) {
+          // Sign out the blocked user
+          await this.signOut()
+          throw new Error(errorData.message || 'Your account has been blocked')
+        }
+      }
+      
       return null
     } catch (error) {
       console.error('Failed to get user role:', error)
-      return null
+      throw error
     }
   },
 
@@ -297,6 +308,9 @@ export const authErrors = {
         return 'Password must be at least 6 characters long'
       case 'Account has been deleted and cannot be restored':
         return 'This account has been deleted and cannot be restored. Please contact support if you believe this is an error.'
+      case 'Your account has been blocked':
+      case 'Account blocked':
+        return 'Your account has been blocked. Please contact support for assistance.'
       case 'For security purposes, you can only request this once every 60 seconds':
         return 'Please wait 60 seconds before requesting another confirmation email.'
       case 'Email rate limit exceeded':
@@ -305,6 +319,10 @@ export const authErrors = {
         // Check if message contains "deleted" for partial matches
         if (errorObj.message?.includes('deleted')) {
           return 'This account has been deleted and cannot be restored. Please contact support if you believe this is an error.'
+        }
+        // Check if message contains "blocked" for partial matches
+        if (errorObj.message?.includes('blocked')) {
+          return 'Your account has been blocked. Please contact support for assistance.'
         }
         // Check for rate limiting messages
         if (errorObj.message?.includes('rate limit') || errorObj.message?.includes('60 seconds')) {

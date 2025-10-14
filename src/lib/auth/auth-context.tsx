@@ -44,6 +44,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userWithRole, setUserWithRole] = useState<UserWithRole | null>(null)
   const [loading, setLoading] = useState(true)
 
+
+  // Check on window focus
+  useEffect(() => {
+    if (!user) return
+
+    const handleFocus = async () => {
+      try {
+        const roleData = await authClient.getUserWithRole()
+        setUserWithRole(roleData)
+      } catch (error) {
+        // If user is blocked, clear the user state and redirect to login
+        if (error instanceof Error && error.message.includes('blocked')) {
+          setUser(null)
+          setUserWithRole(null)
+          window.location.href = '/login?blocked=true'
+        }
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [user])
+
   const refreshUserRole = async () => {
     if (user) {
       try {
@@ -51,6 +74,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserWithRole(roleData)
       } catch (error) {
         console.error('Failed to refresh user role:', error)
+        // If user is blocked, clear the user state and redirect to login
+        if (error instanceof Error && error.message.includes('blocked')) {
+          setUser(null)
+          setUserWithRole(null)
+          window.location.href = '/login?blocked=true'
+        }
       }
     }
   }
@@ -67,6 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserWithRole(roleData)
         } catch (error) {
           console.error('Failed to get user role:', error)
+          // If user is blocked, clear the user state
+          if (error instanceof Error && error.message.includes('blocked')) {
+            setUser(null)
+            setUserWithRole(null)
+          }
         }
       }
 
@@ -84,6 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error('Failed to get user role:', error)
           setUserWithRole(null)
+          // If user is blocked, clear the user state
+          if (error instanceof Error && error.message.includes('blocked')) {
+            setUser(null)
+          }
         }
       } else {
         setUserWithRole(null)

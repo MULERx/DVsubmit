@@ -1,21 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { FileText, Eye, EyeOff, ArrowLeft, Shield } from "lucide-react";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import {
   useLoginMutation,
   useGoogleSignInMutation,
   useResendConfirmationMutation,
 } from "@/hooks/use-auth-mutations";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const isBlocked = searchParams.get('blocked') === 'true';
 
   const {
     register,
@@ -102,6 +105,29 @@ export default function LoginPage() {
               </p>
             </div>
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+              {/* Blocked Account Message */}
+              {isBlocked && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <Shield className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-sm font-medium text-red-800">Account Blocked</h3>
+                      <div className="mt-1 text-sm text-red-700">
+                        Your account has been blocked and you cannot sign in. Please contact support for assistance.
+                      </div>
+                      <div className="mt-3">
+                        <a
+                          href="mailto:support@dvsubmit.com"
+                          className="text-sm text-red-600 hover:text-red-700 font-medium underline"
+                        >
+                          Contact Support
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {loginMutation.error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                   <div className="text-sm text-red-700">
