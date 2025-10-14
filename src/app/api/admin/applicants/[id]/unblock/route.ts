@@ -10,6 +10,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     // Check if user is admin
     const isAdmin = await authServer.isAdmin()
+          const userWithRole = await authServer.getUserWithRole()
     if (!isAdmin) {
       return NextResponse.json(
         { error: 'Admin access required' },
@@ -54,11 +55,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     })
 
     // Create audit log
-    const currentUser = await authServer.getCurrentUser()
-    if (currentUser) {
+    if (userWithRole) {
       await prisma.auditLog.create({
         data: {
-          userId: currentUser.id,
+          userId: userWithRole.dbUser?.id,
           action: 'user_unblocked',
           details: {
             targetUserId: userId,

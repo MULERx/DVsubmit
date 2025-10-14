@@ -10,6 +10,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     // Check if user is admin
     const isAdmin = await authServer.isAdmin()
+    const userWithRole = await authServer.getUserWithRole()
     if (!isAdmin) {
       return NextResponse.json(
         { error: 'Admin access required' },
@@ -22,9 +23,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Check if user exists and is not already blocked
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { 
-        id: true, 
-        email: true, 
+      select: {
+        id: true,
+        email: true,
         blocked: true,
         role: true
       }
@@ -52,23 +53,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Get current admin user
-    const currentUser = await authServer.getCurrentUser()
-    
+
     // Block the user
     await prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         blocked: true,
         blockedAt: new Date(),
-        blockedBy: currentUser?.id || null
+        blockedBy: userWithRole?.dbUser?.id || null
       }
     })
 
-    if (currentUser) {
+    if (userWithRole) {
       await prisma.auditLog.create({
         data: {
-          userId: currentUser.id,
+          userId: userWithRole.dbUser?.id,
           action: 'user_blocked',
           details: {
             targetUserId: userId,
