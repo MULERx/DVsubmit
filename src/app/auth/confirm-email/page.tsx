@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { FileText, ArrowLeft, Mail, CheckCircle } from 'lucide-react'
-import { z } from 'zod'
-import { useResendConfirmationMutation } from '@/hooks/use-auth-mutations'
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FileText, ArrowLeft, Mail, CheckCircle } from "lucide-react";
+import { z } from "zod";
+import { useResendConfirmationMutation } from "@/hooks/use-auth-mutations";
 
 const emailSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-})
+  email: z.string().email("Please enter a valid email address"),
+});
 
-type EmailFormData = z.infer<typeof emailSchema>
+type EmailFormData = z.infer<typeof emailSchema>;
 
 export default function ConfirmEmailPage() {
-  const [emailSent, setEmailSent] = useState(false)
-  const [sentToEmail, setSentToEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false);
+  const [sentToEmail, setSentToEmail] = useState("");
 
   const {
     register,
@@ -25,18 +25,18 @@ export default function ConfirmEmailPage() {
     formState: { errors },
   } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
-  })
+  });
 
-  const resendConfirmationMutation = useResendConfirmationMutation()
+  const resendConfirmationMutation = useResendConfirmationMutation();
 
   const onSubmit = (data: EmailFormData) => {
     resendConfirmationMutation.mutate(data.email, {
       onSuccess: () => {
-        setEmailSent(true)
-        setSentToEmail(data.email)
+        setEmailSent(true);
+        setSentToEmail(data.email);
       },
-    })
-  }
+    });
+  };
 
   if (emailSent) {
     return (
@@ -45,9 +45,20 @@ export default function ConfirmEmailPage() {
         <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12"  />
-                <span className="text-xl font-bold text-gray-900">DVSubmit</span>
+              <Link
+                href="/"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              >
+                <Image
+                  src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                  alt="DVSubmit Logo"
+                  width={48}
+                  height={48}
+                  className="sm:h-12 h-10 w-10 sm:w-12"
+                />
+                <span className="text-xl font-bold text-gray-900">
+                  DVSubmit
+                </span>
               </Link>
             </div>
           </div>
@@ -66,12 +77,11 @@ export default function ConfirmEmailPage() {
               <p className="text-gray-600 mb-2 text-sm">
                 We've sent a new confirmation link to
               </p>
-              <p className="font-semibold text-gray-900 mb-6">
-                {sentToEmail}
-              </p>
+              <p className="font-semibold text-gray-900 mb-6">{sentToEmail}</p>
               <div className="text-gray-600 mb-8 space-y-2">
                 <p>
-                  Please check your email and click the confirmation link to activate your account.
+                  Please check your email and click the confirmation link to
+                  activate your account.
                 </p>
                 <p className="text-sm text-gray-500">
                   Don't see the email? Check your spam folder.
@@ -86,8 +96,8 @@ export default function ConfirmEmailPage() {
                 </Link>
                 <button
                   onClick={() => {
-                    setEmailSent(false)
-                    setSentToEmail('')
+                    setEmailSent(false);
+                    setSentToEmail("");
                   }}
                   className="w-full cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
                 >
@@ -98,7 +108,7 @@ export default function ConfirmEmailPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -107,8 +117,17 @@ export default function ConfirmEmailPage() {
       <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="h-5 w-5" />
+            <Link
+              href="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                alt="DVSubmit Logo"
+                width={48}
+                height={48}
+                className="h-5 w-5"
+              />
               <span className="text-xl font-bold text-gray-900">DVSubmit</span>
             </Link>
             <Link
@@ -138,16 +157,21 @@ export default function ConfirmEmailPage() {
                 Enter your email to receive a new confirmation link
               </p>
             </div>
-            
+
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               {resendConfirmationMutation.error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <div className="text-sm text-red-700">{resendConfirmationMutation.error.message}</div>
+                  <div className="text-sm text-red-700">
+                    {resendConfirmationMutation.error.message}
+                  </div>
                 </div>
               )}
 
               <div>
-                <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="email-address"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Email address
                 </label>
                 <input
@@ -155,13 +179,15 @@ export default function ConfirmEmailPage() {
                   type="email"
                   autoComplete="email"
                   className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
+                    errors.email ? "border-red-300" : "border-gray-300"
                   }`}
                   placeholder="Enter your email"
-                  {...register('email')}
+                  {...register("email")}
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -176,14 +202,14 @@ export default function ConfirmEmailPage() {
                     Sending confirmation email...
                   </div>
                 ) : (
-                  'Send confirmation email'
+                  "Send confirmation email"
                 )}
               </button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-gray-600">
-                Remember your password?{' '}
+                Remember your password?{" "}
                 <Link
                   href="/login"
                   className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
@@ -196,5 +222,5 @@ export default function ConfirmEmailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

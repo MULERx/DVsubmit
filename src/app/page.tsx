@@ -1,35 +1,49 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from "next/link"
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { LegalAcknowledgmentModal } from '@/components/legal/legal-acknowledgment-modal'
-import { useLegalAcknowledgment } from '@/hooks/use-legal-acknowledgment'
-import { useAuth } from '@/lib/auth/auth-context'
-import { FileText, Shield, CheckCircle, Settings, BarChart3, Menu, X } from 'lucide-react'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { LegalAcknowledgmentModal } from "@/components/legal/legal-acknowledgment-modal";
+import { useLegalAcknowledgment } from "@/hooks/use-legal-acknowledgment";
+import { useAuth } from "@/lib/auth/auth-context";
+import {
+  FileText,
+  Shield,
+  CheckCircle,
+  Settings,
+  BarChart3,
+  Menu,
+  X,
+} from "lucide-react";
 
 export default function Home() {
-  const [showLegalModal, setShowLegalModal] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { needsAcknowledgment, acknowledgeTerms, isLoading } = useLegalAcknowledgment()
-  const { isAuthenticated, isAdmin, isSuperAdmin, loading: authLoading } = useAuth()
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { needsAcknowledgment, acknowledgeTerms, isLoading } =
+    useLegalAcknowledgment();
+  const {
+    isAuthenticated,
+    isAdmin,
+    isSuperAdmin,
+    loading: authLoading,
+  } = useAuth();
 
   // Show legal modal for first-time visitors
   useEffect(() => {
     if (!isLoading && needsAcknowledgment) {
       const timer = setTimeout(() => {
-        setShowLegalModal(true)
-      }, 1000) // Show after 1 second to let page load
+        setShowLegalModal(true);
+      }, 1000); // Show after 1 second to let page load
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [needsAcknowledgment, isLoading])
+  }, [needsAcknowledgment, isLoading]);
 
   const handleLegalAcknowledgment = async () => {
-    await acknowledgeTerms('first-visit')
-    setShowLegalModal(false)
-  }
+    await acknowledgeTerms("first-visit");
+    setShowLegalModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -45,18 +59,34 @@ export default function Home() {
       <header className="bg-white/95 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} priority className=" sm:h-12 h-10 w-10 sm:w-12" />
+            <Link
+              href="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                alt="DVSubmit Logo"
+                width={48}
+                height={48}
+                priority
+                className=" sm:h-12 h-10 w-10 sm:w-12"
+              />
               <h1 className="text-xl font-bold text-gray-900">DVSubmit</h1>
             </Link>
 
             <div className="flex items-center gap-2 sm:gap-4">
               {/* Desktop Navigation */}
               <div className="hidden sm:flex items-center gap-6">
-                <Link href="/terms" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+                <Link
+                  href="/terms"
+                  className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+                >
                   Terms
                 </Link>
-                <Link href="/privacy" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+                <Link
+                  href="/privacy"
+                  className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+                >
                   Privacy
                 </Link>
               </div>
@@ -64,19 +94,28 @@ export default function Home() {
               {authLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span className="text-sm text-gray-600 hidden sm:inline">Loading...</span>
+                  <span className="text-sm text-gray-600 hidden sm:inline">
+                    Loading...
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 sm:gap-3">
                   {!isAuthenticated ? (
                     <>
                       <Link href="/login" className="hidden  sm:block">
-                        <Button variant="ghost" size="sm" className="text-gray-600 cursor-pointer hover:text-gray-900">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-600 cursor-pointer hover:text-gray-900"
+                        >
                           Sign In
                         </Button>
                       </Link>
                       <Link href="/register">
-                        <Button size="sm" className="bg-gradient-to-r cursor-pointer from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 ">
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r cursor-pointer from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 "
+                        >
                           Get Started
                         </Button>
                       </Link>
@@ -85,16 +124,24 @@ export default function Home() {
                     <>
                       {isSuperAdmin || isAdmin ? (
                         <Link href="/admin">
-                          <Button variant="outline" size="sm" className="flex items-center gap-2 border-gray-200 hover:bg-gray-50">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center  cursor-pointer gap-2 border-gray-200 hover:bg-gray-50"
+                          >
                             <Settings className="h-4 w-4" />
-                            <span >Admin Panel</span>
+                            <span>Admin Panel</span>
                           </Button>
                         </Link>
                       ) : (
                         <Link href="/dashboard">
-                          <Button variant="outline" size="sm" className="flex items-center gap-2 border-gray-200 hover:bg-gray-50">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center  cursor-pointer gap-2 border-gray-200 hover:bg-gray-50"
+                          >
                             <BarChart3 className="h-4 w-4" />
-                            <span >Dashboard</span>
+                            <span>Dashboard</span>
                           </Button>
                         </Link>
                       )}
@@ -151,8 +198,6 @@ export default function Home() {
         </div>
       </header>
 
-
-
       {/* Hero Section */}
       <main className="relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8  py-8 sm:py-12">
@@ -164,11 +209,10 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-sm sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed">
-              Get expert help with your Diversity Visa lottery application. We provide secure,
-              professional assistance to ensure your application meets all requirements.
+              Get expert help with your Diversity Visa lottery application. We
+              provide secure, professional assistance to ensure your application
+              meets all requirements.
             </p>
-
-
 
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center items-center">
               {authLoading ? (
@@ -181,7 +225,10 @@ export default function Home() {
                   {!isAuthenticated ? (
                     <>
                       <Link href="/register">
-                        <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  px-8 py-3 text-base font-semibold">
+                        <Button
+                          size="lg"
+                          className="bg-gradient-to-r from-blue-600  cursor-pointer to-indigo-600 hover:from-blue-700 hover:to-indigo-700  px-8 py-3 text-base font-semibold"
+                        >
                           Start Application
                         </Button>
                       </Link>
@@ -191,13 +238,20 @@ export default function Home() {
                       {isSuperAdmin || isAdmin ? (
                         <>
                           <Link href="/admin">
-                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  flex items-center gap-2 px-8 py-3 text-base font-semibold">
+                            <Button
+                              size="lg"
+                              className="bg-gradient-to-r  cursor-pointer from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  flex items-center gap-2 px-8 py-3 text-base font-semibold"
+                            >
                               <Settings className="h-5 w-5" />
                               Admin Panel
                             </Button>
                           </Link>
                           <Link href="/dashboard">
-                            <Button variant="outline" size="lg" className="border-gray-300 hover:bg-gray-50 flex items-center gap-2 px-8 py-3 text-base">
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              className="border-gray-300  cursor-pointer hover:bg-gray-50 flex items-center gap-2 px-8 py-3 text-base"
+                            >
                               <BarChart3 className="h-5 w-5" />
                               My Dashboard
                             </Button>
@@ -206,13 +260,20 @@ export default function Home() {
                       ) : (
                         <>
                           <Link href="/dashboard">
-                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  flex items-center gap-2 px-8 py-3 text-base font-semibold">
+                            <Button
+                              size="lg"
+                              className="bg-gradient-to-r  cursor-pointer from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700  flex items-center gap-2 px-8 py-3 text-base font-semibold"
+                            >
                               <BarChart3 className="h-5 w-5" />
                               Dashboard
                             </Button>
                           </Link>
                           <Link href="/dv-form">
-                            <Button variant="outline" size="lg" className="border-gray-300 hover:bg-gray-50 px-4 sm:px-8 py-3 text-sm sm:text-base">
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              className="border-gray-300  cursor-pointer hover:bg-gray-50 px-4 sm:px-8 py-3 text-sm sm:text-base"
+                            >
                               Continue Application
                             </Button>
                           </Link>
@@ -233,9 +294,12 @@ export default function Home() {
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ">
                 <FileText className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Form Assistance</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Form Assistance
+              </h3>
               <p className="text-gray-600 leading-relaxed text-sm">
-                Expert help completing your DV lottery application with all required information
+                Expert help completing your DV lottery application with all
+                required information
               </p>
             </div>
 
@@ -243,9 +307,12 @@ export default function Home() {
               <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ">
                 <CheckCircle className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Photo Validation</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Photo Validation
+              </h3>
               <p className="text-gray-600 leading-relaxed text-sm">
-                Ensure your photo meets all DV lottery requirements before submission
+                Ensure your photo meets all DV lottery requirements before
+                submission
               </p>
             </div>
 
@@ -253,9 +320,12 @@ export default function Home() {
               <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ">
                 <Shield className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Secure Submission</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Secure Submission
+              </h3>
               <p className="text-gray-600 leading-relaxed text-sm">
-                Professional submission to the official DV lottery system on your behalf
+                Professional submission to the official DV lottery system on
+                your behalf
               </p>
             </div>
           </div>
@@ -264,35 +334,53 @@ export default function Home() {
         {/* How It Works */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-8 sm:p-12 border border-gray-100">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center">How It Works</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center">
+              How It Works
+            </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
               <div className="text-center">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 text-lg font-bold ">
                   1
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-3 text-lg">Register</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">Create your account and verify your email</p>
+                <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+                  Register
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-sm">
+                  Create your account and verify your email
+                </p>
               </div>
               <div className="text-center">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 text-lg font-bold ">
                   2
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-3 text-lg">Complete Form</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">Fill out your DV application with our guidance</p>
+                <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+                  Complete Form
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-sm">
+                  Fill out your DV application with our guidance
+                </p>
               </div>
               <div className="text-center">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 text-lg font-bold ">
                   3
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-3 text-lg">Pay Fee</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">Pay 399 ETB service fee via Telebirr</p>
+                <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+                  Pay Fee
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-sm">
+                  Pay 399 ETB service fee via Telebirr
+                </p>
               </div>
               <div className="text-center">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 text-lg font-bold ">
                   4
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-3 text-lg">Get Confirmation</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">Receive your official DV confirmation number</p>
+                <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+                  Get Confirmation
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-sm">
+                  Receive your official DV confirmation number
+                </p>
               </div>
             </div>
           </div>
@@ -301,13 +389,19 @@ export default function Home() {
         {/* Legal Disclaimer */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 sm:p-8 text-center">
-            <h3 className="font-semibold text-red-800 mb-3 text-lg">Legal Disclaimer</h3>
+            <h3 className="font-semibold text-red-800 mb-3 text-lg">
+              Legal Disclaimer
+            </h3>
             <p className="text-red-700 mb-4 leading-relaxed max-w-3xl mx-auto text-sm">
-              DVSubmit is a private company providing DV lottery assistance services. We are not
-              affiliated with the U.S. Government or Department of State. Using our service does
-              not guarantee selection in the DV lottery.
+              DVSubmit is a private company providing DV lottery assistance
+              services. We are not affiliated with the U.S. Government or
+              Department of State. Using our service does not guarantee
+              selection in the DV lottery.
             </p>
-            <Link href="/terms" className="text-red-600 hover:text-red-800 font-medium underline transition-colors">
+            <Link
+              href="/terms"
+              className="text-red-600 hover:text-red-800 font-medium underline transition-colors"
+            >
               Read Full Terms & Conditions
             </Link>
           </div>
@@ -319,18 +413,34 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-3 mb-6 md:mb-0">
-              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="h-5 w-5" />
+              <Image
+                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                alt="DVSubmit Logo"
+                width={48}
+                height={48}
+                priority
+                className="sm:h-12 h-10 w-10 sm:w-12"
+              />
               <span className="text-xl font-semibold">DVSubmit</span>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 text-sm">
               <div className="flex items-center gap-6">
-                <Link href="/terms" className="hover:text-gray-300 transition-colors">
+                <Link
+                  href="/terms"
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Terms of Service
                 </Link>
-                <Link href="/privacy" className="hover:text-gray-300 transition-colors">
+                <Link
+                  href="/privacy"
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Privacy Policy
                 </Link>
-                <Link href="/help" className="hover:text-gray-300 transition-colors">
+                <Link
+                  href="/help"
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Help
                 </Link>
               </div>
@@ -342,5 +452,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

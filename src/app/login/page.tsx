@@ -1,17 +1,21 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { FileText, Eye, EyeOff, ArrowLeft } from 'lucide-react'
-import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
-import { useLoginMutation, useGoogleSignInMutation, useResendConfirmationMutation } from '@/hooks/use-auth-mutations'
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FileText, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
+import {
+  useLoginMutation,
+  useGoogleSignInMutation,
+  useResendConfirmationMutation,
+} from "@/hooks/use-auth-mutations";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
   const {
     register,
@@ -20,35 +24,39 @@ export default function LoginPage() {
     getValues,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-  })
+  });
 
-  const loginMutation = useLoginMutation()
-  const googleSignInMutation = useGoogleSignInMutation()
-  const resendConfirmationMutation = useResendConfirmationMutation()
+  const loginMutation = useLoginMutation();
+  const googleSignInMutation = useGoogleSignInMutation();
+  const resendConfirmationMutation = useResendConfirmationMutation();
 
   const onSubmit = (data: LoginFormData) => {
-    setUnverifiedEmail(null) // Reset unverified email state
+    setUnverifiedEmail(null); // Reset unverified email state
     loginMutation.mutate(data, {
       onError: (error) => {
         // Check if error is about email not being confirmed
-        if (error.message.includes('Please check your email and click the confirmation link')) {
-          setUnverifiedEmail(data.email)
+        if (
+          error.message.includes(
+            "Please check your email and click the confirmation link"
+          )
+        ) {
+          setUnverifiedEmail(data.email);
         }
-      }
-    })
-  }
+      },
+    });
+  };
 
   const handleGoogleSignIn = () => {
-    googleSignInMutation.mutate()
-  }
+    googleSignInMutation.mutate();
+  };
 
   const handleResendConfirmation = () => {
     if (unverifiedEmail) {
-      resendConfirmationMutation.mutate(unverifiedEmail)
+      resendConfirmationMutation.mutate(unverifiedEmail);
     }
-  }
+  };
 
-  const isLoading = loginMutation.isPending || googleSignInMutation.isPending
+  const isLoading = loginMutation.isPending || googleSignInMutation.isPending;
 
   return (
     <div className="min-h-screen bg-white/95">
@@ -56,8 +64,17 @@ export default function LoginPage() {
       <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12"  />
+            <Link
+              href="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                alt="DVSubmit Logo"
+                width={48}
+                height={48}
+                className="sm:h-12 h-10 w-10 sm:w-12"
+              />
               <span className="text-xl font-bold text-gray-900">DVSubmit</span>
             </Link>
             <Link
@@ -87,7 +104,9 @@ export default function LoginPage() {
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               {loginMutation.error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <div className="text-sm text-red-700">{loginMutation.error.message}</div>
+                  <div className="text-sm text-red-700">
+                    {loginMutation.error.message}
+                  </div>
                   {unverifiedEmail && (
                     <div className="mt-3">
                       <button
@@ -96,7 +115,9 @@ export default function LoginPage() {
                         disabled={resendConfirmationMutation.isPending}
                         className="text-sm text-blue-600 hover:text-blue-700 font-medium underline disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {resendConfirmationMutation.isPending ? 'Sending...' : 'Resend confirmation email'}
+                        {resendConfirmationMutation.isPending
+                          ? "Sending..."
+                          : "Resend confirmation email"}
                       </button>
                     </div>
                   )}
@@ -105,36 +126,46 @@ export default function LoginPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email-address"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email address
                   </label>
                   <input
                     id="email-address"
                     type="email"
                     autoComplete="email"
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.email ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                      errors.email ? "border-red-300" : "border-gray-300"
+                    }`}
                     placeholder="Enter your email"
-                    {...register('email')}
+                    {...register("email")}
                   />
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Password
                   </label>
                   <div className="relative">
                     <input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.password ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                        errors.password ? "border-red-300" : "border-gray-300"
+                      }`}
                       placeholder="Enter your password"
-                      {...register('password')}
+                      {...register("password")}
                     />
                     <button
                       type="button"
@@ -149,7 +180,9 @@ export default function LoginPage() {
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -180,7 +213,7 @@ export default function LoginPage() {
                     Signing in...
                   </div>
                 ) : (
-                  'Sign in'
+                  "Sign in"
                 )}
               </button>
 
@@ -189,7 +222,9 @@ export default function LoginPage() {
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-4 bg-white text-gray-500">
+                    Or continue with
+                  </span>
                 </div>
               </div>
 
@@ -223,7 +258,7 @@ export default function LoginPage() {
 
             <div className="mt-3 sm:mt-6 text-center">
               <p className="text-gray-600">
-                Don't have an account?{' '}
+                Don't have an account?{" "}
                 <Link
                   href="/register"
                   className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
@@ -236,5 +271,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

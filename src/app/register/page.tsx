@@ -1,19 +1,23 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { FileText, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
-import { registerSchema, type RegisterFormData } from '@/lib/validations/auth'
-import { useRegisterMutation, useGoogleSignInMutation, useResendConfirmationMutation } from '@/hooks/use-auth-mutations'
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FileText, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
+import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
+import {
+  useRegisterMutation,
+  useGoogleSignInMutation,
+  useResendConfirmationMutation,
+} from "@/hooks/use-auth-mutations";
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [registeredEmail, setRegisteredEmail] = useState('')
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const {
     register,
@@ -21,32 +25,33 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-  })
+  });
 
-  const registerMutation = useRegisterMutation()
-  const googleSignInMutation = useGoogleSignInMutation()
-  const resendConfirmationMutation = useResendConfirmationMutation()
+  const registerMutation = useRegisterMutation();
+  const googleSignInMutation = useGoogleSignInMutation();
+  const resendConfirmationMutation = useResendConfirmationMutation();
 
   const onSubmit = (data: RegisterFormData) => {
     registerMutation.mutate(data, {
       onSuccess: () => {
-        setSuccess(true)
-        setRegisteredEmail(data.email)
+        setSuccess(true);
+        setRegisteredEmail(data.email);
       },
-    })
-  }
+    });
+  };
 
   const handleGoogleSignIn = () => {
-    googleSignInMutation.mutate()
-  }
+    googleSignInMutation.mutate();
+  };
 
   const handleResendConfirmation = () => {
     if (registeredEmail) {
-      resendConfirmationMutation.mutate(registeredEmail)
+      resendConfirmationMutation.mutate(registeredEmail);
     }
-  }
+  };
 
-  const isLoading = registerMutation.isPending || googleSignInMutation.isPending
+  const isLoading =
+    registerMutation.isPending || googleSignInMutation.isPending;
 
   if (success) {
     return (
@@ -54,8 +59,17 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="sm:h-12 h-10 w-10 sm:w-12" />
+            <Link
+              href="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                alt="DVSubmit Logo"
+                width={48}
+                height={48}
+                className="sm:h-12 h-10 w-10 sm:w-12"
+              />
               <span className="text-xl font-bold text-gray-900">DVSubmit</span>
             </Link>
           </div>
@@ -79,7 +93,8 @@ export default function RegisterPage() {
               </p>
               <div className="text-gray-600 mb-8 space-y-2">
                 <p>
-                  Please check your email and click the confirmation link to activate your account.
+                  Please check your email and click the confirmation link to
+                  activate your account.
                 </p>
                 <p className="text-sm text-gray-500">
                   Don't see the email? Check your spam folder or try resending.
@@ -111,7 +126,7 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -120,8 +135,17 @@ export default function RegisterPage() {
       <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp" alt="DVSubmit Logo" width={20} height={20} className="h-5 w-5" />
+            <Link
+              href="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                alt="DVSubmit Logo"
+                width={48}
+                height={48}
+                className="h-5 w-5"
+              />
               <span className="text-xl font-bold text-gray-900">DVSubmit</span>
             </Link>
             <Link
@@ -141,7 +165,6 @@ export default function RegisterPage() {
           {/* Card */}
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="text-center mb-8">
-
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Create your account
               </h1>
@@ -152,42 +175,54 @@ export default function RegisterPage() {
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               {registerMutation.error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <div className="text-sm text-red-700">{registerMutation.error.message}</div>
+                  <div className="text-sm text-red-700">
+                    {registerMutation.error.message}
+                  </div>
                 </div>
               )}
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email-address"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email address
                   </label>
                   <input
                     id="email-address"
                     type="email"
                     autoComplete="email"
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.email ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                      errors.email ? "border-red-300" : "border-gray-300"
+                    }`}
                     placeholder="Enter your email"
-                    {...register('email')}
+                    {...register("email")}
                   />
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Password
                   </label>
                   <div className="relative">
                     <input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       autoComplete="new-password"
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.password ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                        errors.password ? "border-red-300" : "border-gray-300"
+                      }`}
                       placeholder="Password (min. 6 characters)"
-                      {...register('password')}
+                      {...register("password")}
                     />
                     <button
                       type="button"
@@ -202,27 +237,37 @@ export default function RegisterPage() {
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="confirm-password"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Confirm Password
                   </label>
                   <div className="relative">
                     <input
                       id="confirm-password"
-                      type={showConfirmPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? "text" : "password"}
                       autoComplete="new-password"
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                        errors.confirmPassword
+                          ? "border-red-300"
+                          : "border-gray-300"
+                      }`}
                       placeholder="Confirm your password"
-                      {...register('confirmPassword')}
+                      {...register("confirmPassword")}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {showConfirmPassword ? (
@@ -233,7 +278,9 @@ export default function RegisterPage() {
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -249,7 +296,7 @@ export default function RegisterPage() {
                     Creating account...
                   </div>
                 ) : (
-                  'Create account'
+                  "Create account"
                 )}
               </button>
 
@@ -258,7 +305,9 @@ export default function RegisterPage() {
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-4 bg-white text-gray-500">
+                    Or continue with
+                  </span>
                 </div>
               </div>
 
@@ -291,21 +340,31 @@ export default function RegisterPage() {
 
               <div className="text-xs text-gray-500 space-y-3">
                 <p className="text-center">
-                  By creating an account, you agree to our{' '}
-                  <Link href="/terms" className="text-blue-600 hover:text-blue-700 underline font-medium">
+                  By creating an account, you agree to our{" "}
+                  <Link
+                    href="/terms"
+                    className="text-blue-600 hover:text-blue-700 underline font-medium"
+                  >
                     Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/privacy" className="text-blue-600 hover:text-blue-700 underline font-medium">
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-blue-600 hover:text-blue-700 underline font-medium"
+                  >
                     Privacy Policy
                   </Link>
                 </p>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                  <p className="font-medium text-amber-800 mb-2">Important Notice:</p>
+                  <p className="font-medium text-amber-800 mb-2">
+                    Important Notice:
+                  </p>
                   <ul className="space-y-1 text-amber-700">
                     <li>• This is not a government service</li>
                     <li>• Selection in the DV lottery is not guaranteed</li>
-                    <li>• Service fee is 399 ETB, non-refundable after submission</li>
+                    <li>
+                      • Service fee is 399 ETB, non-refundable after submission
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -313,7 +372,7 @@ export default function RegisterPage() {
 
             <div className="mt-3 sm:mt-6 text-center">
               <p className="text-gray-600">
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <Link
                   href="/login"
                   className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
@@ -326,5 +385,5 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
