@@ -90,10 +90,10 @@ function AdminDashboard() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium text-gray-500 truncate">
-                          User Management
+                          Admin Management
                         </dt>
                         <dd className="text-lg font-medium text-gray-900">
-                          Manage user roles and permissions
+                          Manage admin roles and permissions
                         </dd>
                       </dl>
                     </div>
@@ -105,7 +105,52 @@ function AdminDashboard() {
                       href="/admin/users"
                       className="font-medium text-indigo-600 hover:text-indigo-500"
                     >
-                      Manage users
+                      Manage admins
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </SuperAdminOnly>
+
+            {/* Applicants Management */}
+            <SuperAdminOnly>
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="h-6 w-6 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">
+                          Applicants Management
+                        </dt>
+                        <dd className="text-lg font-medium text-gray-900">
+                          Manage applicant accounts and applications
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-5 py-3">
+                  <div className="text-sm">
+                    <Link
+                      href="/admin/applicants"
+                      className="font-medium text-indigo-600 hover:text-indigo-500"
+                    >
+                      Manage applicants
                     </Link>
                   </div>
                 </div>

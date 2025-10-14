@@ -14,6 +14,9 @@ model User {
   email            String        @unique
   supabaseId       String        @unique
   role             UserRole      @default(USER)
+  blocked           Boolean       @default(false) // Block status field
+  blockedAt         DateTime?     // When user was blocked
+  blockedBy         String?       // Who blocked the user
   deletedAt        DateTime?     // Soft delete field
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -22,6 +25,7 @@ model User {
   
   @@index([email])
   @@index([supabaseId])
+  @@index([blocked])
   @@index([deletedAt])
   @@map("users")
 }
