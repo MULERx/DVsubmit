@@ -143,20 +143,7 @@ export function ApplicationsTable({
             Submitted
           </Badge>
         )
-      case 'CONFIRMED':
-        return (
-          <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800">
-            <CheckCircle className="h-3 w-3" />
-            Confirmed
-          </Badge>
-        )
-      case 'EXPIRED':
-        return (
-          <Badge variant="destructive" className="flex items-center gap-1">
-            <XCircle className="h-3 w-3" />
-            Expired
-          </Badge>
-        )
+
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -333,14 +320,7 @@ export function ApplicationsTable({
                     <Check className="mr-2 h-4 w-4" />
                     Approve Payment
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => openConfirmDialog('reject', app)}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Reject Payment
-                  </DropdownMenuItem>
+
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -481,42 +461,25 @@ export function ApplicationsTable({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmDialog.action === 'approve' ? 'Approve Payment' : 'Reject Payment'}
+              Approve Payment
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmDialog.action === 'approve' ? (
-                <>
-                  Are you sure you want to approve the payment for{' '}
-                  <strong>
-                    {confirmDialog.application?.givenName} {confirmDialog.application?.familyName}
-                  </strong>
-                  ?
-                  <br />
-                  <br />
-                  Payment Reference: <code className="bg-gray-100 px-1 rounded">
-                    {confirmDialog.application?.paymentReference}
-                  </code>
-                  <br />
-                  <br />
-                  This will mark the payment as verified and allow the application to proceed to DV submission.
-                </>
-              ) : (
-                <>
-                  Are you sure you want to reject the payment for{' '}
-                  <strong>
-                    {confirmDialog.application?.givenName} {confirmDialog.application?.familyName}
-                  </strong>
-                  ?
-                  <br />
-                  <br />
-                  Payment Reference: <code className="bg-gray-100 px-1 rounded">
-                    {confirmDialog.application?.paymentReference}
-                  </code>
-                  <br />
-                  <br />
-                  This will mark the payment as rejected and the applicant will need to resubmit their payment.
-                </>
-              )}
+
+              Are you sure you want to reject the payment for{' '}
+              <strong>
+                {confirmDialog.application?.givenName} {confirmDialog.application?.familyName}
+              </strong>
+              ?
+              <br />
+              <br />
+              Payment Reference: <code className="bg-gray-100 px-1 rounded">
+                {confirmDialog.application?.paymentReference}
+              </code>
+              <br />
+              <br />
+              This will mark the payment as rejected and the applicant will need to resubmit their payment.
+
+
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

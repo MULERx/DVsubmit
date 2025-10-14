@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { withAuth } from '@/lib/auth/auth-context'
-import { useAdminApplications } from '@/hooks/use-admin-applications'
+import { useAdminApplications } from '@/hooks/use-admin-applications-queries'
 import { ApplicationsTable } from '@/components/admin/applications-table'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { AlertCircle, RefreshCw } from 'lucide-react'
@@ -12,21 +12,20 @@ import { Button } from '@/components/ui/button'
 function ApplicationsManagementPage() {
   const searchParams = useSearchParams()
   const typeParam = searchParams.get('type')
-  
+
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
-  
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    refetch, 
-    isRefetching 
+
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    isRefetching
   } = useAdminApplications({
     page,
     limit: 10,
     status: statusFilter || undefined,
-    type: typeParam || undefined,
   })
 
   // Get page title based on type
@@ -74,7 +73,7 @@ function ApplicationsManagementPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader 
+      <AdminHeader
         breadcrumbs={[
           { label: "Admin Panel", href: "/admin" },
           { label: "Applications Management" }
@@ -107,11 +106,10 @@ function ApplicationsManagementPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setStatusFilter('')}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    statusFilter === ''
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  } border border-gray-300`}
+                  className={`px-3 py-2 text-sm font-medium rounded-md ${statusFilter === ''
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    } border border-gray-300`}
                 >
                   All Applications
                 </button>
@@ -125,11 +123,10 @@ function ApplicationsManagementPage() {
                   <button
                     key={status.key}
                     onClick={() => setStatusFilter(status.key)}
-                    className={`px-3 py-2 text-sm font-medium rounded-md ${
-                      statusFilter === status.key
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    } border border-gray-300`}
+                    className={`px-3 py-2 text-sm font-medium rounded-md ${statusFilter === status.key
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                      } border border-gray-300`}
                   >
                     {status.label}
                   </button>
@@ -154,7 +151,12 @@ function ApplicationsManagementPage() {
           {data && (
             <ApplicationsTable
               applications={data.applications}
-              pagination={data.pagination}
+              pagination={{
+                page: data.page,
+                limit: data.limit,
+                total: data.total,
+                totalPages: Math.ceil(data.total / data.limit)
+              }}
               onPageChange={setPage}
               isLoading={isLoading}
             />
