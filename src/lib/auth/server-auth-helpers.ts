@@ -61,6 +61,18 @@ export const authServer = {
         where: { 
           supabaseId: supabaseUser.id
         },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          blocked: true,
+          blockedAt: true,
+          blockedBy: true,
+          deletedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          supabaseId: true,
+        },
       })
 
       if (existingUserBySupabaseId) {
@@ -74,6 +86,18 @@ export const authServer = {
           const updatedUser = await prisma.user.update({
             where: { supabaseId: supabaseUser.id },
             data: { email: supabaseUser.email },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              blocked: true,
+              blockedAt: true,
+              blockedBy: true,
+              deletedAt: true,
+              createdAt: true,
+              updatedAt: true,
+              supabaseId: true,
+            },
           })
 
           // Also update the role in Supabase user metadata for faster access
@@ -94,6 +118,18 @@ export const authServer = {
           email: supabaseUser.email,
           deletedAt: null
         },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          blocked: true,
+          blockedAt: true,
+          blockedBy: true,
+          deletedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          supabaseId: true,
+        },
       })
 
       if (existingUserByEmail) {
@@ -101,6 +137,18 @@ export const authServer = {
         const updatedUser = await prisma.user.update({
           where: { email: supabaseUser.email },
           data: { supabaseId: supabaseUser.id },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            blocked: true,
+            blockedAt: true,
+            blockedBy: true,
+            deletedAt: true,
+            createdAt: true,
+            updatedAt: true,
+            supabaseId: true,
+          },
         })
 
         // Set role in Supabase user metadata
@@ -116,6 +164,18 @@ export const authServer = {
           supabaseId: supabaseUser.id,
           role: 'USER', // Default role
         },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          blocked: true,
+          blockedAt: true,
+          blockedBy: true,
+          deletedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          supabaseId: true,
+        },
       })
 
       // Set role in Supabase user metadata
@@ -129,6 +189,18 @@ export const authServer = {
         try {
           const existingUser = await prisma.user.findUnique({
             where: { supabaseId: supabaseUser.id },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              blocked: true,
+              blockedAt: true,
+              blockedBy: true,
+              deletedAt: true,
+              createdAt: true,
+              updatedAt: true,
+              supabaseId: true,
+            },
           })
           if (existingUser) {
             // If user is soft-deleted, prevent login

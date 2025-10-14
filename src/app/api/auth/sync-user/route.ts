@@ -18,6 +18,18 @@ export async function POST(request: NextRequest) {
       email: supabaseUser.email,
     })
 
+    // Check if user is blocked after syncing
+    if (dbUser.blocked) {
+      return NextResponse.json(
+        { 
+          error: 'Your account has been blocked. Please contact support for assistance.',
+          blocked: true,
+          blockedAt: dbUser.blockedAt
+        },
+        { status: 403 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
       user: {
@@ -32,6 +44,14 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message.includes('Account has been deleted')) {
       return NextResponse.json(
         { error: 'Account has been deleted and cannot be restored' },
+        { status: 403 }
+      )
+    }
+
+    // Handle blocked account error specifically
+    if (error instanceof Error && error.message.includes('blocked')) {
+      return NextResponse.json(
+        { error: 'Your account has been blocked. Please contact support for assistance.' },
         { status: 403 }
       )
     }

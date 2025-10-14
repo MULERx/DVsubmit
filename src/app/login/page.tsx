@@ -162,9 +162,8 @@ export default function LoginPage() {
                     id="email-address"
                     type="email"
                     autoComplete="email"
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
-                      errors.email ? "border-red-300" : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.email ? "border-red-300" : "border-gray-300"
+                      }`}
                     placeholder="Enter your email"
                     {...register("email")}
                   />
@@ -187,9 +186,8 @@ export default function LoginPage() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
-                        errors.password ? "border-red-300" : "border-gray-300"
-                      }`}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.password ? "border-red-300" : "border-gray-300"
+                        }`}
                       placeholder="Enter your password"
                       {...register("password")}
                     />

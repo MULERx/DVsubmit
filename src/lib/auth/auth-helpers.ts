@@ -58,8 +58,8 @@ export const authClient = {
         if (!syncResponse.ok) {
           const errorData = await syncResponse.json()
           
-          // If account is deleted, sign out the user and return error
-          if (syncResponse.status === 403 && errorData.error?.includes('deleted')) {
+          // If account is deleted or blocked, sign out the user and return error
+          if (syncResponse.status === 403) {
             await supabase.auth.signOut()
             return {
               data: { user: null, session: null },
@@ -72,8 +72,8 @@ export const authClient = {
       } catch (error) {
         console.error('Failed to sync user to database:', error)
         
-        // If it's a deleted account error, pass it through
-        if (error instanceof Error && error.message.includes('deleted')) {
+        // If it's a deleted or blocked account error, pass it through
+        if (error instanceof Error && (error.message.includes('deleted') || error.message.includes('blocked'))) {
           return {
             data: { user: null, session: null },
             error: { message: error.message }
