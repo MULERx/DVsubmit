@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { withAuth } from '@/lib/auth/auth-context'
-import Link from 'next/link'
+import { AdminHeader } from '@/components/admin/admin-header'
 import { Send, CheckCircle, XCircle, Clock, AlertCircle, FileText } from 'lucide-react'
 
 interface Application {
@@ -234,23 +234,12 @@ function DvSubmissionPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">DV Submission Management</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/admin"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Back to Admin
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <AdminHeader 
+        breadcrumbs={[
+          { label: "Admin Panel", href: "/admin" },
+          { label: "DV Submission Management" }
+        ]}
+      />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">

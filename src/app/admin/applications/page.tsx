@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { withAuth } from '@/lib/auth/auth-context'
 import { useAdminApplications } from '@/hooks/use-admin-applications'
 import { ApplicationsTable } from '@/components/admin/applications-table'
-import Link from 'next/link'
+import { AdminHeader } from '@/components/admin/admin-header'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -74,23 +74,12 @@ function ApplicationsManagementPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">Applications Management</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/admin"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Back to Admin
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <AdminHeader 
+        breadcrumbs={[
+          { label: "Admin Panel", href: "/admin" },
+          { label: "Applications Management" }
+        ]}
+      />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
