@@ -6,7 +6,7 @@ import { SuperAdminOnly } from "@/lib/auth/role-guard";
 import { QuickStatistics } from "@/components/admin/quick-statistics";
 import Link from "next/link";
 import Image from "next/image";
-import { FileText, Home } from "lucide-react";
+import { Home } from "lucide-react";
 
 function AdminDashboard() {
   const { user, userWithRole } = useAuth();
@@ -26,7 +26,8 @@ function AdminDashboard() {
                   alt="DVSubmit Logo"
                   width={48}
                   height={48}
-                  className="h-5 w-5"
+                  priority
+                  className="sm:h-12 h-10 w-10 sm:w-12"
                 />
                 <span className="text-lg font-semibold text-gray-900">
                   DVSubmit
@@ -38,7 +39,7 @@ function AdminDashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700">
-                {user?.email}
+         
                 <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                   {userWithRole?.role}
                 </span>
@@ -50,6 +51,7 @@ function AdminDashboard() {
                 <Home className="h-4 w-4" />
                 Home
               </Link>
+              
               <Link
                 href="/dashboard"
                 className="text-sm text-gray-500 hover:text-gray-700"
@@ -71,91 +73,7 @@ function AdminDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Applications Management */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-6 w-6 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Applications
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        Review and manage DV applications
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm">
-                  <Link
-                    href="/admin/applications"
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    Manage applications
-                  </Link>
-                </div>
-              </div>
-            </div>
 
-            {/* Payment Verification */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-6 w-6 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Payments
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        Verify Telebirr payments
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm">
-                  <Link
-                    href="/admin/payments"
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    Verify payments
-                  </Link>
-                </div>
-              </div>
-            </div>
 
             {/* DV Submissions */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -182,7 +100,7 @@ function AdminDashboard() {
                         DV Submissions
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        Submit to official DV system
+                        Submit to official DV
                       </dd>
                     </dl>
                   </div>
@@ -191,7 +109,8 @@ function AdminDashboard() {
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm">
                   <Link
-                    href="/admin/submissions"
+                    href="https://dvprogram.state.gov/"
+                    target="_blank"
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                   >
                     Manage submissions
