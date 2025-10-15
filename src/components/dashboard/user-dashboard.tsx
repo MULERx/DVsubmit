@@ -47,9 +47,9 @@ export function UserDashboard({ className }: UserDashboardProps) {
   }, [fetchError, toast])
 
   const printProofOfSubmission = async (
-    applicationId: string, 
-    confirmationNumber: string, 
-    fullName: string, 
+    applicationId: string,
+    confirmationNumber: string,
+    fullName: string,
     dateOfBirth: Date
   ) => {
     try {
@@ -61,7 +61,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
       }
 
       const htmlContent = generatePrintHTML(confirmationNumber, fullName, dateOfBirth)
-      
+
       printWindow.document.open()
       printWindow.document.write(htmlContent)
       printWindow.document.close()
@@ -123,12 +123,12 @@ export function UserDashboard({ className }: UserDashboardProps) {
 
   // Organize applications by status
   const pendingApplications = applications.filter(app =>
-    app.status === 'PAYMENT_PENDING' || 
-    app.status === 'PAYMENT_VERIFIED' || 
-    app.status === 'PAYMENT_REJECTED' || 
+    app.status === 'PAYMENT_PENDING' ||
+    app.status === 'PAYMENT_VERIFIED' ||
+    app.status === 'PAYMENT_REJECTED' ||
     app.status === 'APPLICATION_REJECTED'
   )
-  
+
   const submittedApplications = applications.filter(app =>
     app.status === 'SUBMITTED'
   )
@@ -136,7 +136,7 @@ export function UserDashboard({ className }: UserDashboardProps) {
   return (
     <div className={className}>
       <DashboardHeader userEmail={userWithRole?.dbUser?.email} />
-      
+
       <ApplicationsOverview applications={applications} />
 
       {/* Pending Applications */}

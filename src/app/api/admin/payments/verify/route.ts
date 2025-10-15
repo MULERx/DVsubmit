@@ -97,7 +97,6 @@ export async function PUT(request: NextRequest) {
       updateData.status = "PAYMENT_VERIFIED";
     } else {
       updateData.status = "PAYMENT_REJECTED";
-      updateData.paymentReference = null; // Clear the rejected reference
     }
 
     const updatedApplication = await prisma.application.update({
