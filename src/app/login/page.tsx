@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, Eye, EyeOff, ArrowLeft, Shield } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Shield } from "lucide-react";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import {
   useLoginMutation,
@@ -14,17 +14,16 @@ import {
 } from "@/hooks/use-auth-mutations";
 import { useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const isBlocked = searchParams.get('blocked') === 'true';
+  const isBlocked = searchParams.get("blocked") === "true";
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    getValues,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
@@ -111,9 +110,12 @@ export default function LoginPage() {
                   <div className="flex items-start space-x-3">
                     <Shield className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h3 className="text-sm font-medium text-red-800">Account Blocked</h3>
+                      <h3 className="text-sm font-medium text-red-800">
+                        Account Blocked
+                      </h3>
                       <div className="mt-1 text-sm text-red-700">
-                        Your account has been blocked and you cannot sign in. Please contact support for assistance.
+                        Your account has been blocked and you cannot sign in.
+                        Please contact support for assistance.
                       </div>
                       <div className="mt-3">
                         <a
@@ -282,7 +284,7 @@ export default function LoginPage() {
 
             <div className="mt-3 sm:mt-6 text-center">
               <p className="text-gray-600">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/register"
                   className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
@@ -295,5 +297,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white/95 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

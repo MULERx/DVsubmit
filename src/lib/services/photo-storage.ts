@@ -1,43 +1,44 @@
-import { createClient } from '@/lib/supabase/client'
-import { createServiceClient } from '@/lib/supabase/server'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createClient } from "@/lib/supabase/client";
+import { createServiceClient } from "@/lib/supabase/server";
 
 export interface PhotoUploadResult {
-  success: boolean
+  success: boolean;
   data?: {
-    path: string
-    publicUrl?: string
-    signedUrl?: string
-  }
-  error?: string
+    path: string;
+    publicUrl?: string;
+    signedUrl?: string;
+  };
+  error?: string;
 }
 
 export interface PhotoDeleteResult {
-  success: boolean
-  error?: string
+  success: boolean;
+  error?: string;
 }
 
 export interface SignedUrlResult {
-  success: boolean
+  success: boolean;
   data?: {
-    signedUrl: string
-    expiresIn: number
-  }
-  error?: string
+    signedUrl: string;
+    expiresIn: number;
+  };
+  error?: string;
 }
 
 // Storage bucket configuration
 export const PHOTO_STORAGE_CONFIG = {
-  bucketName: 'dv-photos',
+  bucketName: "dv-photos",
   maxFileSize: 5 * 1024 * 1024, // 5MB
-  allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png'],
+  allowedMimeTypes: ["image/jpeg", "image/jpg", "image/png"],
   signedUrlExpirySeconds: 7200, // 2 hours (increased for better reliability)
-} as const
+} as const;
 
 /**
  * Client-side photo upload service
  */
 export class PhotoStorageService {
-  private supabase = createClient()
+  private supabase = createClient();
 
   /**
    * Uploads a photo file to Supabase Storage
@@ -56,51 +57,53 @@ export class PhotoStorageService {
       if (!this.isValidFile(file)) {
         return {
           success: false,
-          error: 'Invalid file type or size'
-        }
+          error: "Invalid file type or size",
+        };
       }
 
       // Generate file path
-      const fileExtension = file.name.split('.').pop()?.toLowerCase()
-      const timestamp = Date.now()
-      const fileName = `photo_${timestamp}.${fileExtension}`
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      const timestamp = Date.now();
+      const fileName = `photo_${timestamp}.${fileExtension}`;
 
       const filePath = applicationId
         ? `${userId}/${applicationId}/${fileName}`
-        : `${userId}/${fileName}`
+        : `${userId}/${fileName}`;
 
       // Upload file
       const { data, error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
         .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (error) {
-        console.error('Photo upload error:', error)
+        console.error("Photo upload error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       // Get signed URL for immediate viewing
-      const signedUrlResult = await this.getSignedUrl(data.path)
+      const signedUrlResult = await this.getSignedUrl(data.path);
 
       return {
         success: true,
         data: {
           path: data.path,
-          signedUrl: signedUrlResult.success ? signedUrlResult.data?.signedUrl : undefined
-        }
-      }
+          signedUrl: signedUrlResult.success
+            ? signedUrlResult.data?.signedUrl
+            : undefined,
+        },
+      };
     } catch (error) {
-      console.error('Photo upload error:', error)
+      console.error("Photo upload error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Upload failed'
-      }
+        error: error instanceof Error ? error.message : "Upload failed",
+      };
     }
   }
 
@@ -117,29 +120,30 @@ export class PhotoStorageService {
     try {
       const { data, error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
-        .createSignedUrl(path, expiresIn)
+        .createSignedUrl(path, expiresIn);
 
       if (error) {
-        console.error('Signed URL error:', error)
+        console.error("Signed URL error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       return {
         success: true,
         data: {
           signedUrl: data.signedUrl,
-          expiresIn
-        }
-      }
+          expiresIn,
+        },
+      };
     } catch (error) {
-      console.error('Signed URL error:', error)
+      console.error("Signed URL error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get signed URL'
-      }
+        error:
+          error instanceof Error ? error.message : "Failed to get signed URL",
+      };
     }
   }
 
@@ -152,25 +156,25 @@ export class PhotoStorageService {
     try {
       const { error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
-        .remove([path])
+        .remove([path]);
 
       if (error) {
-        console.error('Photo delete error:', error)
+        console.error("Photo delete error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       return {
-        success: true
-      }
+        success: true,
+      };
     } catch (error) {
-      console.error('Photo delete error:', error)
+      console.error("Photo delete error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Delete failed'
-      }
+        error: error instanceof Error ? error.message : "Delete failed",
+      };
     }
   }
 
@@ -190,22 +194,26 @@ export class PhotoStorageService {
   ): Promise<PhotoUploadResult> {
     try {
       // Upload new photo first
-      const uploadResult = await this.uploadPhoto(newFile, userId, applicationId)
+      const uploadResult = await this.uploadPhoto(
+        newFile,
+        userId,
+        applicationId
+      );
 
       if (!uploadResult.success) {
-        return uploadResult
+        return uploadResult;
       }
 
       // Delete old photo (don't fail if this fails)
-      await this.deletePhoto(oldPath)
+      await this.deletePhoto(oldPath);
 
-      return uploadResult
+      return uploadResult;
     } catch (error) {
-      console.error('Photo replace error:', error)
+      console.error("Photo replace error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Replace failed'
-      }
+        error: error instanceof Error ? error.message : "Replace failed",
+      };
     }
   }
 
@@ -217,30 +225,32 @@ export class PhotoStorageService {
    */
   async listUserPhotos(userId: string, applicationId?: string) {
     try {
-      const prefix = applicationId ? `${userId}/${applicationId}/` : `${userId}/`
+      const prefix = applicationId
+        ? `${userId}/${applicationId}/`
+        : `${userId}/`;
 
       const { data, error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
-        .list(prefix)
+        .list(prefix);
 
       if (error) {
-        console.error('List photos error:', error)
+        console.error("List photos error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       return {
         success: true,
-        data: data || []
-      }
+        data: data || [],
+      };
     } catch (error) {
-      console.error('List photos error:', error)
+      console.error("List photos error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to list photos'
-      }
+        error: error instanceof Error ? error.message : "Failed to list photos",
+      };
     }
   }
 
@@ -252,15 +262,15 @@ export class PhotoStorageService {
   private isValidFile(file: File): boolean {
     // Check file size
     if (file.size > PHOTO_STORAGE_CONFIG.maxFileSize) {
-      return false
+      return false;
     }
 
     // Check MIME type
     if (!PHOTO_STORAGE_CONFIG.allowedMimeTypes.includes(file.type as any)) {
-      return false
+      return false;
     }
 
-    return true
+    return true;
   }
 }
 
@@ -268,7 +278,7 @@ export class PhotoStorageService {
  * Server-side photo storage service with elevated permissions
  */
 export class ServerPhotoStorageService {
-  private supabase = createServiceClient()
+  private supabase = createServiceClient();
 
   /**
    * Uploads a photo file to Supabase Storage using service role
@@ -287,51 +297,53 @@ export class ServerPhotoStorageService {
       if (!this.isValidFile(file)) {
         return {
           success: false,
-          error: 'Invalid file type or size'
-        }
+          error: "Invalid file type or size",
+        };
       }
 
       // Generate file path
-      const fileExtension = file.name.split('.').pop()?.toLowerCase()
-      const timestamp = Date.now()
-      const fileName = `photo_${timestamp}.${fileExtension}`
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      const timestamp = Date.now();
+      const fileName = `photo_${timestamp}.${fileExtension}`;
 
       const filePath = applicationId
         ? `${userId}/${applicationId}/${fileName}`
-        : `${userId}/${fileName}`
+        : `${userId}/${fileName}`;
 
       // Upload file using service role
       const { data, error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
         .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (error) {
-        console.error('Server photo upload error:', error)
+        console.error("Server photo upload error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       // Get signed URL for immediate viewing
-      const signedUrlResult = await this.getSignedUrl(data.path)
+      const signedUrlResult = await this.getSignedUrl(data.path);
 
       return {
         success: true,
         data: {
           path: data.path,
-          signedUrl: signedUrlResult.success ? signedUrlResult.data?.signedUrl : undefined
-        }
-      }
+          signedUrl: signedUrlResult.success
+            ? signedUrlResult.data?.signedUrl
+            : undefined,
+        },
+      };
     } catch (error) {
-      console.error('Server photo upload error:', error)
+      console.error("Server photo upload error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Upload failed'
-      }
+        error: error instanceof Error ? error.message : "Upload failed",
+      };
     }
   }
 
@@ -348,29 +360,30 @@ export class ServerPhotoStorageService {
     try {
       const { data, error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
-        .createSignedUrl(path, expiresIn)
+        .createSignedUrl(path, expiresIn);
 
       if (error) {
-        console.error('Server signed URL error:', error)
+        console.error("Server signed URL error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       return {
         success: true,
         data: {
           signedUrl: data.signedUrl,
-          expiresIn
-        }
-      }
+          expiresIn,
+        },
+      };
     } catch (error) {
-      console.error('Server signed URL error:', error)
+      console.error("Server signed URL error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get signed URL'
-      }
+        error:
+          error instanceof Error ? error.message : "Failed to get signed URL",
+      };
     }
   }
 
@@ -383,25 +396,25 @@ export class ServerPhotoStorageService {
     try {
       const { error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
-        .remove([path])
+        .remove([path]);
 
       if (error) {
-        console.error('Server photo delete error:', error)
+        console.error("Server photo delete error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       return {
-        success: true
-      }
+        success: true,
+      };
     } catch (error) {
-      console.error('Server photo delete error:', error)
+      console.error("Server photo delete error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Delete failed'
-      }
+        error: error instanceof Error ? error.message : "Delete failed",
+      };
     }
   }
 
@@ -411,29 +424,32 @@ export class ServerPhotoStorageService {
    * @param toPath Destination path
    * @returns Move result
    */
-  async movePhoto(fromPath: string, toPath: string): Promise<PhotoDeleteResult> {
+  async movePhoto(
+    fromPath: string,
+    toPath: string
+  ): Promise<PhotoDeleteResult> {
     try {
       const { error } = await this.supabase.storage
         .from(PHOTO_STORAGE_CONFIG.bucketName)
-        .move(fromPath, toPath)
+        .move(fromPath, toPath);
 
       if (error) {
-        console.error('Server photo move error:', error)
+        console.error("Server photo move error:", error);
         return {
           success: false,
-          error: error.message
-        }
+          error: error.message,
+        };
       }
 
       return {
-        success: true
-      }
+        success: true,
+      };
     } catch (error) {
-      console.error('Server photo move error:', error)
+      console.error("Server photo move error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Move failed'
-      }
+        error: error instanceof Error ? error.message : "Move failed",
+      };
     }
   }
 
@@ -445,18 +461,18 @@ export class ServerPhotoStorageService {
   private isValidFile(file: File): boolean {
     // Check file size
     if (file.size > PHOTO_STORAGE_CONFIG.maxFileSize) {
-      return false
+      return false;
     }
 
     // Check MIME type
     if (!PHOTO_STORAGE_CONFIG.allowedMimeTypes.includes(file.type as any)) {
-      return false
+      return false;
     }
 
-    return true
+    return true;
   }
 }
 
 // Export singleton instances
-export const photoStorageService = new PhotoStorageService()
-export const serverPhotoStorageService = new ServerPhotoStorageService()
+export const photoStorageService = new PhotoStorageService();
+export const serverPhotoStorageService = new ServerPhotoStorageService();

@@ -5,12 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 import {
   useRegisterMutation,
   useGoogleSignInMutation,
-  useResendConfirmationMutation,
 } from "@/hooks/use-auth-mutations";
 
 export default function RegisterPage() {
@@ -29,7 +28,6 @@ export default function RegisterPage() {
 
   const registerMutation = useRegisterMutation();
   const googleSignInMutation = useGoogleSignInMutation();
-  const resendConfirmationMutation = useResendConfirmationMutation();
 
   const onSubmit = (data: RegisterFormData) => {
     registerMutation.mutate(data, {
@@ -42,12 +40,6 @@ export default function RegisterPage() {
 
   const handleGoogleSignIn = () => {
     googleSignInMutation.mutate();
-  };
-
-  const handleResendConfirmation = () => {
-    if (registeredEmail) {
-      resendConfirmationMutation.mutate(registeredEmail);
-    }
   };
 
   const isLoading =
@@ -86,7 +78,7 @@ export default function RegisterPage() {
                 Check your email
               </h1>
               <p className="text-gray-600 mb-2 text-sm">
-                We've sent you a confirmation link at
+                We&apos;ve sent you a confirmation link at
               </p>
               <p className="font-semibold text-gray-900 mb-6">
                 {registeredEmail}
@@ -97,7 +89,8 @@ export default function RegisterPage() {
                   activate your account.
                 </p>
                 <p className="text-sm text-gray-500">
-                  Don't see the email? Check your spam folder or try resending.
+                  Don&apos;t see the email? Check your spam folder or try
+                  resending.
                 </p>
               </div>
               <div className="space-y-3">

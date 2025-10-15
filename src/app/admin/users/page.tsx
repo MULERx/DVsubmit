@@ -1,11 +1,17 @@
-'use client'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState } from 'react'
-import { withAuth } from '@/lib/auth/auth-context'
-import { AdminHeader } from '@/components/admin/admin-header'
-import { useAdminUsers, useUpdateUserRole, useBlockAdminUser, useUnblockAdminUser } from '@/hooks/use-admin-users'
-import { SuperAdminOnly } from '@/lib/auth/role-guard'
-import { UserX, UserCheck } from 'lucide-react'
+import { useState } from "react";
+import { withAuth } from "@/lib/auth/auth-context";
+import { AdminHeader } from "@/components/admin/admin-header";
+import {
+  useAdminUsers,
+  useUpdateUserRole,
+  useBlockAdminUser,
+  useUnblockAdminUser,
+} from "@/hooks/use-admin-users";
+import { SuperAdminOnly } from "@/lib/auth/role-guard";
+import { UserX, UserCheck } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,49 +21,55 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
 function UserManagementPage() {
-  const { data: users = [], isLoading, isFetching, error, refetch } = useAdminUsers()
-  const updateUserRoleMutation = useUpdateUserRole()
-  const blockMutation = useBlockAdminUser()
-  const unblockMutation = useUnblockAdminUser()
-  
-  const [blockDialogOpen, setBlockDialogOpen] = useState(false)
-  const [userToBlock, setUserToBlock] = useState<any>(null)
+  const {
+    data: users = [],
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useAdminUsers();
+  const updateUserRoleMutation = useUpdateUserRole();
+  const blockMutation = useBlockAdminUser();
+  const unblockMutation = useUnblockAdminUser();
+
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [userToBlock, setUserToBlock] = useState<any>(null);
 
   const handleUpdateUserRole = (userId: string, newRole: string) => {
-    updateUserRoleMutation.mutate({ userId, role: newRole })
-  }
+    updateUserRoleMutation.mutate({ userId, role: newRole });
+  };
 
   const handleBlockClick = (user: any) => {
-    setUserToBlock(user)
-    setBlockDialogOpen(true)
-  }
+    setUserToBlock(user);
+    setBlockDialogOpen(true);
+  };
 
   const handleConfirmBlock = () => {
     if (userToBlock) {
-      blockMutation.mutate(userToBlock.id)
-      setBlockDialogOpen(false)
-      setUserToBlock(null)
+      blockMutation.mutate(userToBlock.id);
+      setBlockDialogOpen(false);
+      setUserToBlock(null);
     }
-  }
+  };
 
   const handleUnblock = (userId: string) => {
-    unblockMutation.mutate(userId)
-  }
+    unblockMutation.mutate(userId);
+  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'SUPER_ADMIN':
-        return 'bg-purple-100 text-purple-800'
-      case 'ADMIN':
-        return 'bg-red-100 text-red-800'
-      case 'USER':
+      case "SUPER_ADMIN":
+        return "bg-purple-100 text-purple-800";
+      case "ADMIN":
+        return "bg-red-100 text-red-800";
+      case "USER":
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getStatusBadge = (user: any) => {
     if (user.blocked) {
@@ -65,10 +77,10 @@ function UserManagementPage() {
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 ml-2">
           Blocked
         </span>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
   if (isLoading) {
     return (
@@ -77,7 +89,7 @@ function UserManagementPage() {
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
         </div>
       </SuperAdminOnly>
-    )
+    );
   }
 
   return (
@@ -86,7 +98,7 @@ function UserManagementPage() {
         <AdminHeader
           breadcrumbs={[
             { label: "Admin Panel", href: "/admin" },
-            { label: "Admin Management" }
+            { label: "Admin Management" },
           ]}
         />
 
@@ -95,7 +107,9 @@ function UserManagementPage() {
             <div className="mb-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Admin Management</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Admin Management
+                  </h2>
                   <p className="mt-1 text-sm text-gray-600">
                     Manage admin and super admin accounts across the system.
                   </p>
@@ -105,8 +119,20 @@ function UserManagementPage() {
                   disabled={isLoading || isFetching}
                   className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 >
-                  <svg className={`h-4 w-4 mr-2 ${isFetching ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <svg
+                    className={`h-4 w-4 mr-2 ${
+                      isFetching ? "animate-spin" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
                   Refresh
                 </button>
@@ -153,22 +179,37 @@ function UserManagementPage() {
                           </div>
                           <div className="ml-4">
                             <div className="flex items-center">
-                              <p className="text-sm font-medium text-gray-900">{user.email}</p>
-                              <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
+                              <p className="text-sm font-medium text-gray-900">
+                                {user.email}
+                              </p>
+                              <span
+                                className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(
+                                  user.role
+                                )}`}
+                              >
                                 {user.role}
                               </span>
                               {getStatusBadge(user)}
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
                               <p>
-                                {user._count?.applications || 0} application{user._count?.applications !== 1 ? 's' : ''}
+                                {user._count?.applications || 0} application
+                                {user._count?.applications !== 1 ? "s" : ""}
                               </p>
                               <span className="mx-2">•</span>
-                              <p>Joined {new Date(user.createdAt).toLocaleDateString()}</p>
+                              <p>
+                                Joined{" "}
+                                {new Date(user.createdAt).toLocaleDateString()}
+                              </p>
                               {user.blocked && user.blockedAt && (
                                 <>
                                   <span className="mx-2">•</span>
-                                  <p>Blocked {new Date(user.blockedAt).toLocaleDateString()}</p>
+                                  <p>
+                                    Blocked{" "}
+                                    {new Date(
+                                      user.blockedAt
+                                    ).toLocaleDateString()}
+                                  </p>
                                 </>
                               )}
                             </div>
@@ -177,15 +218,19 @@ function UserManagementPage() {
                         <div className="flex items-center space-x-2">
                           <select
                             value={user.role}
-                            onChange={(e) => handleUpdateUserRole(user.id, e.target.value)}
-                            disabled={updateUserRoleMutation.isPending || user.blocked}
+                            onChange={(e) =>
+                              handleUpdateUserRole(user.id, e.target.value)
+                            }
+                            disabled={
+                              updateUserRoleMutation.isPending || user.blocked
+                            }
                             className="text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
                           >
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
                             <option value="SUPER_ADMIN">Super Admin</option>
                           </select>
-                          
+
                           {user.blocked ? (
                             <button
                               onClick={() => handleUnblock(user.id)}
@@ -213,7 +258,7 @@ function UserManagementPage() {
                               )}
                             </button>
                           )}
-                          
+
                           {updateUserRoleMutation.isPending && (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
                           )}
@@ -240,7 +285,9 @@ function UserManagementPage() {
                     d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
                   />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No admin users found</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  No admin users found
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
                   No admin or super admin accounts have been created yet.
                 </p>
@@ -255,11 +302,15 @@ function UserManagementPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Block Admin User</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to block {userToBlock?.email}? This will prevent them from accessing their admin account and performing admin actions.
-                {userToBlock?.role === 'SUPER_ADMIN' && (
+                Are you sure you want to block {userToBlock?.email}? This will
+                prevent them from accessing their admin account and performing
+                admin actions.
+                {userToBlock?.role === "SUPER_ADMIN" && (
                   <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
                     <p className="text-sm text-yellow-800">
-                      <strong>Warning:</strong> You are about to block a Super Admin user. This action should be used with extreme caution.
+                      <strong>Warning:</strong> You are about to block a Super
+                      Admin user. This action should be used with extreme
+                      caution.
                     </p>
                   </div>
                 )}
@@ -278,7 +329,7 @@ function UserManagementPage() {
         </AlertDialog>
       </div>
     </SuperAdminOnly>
-  )
+  );
 }
 
-export default withAuth(UserManagementPage, { requireSuperAdmin: true })
+export default withAuth(UserManagementPage, { requireSuperAdmin: true });

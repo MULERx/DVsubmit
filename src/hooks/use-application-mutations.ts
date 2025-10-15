@@ -1,180 +1,201 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useToast } from '@/hooks/use-toast'
-import { FormStepData } from '@/lib/types/application'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { FormStepData } from "@/lib/types/application";
 
 // Types
 interface ApplicationSubmissionResponse {
-  success: boolean
+  success: boolean;
   data?: {
-    id: string
-    transactionNumber?: string
-  }
+    id: string;
+    transactionNumber?: string;
+  };
   error?: {
-    message: string
-    code?: string
-    details?: any[]
-  }
+    message: string;
+    code?: string;
+    details?: any[];
+  };
 }
 
 interface ApplicationUpdateResponse {
-  success: boolean
+  success: boolean;
   data?: {
-    id: string
-  }
+    id: string;
+  };
   error?: {
-    message: string
-    code?: string
-    details?: any[]
-  }
+    message: string;
+    code?: string;
+    details?: any[];
+  };
 }
 
 // API functions
-const submitApplication = async (applicationData: any): Promise<ApplicationSubmissionResponse> => {
-  const response = await fetch('/api/applications/submit', {
-    method: 'POST',
+const submitApplication = async (
+  applicationData: any
+): Promise<ApplicationSubmissionResponse> => {
+  const response = await fetch("/api/applications/submit", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(applicationData),
-  })
+  });
 
-  const result = await response.json()
+  const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.error?.message || `HTTP ${response.status}: Failed to submit application`)
+    throw new Error(
+      result.error?.message ||
+        `HTTP ${response.status}: Failed to submit application`
+    );
   }
 
-  return result
-}
+  return result;
+};
 
-const updateApplication = async ({ 
-  id, 
-  applicationData 
-}: { 
-  id: string
-  applicationData: any 
+const updateApplication = async ({
+  id,
+  applicationData,
+}: {
+  id: string;
+  applicationData: any;
 }): Promise<ApplicationUpdateResponse> => {
   const response = await fetch(`/api/applications/${id}/update`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(applicationData),
-  })
+  });
 
-  const result = await response.json()
+  const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.error?.message || `HTTP ${response.status}: Failed to update application`)
+    throw new Error(
+      result.error?.message ||
+        `HTTP ${response.status}: Failed to update application`
+    );
   }
 
-  return result
-}
+  return result;
+};
 
 // Custom hooks
 export function useApplicationSubmission() {
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: submitApplication,
     onSuccess: (data) => {
       toast({
-        title: 'Application Submitted',
+        title: "Application Submitted",
         description: `Your application has been submitted successfully. ${
-          data.data?.transactionNumber ? `Transaction number: ${data.data.transactionNumber}` : ''
+          data.data?.transactionNumber
+            ? `Transaction number: ${data.data.transactionNumber}`
+            : ""
         }`,
-      })
-      
+      });
+
       // Invalidate applications queries
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['applications', 'user'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'statistics'] })
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applications", "user"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "statistics"] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Submission Failed',
+        title: "Submission Failed",
         description: error.message,
-        variant: 'destructive',
-      })
+        variant: "destructive",
+      });
     },
-  })
+  });
 }
 
 export function useApplicationUpdate() {
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: updateApplication,
     onSuccess: (data, variables) => {
       toast({
-        title: 'Application Updated',
-        description: 'Your application has been updated successfully.',
-      })
-      
+        title: "Application Updated",
+        description: "Your application has been updated successfully.",
+      });
+
       // Invalidate specific application and list queries
-      queryClient.invalidateQueries({ queryKey: ['application', variables.id] })
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['applications', 'user'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] })
+      queryClient.invalidateQueries({
+        queryKey: ["application", variables.id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applications", "user"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Update Failed',
+        title: "Update Failed",
         description: error.message,
-        variant: 'destructive',
-      })
+        variant: "destructive",
+      });
     },
-  })
+  });
 }
 
 export function useApplicationDelete() {
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const deleteApplication = async (id: string): Promise<{ success: boolean; error?: string }> => {
+  const deleteApplication = async (
+    id: string
+  ): Promise<{ success: boolean; error?: string }> => {
     const response = await fetch(`/api/applications/${id}`, {
-      method: 'DELETE',
-    })
+      method: "DELETE",
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to delete application: ${response.statusText}`)
+      throw new Error(`Failed to delete application: ${response.statusText}`);
     }
 
-    const result = await response.json()
-    return result
-  }
+    const result = await response.json();
+    return result;
+  };
 
   return useMutation({
     mutationFn: deleteApplication,
     onSuccess: () => {
       toast({
-        title: 'Application Deleted',
-        description: 'Application has been deleted successfully.',
-      })
-      
+        title: "Application Deleted",
+        description: "Application has been deleted successfully.",
+      });
+
       // Invalidate applications queries
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['applications', 'user'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'statistics'] })
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applications", "user"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "statistics"] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Delete Failed',
+        title: "Delete Failed",
         description: error.message,
-        variant: 'destructive',
-      })
+        variant: "destructive",
+      });
     },
-  })
+  });
 }
 
 // Helper function to transform form data for API submission
 export function transformFormDataForSubmission(formData: FormStepData) {
-  if (!formData.personal || !formData.address || !formData.contact || !formData.education || !formData.marital) {
-    throw new Error('Missing required form data sections')
+  if (
+    !formData.personal ||
+    !formData.address ||
+    !formData.contact ||
+    !formData.education ||
+    !formData.marital
+  ) {
+    throw new Error("Missing required form data sections");
   }
 
   return {
@@ -228,5 +249,5 @@ export function transformFormDataForSubmission(formData: FormStepData) {
 
     // Payment Reference
     paymentReference: formData.payment?.paymentReference || undefined,
-  }
+  };
 }

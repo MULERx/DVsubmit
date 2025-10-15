@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -11,19 +11,18 @@ import {
   flexRender,
   SortingState,
   ColumnFiltersState,
-} from '@tanstack/react-table'
-import { AdminApplicationListItem } from '@/hooks/use-admin-applications-queries'
-import type { ApplicationStatus } from '@/generated/prisma'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+} from "@tanstack/react-table";
+import { AdminApplicationListItem } from "@/hooks/use-admin-applications-queries";
+import type { ApplicationStatus } from "@/generated/prisma";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +32,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog";
 import {
   Eye,
   ChevronLeft,
@@ -48,150 +47,168 @@ import {
   CreditCard,
   MoreVertical,
   Check,
-  X
-} from 'lucide-react'
-import Link from 'next/link'
-import { usePaymentStatusMutation } from '@/hooks/use-admin-application-mutations'
+} from "lucide-react";
+import Link from "next/link";
+import { usePaymentStatusMutation } from "@/hooks/use-admin-application-mutations";
 
 interface ApplicationsTableProps {
-  applications: AdminApplicationListItem[]
+  applications: AdminApplicationListItem[];
   pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-  onPageChange: (page: number) => void
-  isLoading?: boolean
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  onPageChange: (page: number) => void;
+  isLoading?: boolean;
 }
 
 export function ApplicationsTable({
   applications,
   pagination,
   onPageChange,
-  isLoading = false
+  isLoading = false,
 }: ApplicationsTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean
-    action: 'approve' | 'reject' | null
-    application: AdminApplicationListItem | null
+    isOpen: boolean;
+    action: "approve" | "reject" | null;
+    application: AdminApplicationListItem | null;
   }>({
     isOpen: false,
     action: null,
-    application: null
-  })
+    application: null,
+  });
 
-  const paymentMutation = usePaymentStatusMutation()
+  const paymentMutation = usePaymentStatusMutation();
 
-  const handlePaymentAction = (action: 'approve' | 'reject', application: AdminApplicationListItem) => {
+  const handlePaymentAction = (
+    action: "approve" | "reject",
+    application: AdminApplicationListItem
+  ) => {
     paymentMutation.mutate(
       { applicationId: application.id, action },
       {
         onSettled: () => {
-          setConfirmDialog({ isOpen: false, action: null, application: null })
-        }
+          setConfirmDialog({ isOpen: false, action: null, application: null });
+        },
       }
-    )
-  }
+    );
+  };
 
-  const openConfirmDialog = (action: 'approve' | 'reject', application: AdminApplicationListItem) => {
+  const openConfirmDialog = (
+    action: "approve" | "reject",
+    application: AdminApplicationListItem
+  ) => {
     setConfirmDialog({
       isOpen: true,
       action,
-      application
-    })
-  }
-
-
+      application,
+    });
+  };
 
   const getStatusBadge = (status: ApplicationStatus) => {
     switch (status) {
-      case 'PAYMENT_PENDING':
+      case "PAYMENT_PENDING":
         return (
           <Badge variant="outline" className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             Payment Pending
           </Badge>
-        )
-      case 'PAYMENT_VERIFIED':
+        );
+      case "PAYMENT_VERIFIED":
         return (
           <Badge variant="default" className="flex items-center gap-1">
             <CheckCircle className="h-3 w-3" />
             Payment Verified
           </Badge>
-        )
-      case 'PAYMENT_REJECTED':
+        );
+      case "PAYMENT_REJECTED":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="h-3 w-3" />
             Payment Rejected
           </Badge>
-        )
-      case 'APPLICATION_REJECTED':
+        );
+      case "APPLICATION_REJECTED":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="h-3 w-3" />
             Application Rejected
           </Badge>
-        )
-      case 'SUBMITTED':
+        );
+      case "SUBMITTED":
         return (
-          <Badge variant="default" className="flex items-center gap-1 bg-blue-100 text-blue-800">
+          <Badge
+            variant="default"
+            className="flex items-center gap-1 bg-blue-100 text-blue-800"
+          >
             <Send className="h-3 w-3" />
             Submitted
           </Badge>
-        )
+        );
 
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
-  const getPaymentStatusBadge = (status: ApplicationStatus, paymentReference?: string | null) => {
+  const getPaymentStatusBadge = (
+    status: ApplicationStatus,
+    paymentReference?: string | null
+  ) => {
     switch (status) {
-      case 'PAYMENT_PENDING':
+      case "PAYMENT_PENDING":
         if (!paymentReference) {
           return (
-            <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-200">
+            <Badge
+              variant="outline"
+              className="flex items-center gap-1 text-red-600 border-red-200"
+            >
               <Clock className="h-3 w-3" />
               No Payment Submitted
             </Badge>
-          )
+          );
         }
         return (
-          <Badge variant="outline" className="flex items-center gap-1 text-orange-600 border-orange-200">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 text-orange-600 border-orange-200"
+          >
             <CreditCard className="h-3 w-3" />
             Pending Verification
           </Badge>
-        )
-      case 'PAYMENT_VERIFIED':
+        );
+      case "PAYMENT_VERIFIED":
         return (
-          <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800">
+          <Badge
+            variant="default"
+            className="flex items-center gap-1 bg-green-100 text-green-800"
+          >
             <CheckCircle className="h-3 w-3" />
             Verified
           </Badge>
-        )
-      case 'PAYMENT_REJECTED':
+        );
+      case "PAYMENT_REJECTED":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="h-3 w-3" />
             Rejected
           </Badge>
-        )
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
   const columns: ColumnDef<AdminApplicationListItem>[] = [
     {
-      accessorKey: 'applicant',
+      accessorKey: "applicant",
       header: ({ column }) => (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="h-auto p-0 font-medium"
         >
           Applicant
@@ -199,16 +216,19 @@ export function ApplicationsTable({
         </Button>
       ),
       cell: ({ row }) => {
-        const app = row.original
-        const fullName = `${app.givenName || ''} ${app.familyName || ''}`.trim()
-        const displayName = fullName || 'Name not provided'
+        const app = row.original;
+        const fullName = `${app.givenName || ""} ${
+          app.familyName || ""
+        }`.trim();
+        const displayName = fullName || "Name not provided";
 
         return (
           <div className="flex items-center space-x-3">
             <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
               <span className="text-xs font-medium text-gray-700">
-                {app.givenName?.charAt(0) || app.user.email.charAt(0).toUpperCase()}
-                {app.familyName?.charAt(0) || ''}
+                {app.givenName?.charAt(0) ||
+                  app.user.email.charAt(0).toUpperCase()}
+                {app.familyName?.charAt(0) || ""}
               </span>
             </div>
             <div>
@@ -216,57 +236,63 @@ export function ApplicationsTable({
               <div className="text-sm text-gray-500">{app.user.email}</div>
             </div>
           </div>
-        )
+        );
       },
     },
     {
-      accessorKey: 'status',
-      header: 'Application Status',
+      accessorKey: "status",
+      header: "Application Status",
       cell: ({ row }) => getStatusBadge(row.original.status),
     },
     {
-      accessorKey: 'status',
-      header: 'Payment Status',
-      cell: ({ row }) => getPaymentStatusBadge(row.original.status, row.original.paymentReference),
+      accessorKey: "status",
+      header: "Payment Status",
+      cell: ({ row }) =>
+        getPaymentStatusBadge(
+          row.original.status,
+          row.original.paymentReference
+        ),
     },
     {
-      accessorKey: 'paymentReference',
-      header: 'Payment Reference',
+      accessorKey: "paymentReference",
+      header: "Payment Reference",
       cell: ({ row }) => {
-        const ref = row.original.paymentReference
-        const status = row.original.status
+        const ref = row.original.paymentReference;
+        const status = row.original.status;
 
         if (ref) {
-          return <span className="font-mono text-sm">{ref}</span>
-        } else if (status === 'PAYMENT_PENDING') {
+          return <span className="font-mono text-sm">{ref}</span>;
+        } else if (status === "PAYMENT_PENDING") {
           return (
             <span className="text-orange-500 text-sm italic">
               Awaiting payment submission
             </span>
-          )
+          );
         } else {
-          return <span className="text-gray-400">-</span>
+          return <span className="text-gray-400">-</span>;
         }
       },
     },
     {
-      accessorKey: 'confirmationNumber',
-      header: 'DV Confirmation',
+      accessorKey: "confirmationNumber",
+      header: "DV Confirmation",
       cell: ({ row }) => {
-        const confirmation = row.original.confirmationNumber
+        const confirmation = row.original.confirmationNumber;
         return confirmation ? (
-          <span className="font-mono text-sm text-green-600">{confirmation}</span>
+          <span className="font-mono text-sm text-green-600">
+            {confirmation}
+          </span>
         ) : (
           <span className="text-gray-400">-</span>
-        )
+        );
       },
     },
     {
-      accessorKey: 'createdAt',
+      accessorKey: "createdAt",
       header: ({ column }) => (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="h-auto p-0 font-medium"
         >
           Created
@@ -274,21 +300,21 @@ export function ApplicationsTable({
         </Button>
       ),
       cell: ({ row }) => {
-        const date = new Date(row.original.createdAt)
+        const date = new Date(row.original.createdAt);
         return (
           <div className="text-sm">
             <div>{date.toLocaleDateString()}</div>
             <div className="text-gray-500">{date.toLocaleTimeString()}</div>
           </div>
-        )
+        );
       },
     },
     {
-      id: 'actions',
-      header: 'Actions',
+      id: "actions",
+      header: "Actions",
       cell: ({ row }) => {
-        const app = row.original
-        const canManagePayment = app.status === 'PAYMENT_PENDING'
+        const app = row.original;
+        const canManagePayment = app.status === "PAYMENT_PENDING";
 
         return (
           <div className="flex items-center space-x-2">
@@ -314,21 +340,20 @@ export function ApplicationsTable({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
-                    onClick={() => openConfirmDialog('approve', app)}
+                    onClick={() => openConfirmDialog("approve", app)}
                     className="text-green-600 focus:text-green-600"
                   >
                     <Check className="mr-2 h-4 w-4" />
                     Approve Payment
                   </DropdownMenuItem>
-
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 
   const table = useReactTable({
     data: applications,
@@ -345,7 +370,7 @@ export function ApplicationsTable({
     },
     manualPagination: true,
     pageCount: pagination.totalPages,
-  })
+  });
 
   if (isLoading) {
     return (
@@ -356,7 +381,7 @@ export function ApplicationsTable({
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -369,13 +394,16 @@ export function ApplicationsTable({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id} className="border-b bg-gray-50">
                     {headerGroup.headers.map((header) => (
-                      <th key={header.id} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        key={header.id}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </th>
                     ))}
                   </tr>
@@ -386,7 +414,10 @@ export function ApplicationsTable({
                   <tr key={row.id} className="hover:bg-gray-50">
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -407,8 +438,8 @@ export function ApplicationsTable({
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+            Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
             {pagination.total} results
           </div>
 
@@ -455,31 +486,32 @@ export function ApplicationsTable({
       )}
 
       {/* Confirmation Dialog */}
-      <AlertDialog open={confirmDialog.isOpen} onOpenChange={(open) =>
-        setConfirmDialog({ isOpen: open, action: null, application: null })
-      }>
+      <AlertDialog
+        open={confirmDialog.isOpen}
+        onOpenChange={(open) =>
+          setConfirmDialog({ isOpen: open, action: null, application: null })
+        }
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Approve Payment
-            </AlertDialogTitle>
+            <AlertDialogTitle>Approve Payment</AlertDialogTitle>
             <AlertDialogDescription>
-
-              Are you sure you want to reject the payment for{' '}
+              Are you sure you want to reject the payment for{" "}
               <strong>
-                {confirmDialog.application?.givenName} {confirmDialog.application?.familyName}
+                {confirmDialog.application?.givenName}{" "}
+                {confirmDialog.application?.familyName}
               </strong>
               ?
               <br />
               <br />
-              Payment Reference: <code className="bg-gray-100 px-1 rounded">
+              Payment Reference:{" "}
+              <code className="bg-gray-100 px-1 rounded">
                 {confirmDialog.application?.paymentReference}
               </code>
               <br />
               <br />
-              This will mark the payment as rejected and the applicant will need to resubmit their payment.
-
-
+              This will mark the payment as rejected and the applicant will need
+              to resubmit their payment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -487,13 +519,16 @@ export function ApplicationsTable({
             <AlertDialogAction
               onClick={() => {
                 if (confirmDialog.action && confirmDialog.application) {
-                  handlePaymentAction(confirmDialog.action, confirmDialog.application)
+                  handlePaymentAction(
+                    confirmDialog.action,
+                    confirmDialog.application
+                  );
                 }
               }}
               className={
-                confirmDialog.action === 'approve'
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-red-600 hover:bg-red-700'
+                confirmDialog.action === "approve"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
               }
               disabled={paymentMutation.isPending}
             >
@@ -502,13 +537,15 @@ export function ApplicationsTable({
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Processing...
                 </>
+              ) : confirmDialog.action === "approve" ? (
+                "Approve Payment"
               ) : (
-                confirmDialog.action === 'approve' ? 'Approve Payment' : 'Reject Payment'
+                "Reject Payment"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

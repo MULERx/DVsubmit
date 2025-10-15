@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Search, X, Users, UserCheck, UserX } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Search, X, Users, UserCheck, UserX } from "lucide-react";
 
 interface ApplicantsFiltersProps {
-  search: string
-  status: 'active' | 'blocked' | 'all'
-  onSearchChange: (search: string) => void
-  onStatusChange: (status: 'active' | 'blocked' | 'all') => void
-  loading: boolean
+  search: string;
+  status: "active" | "blocked" | "all";
+  onSearchChange: (search: string) => void;
+  onStatusChange: (status: "active" | "blocked" | "all") => void;
+  loading: boolean;
 }
 
 export function ApplicantsFilters({
@@ -16,26 +16,25 @@ export function ApplicantsFilters({
   status,
   onSearchChange,
   onStatusChange,
-  loading
 }: ApplicantsFiltersProps) {
-  const [localSearch, setLocalSearch] = useState(search)
+  const [localSearch, setLocalSearch] = useState(search);
 
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
-      onSearchChange(localSearch)
-    }, 300)
+      onSearchChange(localSearch);
+    }, 300);
 
-    return () => clearTimeout(timer)
-  }, [localSearch, onSearchChange])
+    return () => clearTimeout(timer);
+  }, [localSearch, onSearchChange]);
 
   const clearFilters = () => {
-    setLocalSearch('')
-    onSearchChange('')
-    onStatusChange('all')
-  }
+    setLocalSearch("");
+    onSearchChange("");
+    onStatusChange("all");
+  };
 
-  const hasActiveFilters = search || status !== 'all'
+  const hasActiveFilters = search || status !== "all";
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
@@ -55,7 +54,10 @@ export function ApplicantsFilters({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Search */}
         <div>
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="search"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Search by Email
           </label>
           <div className="relative">
@@ -75,14 +77,17 @@ export function ApplicantsFilters({
 
         {/* Status Filter */}
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="status"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Status
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              {status === 'active' ? (
+              {status === "active" ? (
                 <UserCheck className="h-4 w-4 text-green-400" />
-              ) : status === 'blocked' ? (
+              ) : status === "blocked" ? (
                 <UserX className="h-4 w-4 text-red-400" />
               ) : (
                 <Users className="h-4 w-4 text-gray-400" />
@@ -91,7 +96,9 @@ export function ApplicantsFilters({
             <select
               id="status"
               value={status}
-              onChange={(e) => onStatusChange(e.target.value as 'active' | 'blocked' | 'all')}
+              onChange={(e) =>
+                onStatusChange(e.target.value as "active" | "blocked" | "all")
+              }
               className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="all">All Applicants</option>
@@ -111,8 +118,8 @@ export function ApplicantsFilters({
                 Email: {search}
                 <button
                   onClick={() => {
-                    setLocalSearch('')
-                    onSearchChange('')
+                    setLocalSearch("");
+                    onSearchChange("");
                   }}
                   className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:outline-none focus:bg-indigo-500 focus:text-white"
                 >
@@ -120,12 +127,12 @@ export function ApplicantsFilters({
                 </button>
               </span>
             )}
-            
-            {status !== 'all' && (
+
+            {status !== "all" && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                Status: {status === 'active' ? 'Active' : 'Blocked'}
+                Status: {status === "active" ? "Active" : "Blocked"}
                 <button
-                  onClick={() => onStatusChange('all')}
+                  onClick={() => onStatusChange("all")}
                   className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:outline-none focus:bg-indigo-500 focus:text-white"
                 >
                   <X className="w-2 h-2" />
@@ -136,5 +143,5 @@ export function ApplicantsFilters({
         </div>
       )}
     </div>
-  )
+  );
 }

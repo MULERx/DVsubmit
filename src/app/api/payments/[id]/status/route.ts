@@ -3,9 +3,9 @@ import { prisma } from '@/lib/db'
 import { authServer } from '@/lib/auth/server-auth-helpers'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const { id } = params
+    const { id } =  await params
 
     // Find the application and verify ownership
     const application = await prisma.application.findFirst({
@@ -38,12 +38,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!application) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: { 
-            code: 'APPLICATION_NOT_FOUND', 
-            message: 'Application not found or access denied' 
-          } 
+        {
+          success: false,
+          error: {
+            code: 'APPLICATION_NOT_FOUND',
+            message: 'Application not found or access denied'
+          }
         },
         { status: 404 }
       )
@@ -72,12 +72,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error('Error fetching payment status:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to fetch payment status' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch payment status'
+        }
       },
       { status: 500 }
     )

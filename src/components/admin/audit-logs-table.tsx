@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { 
-  Eye, 
-  User, 
-  FileText, 
-  Shield, 
+import {
+  Eye,
+  User,
+  FileText,
+  Shield,
   Activity,
   Clock,
   Globe,
-  Monitor
+  Monitor,
 } from "lucide-react";
 
 interface AuditLog {
   id: string;
   action: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details: any;
   ipAddress: string | null;
   userAgent: string | null;
@@ -81,18 +81,24 @@ const getRoleColor = (role: string) => {
 
 const formatUserAgent = (userAgent: string | null) => {
   if (!userAgent) return "Unknown";
-  
+
   // Extract browser and OS info
-  const browserMatch = userAgent.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/);
+  const browserMatch = userAgent.match(
+    /(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/
+  );
   const osMatch = userAgent.match(/(Windows|Mac|Linux|Android|iOS)/);
-  
+
   const browser = browserMatch ? browserMatch[1] : "Unknown";
   const os = osMatch ? osMatch[1] : "Unknown";
-  
+
   return `${browser} on ${os}`;
 };
 
-export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTableProps) {
+export function AuditLogsTable({
+  auditLogs,
+  loading,
+  onSelectLog,
+}: AuditLogsTableProps) {
   if (loading) {
     return (
       <div className="animate-pulse">
@@ -118,7 +124,9 @@ export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTab
     return (
       <div className="text-center py-12">
         <Activity className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No audit logs found</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900">
+          No audit logs found
+        </h3>
         <p className="mt-1 text-sm text-gray-500">
           No logs match your current filters.
         </p>
@@ -158,13 +166,17 @@ export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTab
                 <div className="flex items-center">
                   {getActionIcon(log.action)}
                   <div className="ml-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionColor(log.action)}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionColor(
+                        log.action
+                      )}`}
+                    >
                       {log.action}
                     </span>
                   </div>
                 </div>
               </td>
-              
+
               <td className="px-6 py-4 whitespace-nowrap">
                 {log.user ? (
                   <div className="flex items-center">
@@ -178,7 +190,11 @@ export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTab
                         {log.user.email}
                       </div>
                       <div className="text-sm text-gray-500">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getRoleColor(log.user.role)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getRoleColor(
+                            log.user.role
+                          )}`}
+                        >
                           {log.user.role}
                         </span>
                       </div>
@@ -188,7 +204,7 @@ export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTab
                   <span className="text-sm text-gray-500">System</span>
                 )}
               </td>
-              
+
               <td className="px-6 py-4 whitespace-nowrap">
                 {log.application ? (
                   <div>
@@ -203,7 +219,7 @@ export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTab
                   <span className="text-sm text-gray-500">-</span>
                 )}
               </td>
-              
+
               <td className="px-6 py-4">
                 <div className="max-w-xs">
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -217,12 +233,14 @@ export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTab
                   {log.userAgent && (
                     <div className="flex items-center mt-1 text-xs text-gray-400">
                       <Monitor className="h-3 w-3 mr-1" />
-                      <span className="truncate">{formatUserAgent(log.userAgent)}</span>
+                      <span className="truncate">
+                        {formatUserAgent(log.userAgent)}
+                      </span>
                     </div>
                   )}
                 </div>
               </td>
-              
+
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center text-sm text-gray-500">
                   <Clock className="h-4 w-4 mr-2" />
@@ -236,7 +254,7 @@ export function AuditLogsTable({ auditLogs, loading, onSelectLog }: AuditLogsTab
                   </div>
                 </div>
               </td>
-              
+
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
                   onClick={() => onSelectLog(log)}

@@ -15,7 +15,7 @@ export async function GET(
       )
     }
 
-    const {id: applicationId} = await params
+    const { id: applicationId } = await params
 
     // Get the application and verify ownership
     const application = await prisma.application.findFirst({
@@ -23,7 +23,7 @@ export async function GET(
         id: applicationId,
         userId: userWithRole.dbUser.id,
       },
-      include:{
+      include: {
         children: true
       }
     })
@@ -56,12 +56,12 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching application:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to fetch application' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch application'
+        }
       },
       { status: 500 }
     )
@@ -70,7 +70,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userWithRole = await authServer.getUserWithRole()
@@ -81,7 +81,7 @@ export async function DELETE(
       )
     }
 
-    const applicationId = params.id
+    const { id: applicationId } = await params
 
     // Get the application and verify ownership
     const application = await prisma.application.findFirst({
@@ -99,14 +99,14 @@ export async function DELETE(
     }
 
     // Prevent deletion of submitted applications
-    if (application.status === 'SUBMITTED' ) {
+    if (application.status === 'SUBMITTED') {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: { 
-            code: 'CANNOT_DELETE_SUBMITTED', 
-            message: 'Cannot delete submitted applications' 
-          } 
+        {
+          success: false,
+          error: {
+            code: 'CANNOT_DELETE_SUBMITTED',
+            message: 'Cannot delete submitted applications'
+          }
         },
         { status: 400 }
       )
@@ -149,12 +149,12 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting application:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to delete application' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to delete application'
+        }
       },
       { status: 500 }
     )

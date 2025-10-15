@@ -5,7 +5,7 @@ import { AdminOnly } from "@/lib/auth/role-guard";
 import { UserDashboard } from "@/components/dashboard/user-dashboard";
 import Link from "next/link";
 import Image from "next/image";
-import { FileText, Home, LogOut } from "lucide-react";
+import { Home, LogOut } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, signOut, loading } = useAuth();
@@ -98,7 +98,6 @@ export default function DashboardPage() {
                   Admin Panel
                 </Link>
               </AdminOnly>
-
 
               <button
                 onClick={handleSignOut}

@@ -20,7 +20,7 @@ interface AuditLogsFiltersProps {
 
 const commonActions = [
   "user_login",
-  "user_logout", 
+  "user_logout",
   "user_register",
   "application_create",
   "application_update",
@@ -28,13 +28,18 @@ const commonActions = [
   "application_reject",
   "payment_verify",
   "payment_reject",
-  "admin_action"
+  "admin_action",
 ];
 
-export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLogsFiltersProps) {
+export function AuditLogsFilters({
+  filters,
+  onFiltersChange,
+}: AuditLogsFiltersProps) {
   const [localFilters, setLocalFilters] = useState<Filters>(filters);
   const [users, setUsers] = useState<Array<{ id: string; email: string }>>([]);
-  const [applications, setApplications] = useState<Array<{ id: string; name: string; email: string }>>([]);
+  const [applications, setApplications] = useState<
+    Array<{ id: string; name: string; email: string }>
+  >([]);
 
   // Debounce filter changes
   useEffect(() => {
@@ -71,7 +76,7 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
   }, []);
 
   const handleFilterChange = (key: keyof Filters, value: string) => {
-    setLocalFilters(prev => ({ ...prev, [key]: value }));
+    setLocalFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const clearFilters = () => {
@@ -81,13 +86,15 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
       applicationId: "",
       startDate: "",
       endDate: "",
-      search: ""
+      search: "",
     };
     setLocalFilters(emptyFilters);
     onFiltersChange(emptyFilters);
   };
 
-  const hasActiveFilters = Object.values(localFilters).some(value => value !== "");
+  const hasActiveFilters = Object.values(localFilters).some(
+    (value) => value !== ""
+  );
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
@@ -107,7 +114,10 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Search */}
         <div>
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="search"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Search
           </label>
           <div className="relative">
@@ -127,7 +137,10 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
 
         {/* Action */}
         <div>
-          <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="action"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Action
           </label>
           <div className="relative">
@@ -141,9 +154,11 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
               className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="">All actions</option>
-              {commonActions.map(action => (
+              {commonActions.map((action) => (
                 <option key={action} value={action}>
-                  {action.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                  {action
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())}
                 </option>
               ))}
             </select>
@@ -152,7 +167,10 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
 
         {/* User */}
         <div>
-          <label htmlFor="userId" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="userId"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             User
           </label>
           <div className="relative">
@@ -163,10 +181,10 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
               id="userId"
               value={localFilters.userId}
               onChange={(e) => handleFilterChange("userId", e.target.value)}
-              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none  focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="">All users</option>
-              {users.map(user => (
+              {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.email}
                 </option>
@@ -177,7 +195,10 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
 
         {/* Application */}
         <div>
-          <label htmlFor="applicationId" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="applicationId"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Application
           </label>
           <div className="relative">
@@ -187,11 +208,13 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
             <select
               id="applicationId"
               value={localFilters.applicationId}
-              onChange={(e) => handleFilterChange("applicationId", e.target.value)}
+              onChange={(e) =>
+                handleFilterChange("applicationId", e.target.value)
+              }
               className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="">All applications</option>
-              {applications.map(app => (
+              {applications.map((app) => (
                 <option key={app.id} value={app.id}>
                   {app.name} ({app.email})
                 </option>
@@ -202,7 +225,10 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
 
         {/* Start Date */}
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="startDate"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Start Date
           </label>
           <div className="relative">
@@ -221,7 +247,10 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
 
         {/* End Date */}
         <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="endDate"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             End Date
           </label>
           <div className="relative">
@@ -245,16 +274,18 @@ export function AuditLogsFilters({ filters, onFiltersChange, loading }: AuditLog
           <div className="flex flex-wrap gap-2">
             {Object.entries(localFilters).map(([key, value]) => {
               if (!value) return null;
-              
+
               let displayValue = value;
               if (key === "userId") {
-                const user = users.find(u => u.id === value);
+                const user = users.find((u) => u.id === value);
                 displayValue = user ? user.email : value;
               } else if (key === "applicationId") {
-                const app = applications.find(a => a.id === value);
+                const app = applications.find((a) => a.id === value);
                 displayValue = app ? app.name : value;
               } else if (key === "action") {
-                displayValue = value.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
+                displayValue = value
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (l: string) => l.toUpperCase());
               }
 
               return (

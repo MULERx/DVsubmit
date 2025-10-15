@@ -31,7 +31,6 @@ import {
   GraduationCap,
   Heart,
   Baby,
-  FileText,
   RefreshCw,
   Download,
   Camera,
@@ -461,11 +460,11 @@ function ApplicationDetailPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <AdminHeader
-              breadcrumbs={[
-                { label: "Admin Panel", href: "/admin" },
-                { label: "Application" }
-              ]}
-            />
+        breadcrumbs={[
+          { label: "Admin Panel", href: "/admin" },
+          { label: "Application" },
+        ]}
+      />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">

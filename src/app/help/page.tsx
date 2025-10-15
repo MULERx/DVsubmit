@@ -8,11 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
-  HelpCircle,
-  FileText,
   CreditCard,
   Camera,
   CheckCircle,
@@ -62,9 +59,10 @@ export default function HelpPage() {
                   How do I start my DV application?
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  After registering and verifying your email, click "Start New
-                  Application" from your dashboard. You'll be guided through a
-                  multi-step form to complete your DV lottery application.
+                  After registering and verifying your email, click &quot;Start
+                  New Application&quot; from your dashboard. You&apos;ll be
+                  guided through a multi-step form to complete your DV lottery
+                  application.
                 </p>
               </div>
               <div>
@@ -72,7 +70,7 @@ export default function HelpPage() {
                   What information do I need?
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  You'll need your personal information, contact details,
+                  You&apos;ll need your personal information, contact details,
                   education level, occupation, a compliant DV photo, and payment
                   method (Telebirr) for the 399 ETB service fee.
                 </p>
@@ -144,8 +142,8 @@ export default function HelpPage() {
                   How do I pay with Telebirr?
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  After completing your application, you'll receive Telebirr
-                  payment instructions. Make the payment and enter your
+                  After completing your application, you&apos;ll receive
+                  Telebirr payment instructions. Make the payment and enter your
                   transaction reference number for verification.
                 </p>
               </div>
@@ -155,7 +153,8 @@ export default function HelpPage() {
                 </h4>
                 <p className="text-gray-600 text-sm">
                   Our admin team typically verifies Telebirr payments within 24
-                  hours. You'll receive an email notification once verified.
+                  hours. You&apos;ll receive an email notification once
+                  verified.
                 </p>
               </div>
             </CardContent>
@@ -175,7 +174,7 @@ export default function HelpPage() {
                   How can I track my application?
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  Your dashboard shows real-time status updates. You'll see
+                  Your dashboard shows real-time status updates. You&apos;ll see
                   progress through each stage: Draft → Payment Pending → Payment
                   Verified → Submitted → Confirmed.
                 </p>
@@ -186,8 +185,8 @@ export default function HelpPage() {
                 </h4>
                 <p className="text-gray-600 text-sm">
                   After payment verification, our team submits your application
-                  to the official DV system. You'll receive your confirmation
-                  number within 2-3 business days.
+                  to the official DV system. You&apos;ll receive your
+                  confirmation number within 2-3 business days.
                 </p>
               </div>
               <div>
@@ -250,8 +249,8 @@ export default function HelpPage() {
             <CardHeader>
               <CardTitle>Need More Help?</CardTitle>
               <CardDescription>
-                If you can't find the answer to your question, our support team
-                is here to help.
+                If you can&apos;t find the answer to your question, our support
+                team is here to help.
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -6,14 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  FileText,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, AlertCircle, RefreshCw } from "lucide-react";
 import {
   resetPasswordSchema,
   type ResetPasswordFormData,
@@ -122,7 +115,7 @@ export default function ResetPasswordPage() {
                   <p className="font-medium mb-2">How password reset works:</p>
                   <ol className="text-left space-y-1">
                     <li>1. Click the link in your email</li>
-                    <li>2. You'll be automatically signed in</li>
+                    <li>2. You&apos;ll be automatically signed in</li>
                     <li>3. Set your new password on this page</li>
                   </ol>
                 </div>

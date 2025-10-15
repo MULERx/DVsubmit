@@ -1,52 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { authServer } from '@/lib/auth/server-auth-helpers'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { authServer } from "@/lib/auth/server-auth-helpers";
+import { ApplicationStatus, Prisma } from "@/generated/prisma";
 
 export async function GET(request: NextRequest) {
   try {
     // Check if user is admin
-    const isAdmin = await authServer.isAdmin()
+    const isAdmin = await authServer.isAdmin();
     if (!isAdmin) {
       return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Admin access required' } },
+        {
+          success: false,
+          error: { code: "FORBIDDEN", message: "Admin access required" },
+        },
         { status: 403 }
-      )
+      );
     }
 
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
-    const type = searchParams.get('type')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const skip = (page - 1) * limit
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+    const type = searchParams.get("type");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
     // Build where clause based on filters
-    const where: any = {}
+    const where: Prisma.ApplicationWhereInput = {};
     if (status) {
-      where.status = status
+      where.status = status as ApplicationStatus;
     }
 
     // Handle type-based filtering
     if (type) {
       switch (type) {
-        case 'pendingPayment':
-          where.status = 'PAYMENT_PENDING'
-          break
-        case 'pendingReview':
-          where.status = 'PAYMENT_VERIFIED'
-          break
-        case 'paymentRejected':
-          where.status = 'PAYMENT_REJECTED'
-          break
-        case 'applicationRejected':
-          where.status = 'APPLICATION_REJECTED'
-          break
-        case 'submitted':
-          where.status = 'SUBMITTED'
-          break
+        case "pendingPayment":
+          where.status = "PAYMENT_PENDING";
+          break;
+        case "pendingReview":
+          where.status = "PAYMENT_VERIFIED";
+          break;
+        case "paymentRejected":
+          where.status = "PAYMENT_REJECTED";
+          break;
+        case "applicationRejected":
+          where.status = "APPLICATION_REJECTED";
+          break;
+        case "submitted":
+          where.status = "SUBMITTED";
+          break;
         default:
           // Invalid type, ignore
-          break
+          break;
       }
     }
 
@@ -64,13 +68,13 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: {
-          createdAt: 'asc', // From old to new as requested
+          createdAt: "asc", // From old to new as requested
         },
         skip,
         take: limit,
       }),
       prisma.application.count({ where }),
-    ])
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -83,18 +87,18 @@ export async function GET(request: NextRequest) {
           totalPages: Math.ceil(total / limit),
         },
       },
-    })
+    });
   } catch (error) {
-    console.error('Error fetching admin applications:', error)
+    console.error("Error fetching admin applications:", error);
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch applications'
-        }
+          code: "INTERNAL_ERROR",
+          message: "Failed to fetch applications",
+        },
       },
       { status: 500 }
-    )
+    );
   }
 }

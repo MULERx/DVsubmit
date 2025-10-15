@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormData,
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
                 Check your email
               </h1>
               <p className="text-gray-600 mb-2 text-sm">
-                We've sent a password reset link to
+                We&apos;ve sent a password reset link to
               </p>
               <p className="font-semibold text-gray-900 mb-6">{sentEmail}</p>
               <div className="text-gray-600 mb-8 space-y-2">
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
                   password. The link will expire in 1 hour.
                 </p>
                 <p className="text-sm text-gray-500">
-                  Don't see the email? Check your spam folder.
+                  Don&apos;t see the email? Check your spam folder.
                 </p>
               </div>
               <div className="space-y-3">
@@ -149,8 +149,8 @@ export default function ForgotPasswordPage() {
                 Forgot your password?
               </h1>
               <p className="text-gray-600 text-sm mt-2">
-                Enter your email address and we'll send you a link to reset your
-                password.
+                Enter your email address and we&apos;ll send you a link to reset
+                your password.
               </p>
             </div>
 

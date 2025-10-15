@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, ArrowLeft, Mail, CheckCircle } from "lucide-react";
+import { ArrowLeft, Mail, CheckCircle } from "lucide-react";
 import { z } from "zod";
 import { useResendConfirmationMutation } from "@/hooks/use-auth-mutations";
 
@@ -75,7 +75,7 @@ export default function ConfirmEmailPage() {
                 Confirmation email sent
               </h1>
               <p className="text-gray-600 mb-2 text-sm">
-                We've sent a new confirmation link to
+                We&apos;ve sent a new confirmation link to
               </p>
               <p className="font-semibold text-gray-900 mb-6">{sentToEmail}</p>
               <div className="text-gray-600 mb-8 space-y-2">
@@ -84,7 +84,7 @@ export default function ConfirmEmailPage() {
                   activate your account.
                 </p>
                 <p className="text-sm text-gray-500">
-                  Don't see the email? Check your spam folder.
+                  Don&apos;t see the email? Check your spam folder.
                 </p>
               </div>
               <div className="space-y-3">
