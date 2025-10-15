@@ -229,8 +229,8 @@ export function MultiStepForm({
 
         console.log("Form data before transformation:", updatedFormData);
 
-        // Validate form completeness
-        const validationResult = validateFormData(formData);
+        // Validate form completeness (use updatedFormData instead of formData)
+        const validationResult = validateFormData(updatedFormData);
         if (!validationResult.isValid) {
           throw new Error(validationResult.error);
         }
