@@ -26,9 +26,21 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: npm run db:generate
 
       - name: Build application
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: npm run build
 
       - name: Create deployment package
@@ -98,14 +110,26 @@ jobs:
             # Create logs directory
             mkdir -p logs
 
+            # Create .env file with production environment variables
+            cat > .env << EOF
+            DATABASE_URL="${{ secrets.DATABASE_URL }}"
+            DIRECT_URL="${{ secrets.DIRECT_URL }}"
+            NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}"
+            NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}"
+            SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+            NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}"
+            GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
+            GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            EOF
+
             # Install production dependencies
             npm ci --production
 
-            # Generate Prisma client
-            npm run db:generate
+            # Generate Prisma client with environment variables
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" DIRECT_URL="${{ secrets.DIRECT_URL }}" npm run db:generate
 
             # Run database migrations if needed
-            npm run db:push || true
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" DIRECT_URL="${{ secrets.DIRECT_URL }}" npm run db:push || true
 
             # Start application with PM2 using ecosystem file
             pm2 start ecosystem.config.js --env production
