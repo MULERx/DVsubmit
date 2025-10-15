@@ -39,8 +39,8 @@ Add these secrets to your GitHub repository (Settings → Secrets and variables 
 | `USERNAME` | SSH username | `ubuntu` |
 | `PRIVATE_KEY` | SSH private key content | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
 | `PORT` | SSH port (optional, default: 22) | `22` |
-| `APP_NAME` | PM2 application name | `dv-app` |
-| `DEPLOY_PATH` | Deployment directory path | `/var/www/your-app` |
+| `APP_NAME` | PM2 application name | `dvsubmit` |
+| `DEPLOY_PATH` | Deployment directory path | `/var/www/dvsubmit` |
 
 ## SSH Key Setup
 
@@ -115,13 +115,13 @@ server {
 pm2 status
 
 # View logs
-pm2 logs dv-app
+pm2 logs dvsubmit
 
 # Restart application
-pm2 restart dv-app
+pm2 restart dvsubmit
 
 # Stop application
-pm2 stop dv-app
+pm2 stop dvsubmit
 
 # Monitor resources
 pm2 monit
@@ -136,7 +136,7 @@ pm2 resurrect
 ## Troubleshooting
 
 1. **Check GitHub Actions logs** for build/deployment errors
-2. **Check PM2 logs** on the server: `pm2 logs dv-app`
+2. **Check PM2 logs** on the server: `pm2 logs dvsubmit`
 3. **Verify environment variables** are properly set
 4. **Check file permissions** in the deployment directory
 5. **Ensure database is accessible** from the server
