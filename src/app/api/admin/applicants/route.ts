@@ -25,12 +25,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {
-      // Only get users who have applications (applicants)
-      applications: {
-        some: {},
-      },
-    };
+    const where: any = {};
 
     // Filter by status (active/blocked)
     if (status === "active") {
