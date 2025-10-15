@@ -23,10 +23,7 @@ export function Analytics({ googleAnalyticsId }: AnalyticsProps) {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${googleAnalyticsId}', {
-            page_title: document.title,
-            page_location: window.location.href,
-          });
+          gtag('config', '${googleAnalyticsId}');
         `}
       </Script>
     </>

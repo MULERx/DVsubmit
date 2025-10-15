@@ -10,7 +10,9 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "seo:test": "node scripts/test-seo.js",
+    "seo:audit": "npm run build && npm run start & sleep 5 && npm run seo:test && pkill -f 'next start'"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
