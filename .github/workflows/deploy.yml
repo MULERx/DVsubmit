@@ -55,7 +55,11 @@ jobs:
           cp middleware.ts deploy/ 2>/dev/null || true
           cp .env deploy/ 2>/dev/null || true
 
-      - name: Deploy to server
+      - name: Build completed
+        run: echo "Build completed successfully. Deployment skipped - configure server secrets to enable deployment."
+
+      - name: Deploy to server (DISABLED)
+        if: false  # Disabled until server secrets are configured
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
@@ -83,6 +87,7 @@ jobs:
             mkdir -p $DEPLOY_PATH/current
 
       - name: Copy files to server
+        if: false  # Disabled until server secrets are configured
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
@@ -94,6 +99,7 @@ jobs:
           strip_components: 1
 
       - name: Start application with PM2
+        if: false  # Disabled until server secrets are configured
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
