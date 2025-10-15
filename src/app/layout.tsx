@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     siteName: "DVSubmit",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "DVSubmit - DV Lottery Assistance Service",
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     title: "DVSubmit - Professional DV Lottery Assistance Service",
     description:
       "Get expert help with your Diversity Visa lottery application. Professional assistance with secure submission and form completion.",
-    images: ["/og-image.jpg"],
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
