@@ -159,6 +159,7 @@ export function ApplicationCard({
               {new Date(application.dateOfBirth).toISOString().split("T")[0]}
             </span>
           </div>
+
           {variant === "pending" && application.paymentReference && (
             <div className="flex sm:justify-between text-xs gap-2">
               <span className="text-slate-500">Payment Ref:</span>
