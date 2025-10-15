@@ -41,6 +41,7 @@ jobs:
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
         run: npm run build
 
       - name: Create deployment package
@@ -126,6 +127,7 @@ jobs:
             NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}"
             GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
             GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            NEXT_PUBLIC_GA_ID="${{ secrets.NEXT_PUBLIC_GA_ID }}"
             EOF
 
             # Install production dependencies
