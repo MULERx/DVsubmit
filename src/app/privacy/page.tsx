@@ -1,6 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowLeft, Shield } from "lucide-react";
+import { Metadata } from 'next'
+import { generateMetadata as genMeta } from '@/lib/seo/metadata'
+
+export const metadata: Metadata = genMeta({
+  title: 'Privacy Policy - Data Protection & Security',
+  description: 'Learn how DVSubmit protects your personal information and privacy. Our comprehensive privacy policy covers data collection, security measures, and your rights.',
+  keywords: ['privacy policy', 'data protection', 'personal information security', 'GDPR compliance'],
+  canonical: '/privacy'
+});
 
 export default function PrivacyPage() {
   return (

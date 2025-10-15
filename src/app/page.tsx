@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { StructuredData, organizationStructuredData, websiteStructuredData, serviceStructuredData } from "@/components/seo/structured-data";
 import { Button } from "@/components/ui/button";
 import { LegalAcknowledgmentModal } from "@/components/legal/legal-acknowledgment-modal";
 import { useLegalAcknowledgment } from "@/hooks/use-legal-acknowledgment";
@@ -47,6 +48,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Structured Data */}
+      <StructuredData type="Organization" data={organizationStructuredData} />
+      <StructuredData type="WebSite" data={websiteStructuredData} />
+      <StructuredData type="Service" data={serviceStructuredData} />
+      
       {/* Legal Acknowledgment Modal */}
       <LegalAcknowledgmentModal
         isOpen={showLegalModal}

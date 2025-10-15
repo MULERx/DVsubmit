@@ -16,10 +16,41 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
+import { StructuredData } from "@/components/seo/structured-data";
 
 export default function HelpPage() {
+  const faqStructuredData = {
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How do I start my DV application?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'After registering and verifying your email, click "Start New Application" from your dashboard. You\'ll be guided through a multi-step form to complete your DV lottery application.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'What are the photo requirements?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Your photo must be recent (within 6 months), color with white background, head between 50-69% of image height, face directly toward camera, no glasses or hats, JPEG format, minimum 600x600 pixels.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'How much does the service cost?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Our service fee is 399 ETB, payable via Telebirr. This covers application assistance, photo validation, and official submission to the DV lottery system.'
+        }
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <StructuredData type="FAQPage" data={faqStructuredData} />
       <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">

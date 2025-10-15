@@ -2,6 +2,15 @@ import { TermsOfService } from '@/components/legal/terms-of-service'
 import { LegalDisclaimer } from '@/components/legal/legal-disclaimer'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { Metadata } from 'next'
+import { generateMetadata as genMeta } from '@/lib/seo/metadata'
+
+export const metadata: Metadata = genMeta({
+  title: 'Terms of Service & Legal Disclaimer',
+  description: 'Read DVSubmit\'s terms of service and legal disclaimer for our DV lottery assistance service. Important information about our service limitations and user responsibilities.',
+  keywords: ['terms of service', 'legal disclaimer', 'DV lottery terms', 'service agreement'],
+  canonical: '/terms'
+});
 
 export default function TermsPage() {
   return (
