@@ -58,7 +58,7 @@ jobs:
       - name: Build completed
         run: echo "Build completed successfully. Deployment skipped - configure server secrets to enable deployment."
 
-      - name: Deploy to server (DISABLED)
+      - name: Deploy to server
         if: true
         uses: appleboy/ssh-action@v1.0.3
         with:
