@@ -64,7 +64,7 @@ export default function Home() {
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <Image
-                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                src="https://rqneahjmfgavjopmosda.supabase.co/storage/v1/object/public/dv-photos/dvsubmit-logo.webp"
                 alt="DVSubmit Logo"
                 width={48}
                 height={48}
@@ -414,7 +414,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-3 mb-6 md:mb-0">
               <Image
-                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                src="https://rqneahjmfgavjopmosda.supabase.co/storage/v1/object/public/dv-photos/dvsubmit-logo.webp"
                 alt="DVSubmit Logo"
                 width={48}
                 height={48}

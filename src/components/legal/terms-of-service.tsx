@@ -9,7 +9,7 @@ export function TermsOfService() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Image
-            src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+            src="https://rqneahjmfgavjopmosda.supabase.co/storage/v1/object/public/dv-photos/dvsubmit-logo.webp"
             alt="DVSubmit Logo"
             width={48}
             height={48}

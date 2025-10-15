@@ -71,7 +71,7 @@ function LoginContent() {
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <Image
-                src="https://ntzsbuboifpexxmkaifi.supabase.co/storage/v1/object/public/dv/dvsubmit-logo.webp"
+                src="https://rqneahjmfgavjopmosda.supabase.co/storage/v1/object/public/dv-photos/dvsubmit-logo.webp"
                 alt="DVSubmit Logo"
                 width={48}
                 height={48}
@@ -164,8 +164,9 @@ function LoginContent() {
                     id="email-address"
                     type="email"
                     autoComplete="email"
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.email ? "border-red-300" : "border-gray-300"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                      errors.email ? "border-red-300" : "border-gray-300"
+                    }`}
                     placeholder="Enter your email"
                     {...register("email")}
                   />
@@ -188,8 +189,9 @@ function LoginContent() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${errors.password ? "border-red-300" : "border-gray-300"
-                        }`}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                        errors.password ? "border-red-300" : "border-gray-300"
+                      }`}
                       placeholder="Enter your password"
                       {...register("password")}
                     />
@@ -302,11 +304,13 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white/95 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white/95 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );
