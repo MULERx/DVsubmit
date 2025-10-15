@@ -1,10 +1,10 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
-  })
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,20 +12,22 @@ export async function updateSession(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
           supabaseResponse = NextResponse.next({
             request,
-          })
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
-          )
+          );
         },
       },
     }
-  )
+  );
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
@@ -33,39 +35,40 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname
+  const pathname = request.nextUrl.pathname;
 
   // Public routes that don't require authentication
   const publicRoutes = [
-    '/',
-    '/login',
-    '/register',
-    '/auth/callback',
-    '/auth/auth-code-error',
-    '/auth/reset-password',
-    '/auth/verify-email',
-    '/unauthorized',
-  ]
+    "/",
+    "/login",
+    "/register",
+    "/auth/callback",
+    "/auth/auth-code-error",
+    "/auth/reset-password",
+    "/auth/verify-email",
+    "/unauthorized",
+  ];
 
   // Note: Admin route checking is now handled by individual pages/API routes
   // since we can't use Prisma in Edge Runtime middleware
 
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || 
-    pathname.startsWith('/auth/') ||
-    pathname.startsWith('/_next/') ||
-    pathname.startsWith('/favicon.ico')
-  )
+  const isPublicRoute = publicRoutes.some(
+    (route) =>
+      pathname === route ||
+      pathname.startsWith("/auth/") ||
+      pathname.startsWith("/_next/") ||
+      pathname.startsWith("/favicon.ico")
+  );
   // Note: Admin route checking is now handled by individual pages/API routes
   // since we can't use Prisma in Edge Runtime middleware
 
   // If no user and trying to access protected route, redirect to login
   if (!user && !isPublicRoute) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
   // For admin routes, we'll let the individual pages/API routes handle role checking
@@ -85,5 +88,5 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
-  return supabaseResponse
+  return supabaseResponse;
 }
