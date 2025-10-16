@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle } from "lucide-react";
+import { AuthHeader } from "@/components/auth/auth-header";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 import {
   useRegisterMutation,
@@ -48,24 +48,7 @@ export default function RegisterPage() {
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        {/* Header */}
-        <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Link
-              href="/"
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-            >
-              <Image
-                src="https://rqneahjmfgavjopmosda.supabase.co/storage/v1/object/public/dv-photos/dvsubmit-logo.webp"
-                alt="DVSubmit Logo"
-                width={48}
-                height={48}
-                className="sm:h-12 h-10 w-10 sm:w-12"
-              />
-              <span className="text-xl font-bold text-gray-900">DVSubmit</span>
-            </Link>
-          </div>
-        </div>
+        <AuthHeader backLink={{ href: "/login", label: "Back to Sign In" }} />
 
         {/* Success Content */}
         <div className="flex items-center justify-center px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
@@ -124,33 +107,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link
-              href="/"
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-            >
-              <Image
-                src="https://rqneahjmfgavjopmosda.supabase.co/storage/v1/object/public/dv-photos/dvsubmit-logo.webp"
-                alt="DVSubmit Logo"
-                width={48}
-                height={48}
-                className="h-5 w-5"
-              />
-              <span className="text-xl font-bold text-gray-900">DVSubmit</span>
-            </Link>
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="text-sm font-medium">Back to Home</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <AuthHeader />
 
       {/* Main Content */}
       <div className="flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
