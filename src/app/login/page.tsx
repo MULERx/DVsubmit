@@ -190,15 +190,10 @@ function LoginContent() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Link
-                  href="/auth/confirm-email"
-                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
-                >
-                  Resend confirmation email
-                </Link>
+               
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                  className="text-sm ml-auto text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   Forgot your password?
                 </Link>
