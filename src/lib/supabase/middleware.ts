@@ -56,6 +56,11 @@ export async function updateSession(request: NextRequest) {
     "/auth/reset-password",
     "/auth/verify-email",
     "/unauthorized",
+    "/terms",
+    "/privacy",
+    "/help",
+    "/sitemap.xml",
+    "/robots.txt",
   ];
 
   // Note: Admin route checking is now handled by individual pages/API routes

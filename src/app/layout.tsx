@@ -5,7 +5,6 @@ import { AuthProvider } from "@/lib/auth/auth-context";
 import { QueryProvider } from "@/lib/providers/query-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@/components/seo/analytics";
-import { SEOAudit } from "@/components/seo/seo-audit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -107,7 +106,6 @@ export default function RootLayout({
           </AuthProvider>
         </QueryProvider>
         <Analytics googleAnalyticsId={process.env.NEXT_PUBLIC_GA_ID} />
-        <SEOAudit />
       </body>
     </html>
   );

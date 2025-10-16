@@ -52,7 +52,7 @@ export default function Home() {
       <StructuredData type="Organization" data={organizationStructuredData} />
       <StructuredData type="WebSite" data={websiteStructuredData} />
       <StructuredData type="Service" data={serviceStructuredData} />
-      
+
       {/* Legal Acknowledgment Modal */}
       <LegalAcknowledgmentModal
         isOpen={showLegalModal}
@@ -128,7 +128,7 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      {isSuperAdmin || isAdmin ? (
+                      {isSuperAdmin || isAdmin && (
                         <Link href="/admin">
                           <Button
                             variant="outline"
@@ -137,17 +137,6 @@ export default function Home() {
                           >
                             <Settings className="h-4 w-4" />
                             <span>Admin Panel</span>
-                          </Button>
-                        </Link>
-                      ) : (
-                        <Link href="/dashboard">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center  cursor-pointer gap-2 border-gray-200 hover:bg-gray-50"
-                          >
-                            <BarChart3 className="h-4 w-4" />
-                            <span>Dashboard</span>
                           </Button>
                         </Link>
                       )}
@@ -230,7 +219,7 @@ export default function Home() {
                 <>
                   {!isAuthenticated ? (
                     <>
-                      <Link href="/register">
+                      <Link href="/login">
                         <Button
                           size="lg"
                           className="bg-gradient-to-r from-blue-600  cursor-pointer to-indigo-600 hover:from-blue-700 hover:to-indigo-700  px-8 py-3 text-base font-semibold"
