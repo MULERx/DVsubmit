@@ -80,9 +80,9 @@ export function validateFormCompletion(
   }
 
   // Contact Information validation
-  if (!formData.contact?.email) {
-    missingFields.push("Email Address");
-    errors.push("Email address is required");
+  if (!formData.contact?.phoneNumber) {
+    missingFields.push("Phone Number");
+    errors.push("Phone number is required");
   }
 
   // Education validation
@@ -166,7 +166,7 @@ export function getStepValidationStatus(formData: Partial<FormStepData>) {
       formData.address?.country &&
       formData.address?.countryOfResidence
     ),
-    contact: !!formData.contact?.email,
+    contact: !!formData.contact?.phoneNumber,
     education: !!formData.education?.educationLevel,
     marital: !!(
       formData.marital?.maritalStatus &&

@@ -68,6 +68,7 @@ export function useApplication(id: string | null, enabled: boolean = true) {
       }
       return failureCount < 2
     },
+   refetchOnWindowFocus: true 
   })
 }
 

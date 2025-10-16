@@ -50,8 +50,10 @@ export const mailingAddressSchema = z.object({
 
 // Contact Information Schema
 export const contactInfoSchema = z.object({
-  phoneNumber: z.string().max(20, 'Phone number must be less than 20 characters').optional(),
-  email: z.string().email('Invalid email address'),
+  phoneNumber: z.string().min(1, 'Phone number is required').max(20, 'Phone number must be less than 20 characters'),
+  email: z.string().refine((val) => val === '' || z.string().email().safeParse(val).success, {
+    message: 'Invalid email address'
+  }).optional(),
 })
 
 // Education Schema

@@ -89,23 +89,7 @@ export function PersonalInfoForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="familyName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Family / Last Name *</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter your family/last name"
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+           
 
             <FormField
               control={form.control}
@@ -134,6 +118,24 @@ export function PersonalInfoForm({
                   <FormControl>
                     <Input
                       placeholder="Enter your middle name (optional)"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+             <FormField
+              control={form.control}
+              name="familyName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Family / Last Name *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your family/last name"
                       {...field}
                       disabled={isLoading}
                     />

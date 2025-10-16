@@ -83,8 +83,8 @@ export interface ApplicationRecord {
   countryOfResidence: string
   
   // Contact Information
-  phoneNumber?: string
-  email: string
+  phoneNumber: string
+  email?: string
   
   // Education
   educationLevel: EducationLevel

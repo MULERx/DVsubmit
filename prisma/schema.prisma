@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  output   = "../src/generated/prisma",
+    previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -61,8 +62,8 @@ model Application {
   countryOfResidence   String            // Country where you live today
   
   // Contact Information
-  phoneNumber          String?           // Phone number with country code (optional)
-  email                String            // Email address
+  phoneNumber          String            // Phone number with country code (required)
+  email                String?           // Email address (optional)
   
   // Education
   educationLevel       EducationLevel    // Highest level of education achieved

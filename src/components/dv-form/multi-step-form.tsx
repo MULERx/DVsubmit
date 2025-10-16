@@ -102,7 +102,7 @@ export function MultiStepForm({
       { field: data.address.postalCode, name: "Postal Code" },
       { field: data.address.country, name: "Country" },
       { field: data.address.countryOfResidence, name: "Country of Residence" },
-      { field: data.contact.email, name: "Email" },
+      { field: data.contact.phoneNumber, name: "Phone Number" },
       { field: data.education.educationLevel, name: "Education Level" },
       { field: data.marital.maritalStatus, name: "Marital Status" },
     ];

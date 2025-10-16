@@ -24,12 +24,12 @@ interface ContactInfoFormProps {
   isLoading?: boolean
 }
 
-export function ContactInfoForm({ 
-  initialData, 
-  onSubmit, 
-  onNext, 
-  onPrevious, 
-  isLoading = false 
+export function ContactInfoForm({
+  initialData,
+  onSubmit,
+  onNext,
+  onPrevious,
+  isLoading = false
 }: ContactInfoFormProps) {
   const form = useForm<ContactInfo>({
     resolver: zodResolver(contactInfoSchema),
@@ -37,6 +37,7 @@ export function ContactInfoForm({
       phoneNumber: initialData?.phoneNumber || '',
       email: initialData?.email || '',
     },
+    mode: 'onChange', // Enable real-time validation
   })
 
   // Update form values when initialData changes
@@ -70,12 +71,12 @@ export function ContactInfoForm({
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone number (include country code) (optional)</FormLabel>
+                <FormLabel>Phone number (include country code) *</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="tel"
-                    placeholder="e.g., +1 555-123-4567" 
-                    {...field} 
+                    placeholder="e.g., +251 900-000-000"
+                    {...field}
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -89,12 +90,12 @@ export function ContactInfoForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email address *</FormLabel>
+                <FormLabel>Email address (optional)</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="email"
-                    placeholder="Enter your email address" 
-                    {...field} 
+                    placeholder="Enter your email address"
+                    {...field}
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -104,16 +105,16 @@ export function ContactInfoForm({
           />
 
           <div className="flex justify-between">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={onPrevious}
               disabled={isLoading}
             >
               Previous
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading || !form.formState.isValid}
               className="min-w-32"
             >
