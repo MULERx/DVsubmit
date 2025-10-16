@@ -1,29 +1,29 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma",
-    previewFeatures = ["relationJoins"]
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id                String        @id @default(cuid())
-  email            String        @unique
-  supabaseId       String        @unique
-  role             UserRole      @default(USER)
-  blocked           Boolean       @default(false) // Block status field
-  blockedAt         DateTime?     // When user was blocked
-  blockedBy         String?       // Who blocked the user
-  deletedAt        DateTime?     // Soft delete field
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  applications     Application[]
-  auditLogs        AuditLog[]
-  
+  id           String        @id @default(cuid())
+  email        String        @unique
+  supabaseId   String        @unique
+  role         UserRole      @default(USER)
+  blocked      Boolean       @default(false) // Block status field
+  blockedAt    DateTime? // When user was blocked
+  blockedBy    String? // Who blocked the user
+  deletedAt    DateTime? // Soft delete field
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+  auditLogs    AuditLog[]
+
   @@index([email])
   @@index([supabaseId])
   @@index([blocked])
@@ -32,45 +32,45 @@ model User {
 }
 
 model Application {
-  id                    String            @id @default(cuid())
-  userId               String
-  user                 User              @relation(fields: [userId], references: [id])
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
   // Personal Information (Primary Applicant)
-  familyName           String            // Family/Last Name
-  givenName            String            // Given/First Name
-  middleName           String?           // Middle Name (optional)
+  familyName           String // Family/Last Name
+  givenName            String // Given/First Name
+  middleName           String? // Middle Name (optional)
   gender               Gender
-  dateOfBirth          DateTime          // Day/Month/Year
-  cityOfBirth          String            // City/Town of Birth
-  countryOfBirth       String            // Country of Birth
-  countryOfEligibility String            // Country of Eligibility (Chargeability) for DV
-  eligibilityClaimType String?           // If claiming spouse's or parent's country
-  
+  dateOfBirth          DateTime // Day/Month/Year
+  cityOfBirth          String // City/Town of Birth
+  countryOfBirth       String // Country of Birth
+  countryOfEligibility String // Country of Eligibility (Chargeability) for DV
+  eligibilityClaimType String? // If claiming spouse's or parent's country
+
   // Photo
-  photoUrl             String?           // Photograph upload
-  photoValidated       Boolean           @default(false)
-  
+  photoUrl       String? // Photograph upload
+  photoValidated Boolean @default(false)
+
   // Mailing Address
-  inCareOf             String?           // In care of (optional)
-  addressLine1         String            // Address Line 1
-  addressLine2         String?           // Address Line 2 (optional)
-  city                 String            // City/Town
-  stateProvince        String            // District/Province/State
-  postalCode           String            // Postal/ZIP Code
-  country              String            // Country
-  countryOfResidence   String            // Country where you live today
-  
+  inCareOf           String? // In care of (optional)
+  addressLine1       String // Address Line 1
+  addressLine2       String? // Address Line 2 (optional)
+  city               String // City/Town
+  stateProvince      String // District/Province/State
+  postalCode         String // Postal/ZIP Code
+  country            String // Country
+  countryOfResidence String // Country where you live today
+
   // Contact Information
-  phoneNumber          String            // Phone number with country code (required)
-  email                String?           // Email address (optional)
-  
+  phoneNumber String // Phone number with country code (required)
+  email       String? // Email address (optional)
+
   // Education
-  educationLevel       EducationLevel    // Highest level of education achieved
-  
+  educationLevel EducationLevel // Highest level of education achieved
+
   // Marital Status
-  maritalStatus        MaritalStatus     // Current marital status
-  
+  maritalStatus MaritalStatus // Current marital status
+
   // Spouse Information (if married and spouse is NOT US citizen/LPR)
   spouseFamilyName     String?
   spouseGivenName      String?
@@ -80,28 +80,28 @@ model Application {
   spouseCityOfBirth    String?
   spouseCountryOfBirth String?
   spousePhotoUrl       String?
-  
+
   // Children Information
-  children             Child[]
-  
+  children Child[]
+
   // Payment
-  paymentReference     String?
-  paymentVerifiedAt    DateTime?
-  paymentVerifiedBy    String?
-  
+  paymentReference  String?
+  paymentVerifiedAt DateTime?
+  paymentVerifiedBy String?
+
   // Submission
-  status               ApplicationStatus @default(PAYMENT_PENDING)
-  submittedAt          DateTime?
-  confirmationNumber   String?
-  submittedBy          String?
-  rejectionNote        String?           // Note provided when application is rejected
-  
+  status             ApplicationStatus @default(PAYMENT_PENDING)
+  submittedAt        DateTime?
+  confirmationNumber String?
+  submittedBy        String?
+  rejectionNote      String? // Note provided when application is rejected
+
   // Metadata
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  
-  auditLogs            AuditLog[]
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+
   @@index([userId])
   @@index([status])
   @@index([createdAt])
@@ -110,47 +110,46 @@ model Application {
 }
 
 model Child {
-  id                   String      @id @default(cuid())
-  applicationId        String
-  application          Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  
-  familyName           String      // Family/Last Name
-  givenName            String      // Given/First Name
-  middleName           String?     // Middle Name (optional)
-  gender               Gender
-  dateOfBirth          DateTime    // Day/Month/Year
-  cityOfBirth          String      // City/Town of Birth
-  countryOfBirth       String      // Country of Birth
-  photoUrl             String?     // Photograph upload
-  
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  familyName     String // Family/Last Name
+  givenName      String // Given/First Name
+  middleName     String? // Middle Name (optional)
+  gender         Gender
+  dateOfBirth    DateTime // Day/Month/Year
+  cityOfBirth    String // City/Town of Birth
+  countryOfBirth String // Country of Birth
+  photoUrl       String? // Photograph upload
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([applicationId])
   @@map("children")
 }
 
 model AuditLog {
-  id            String      @id @default(cuid())
+  id            String       @id @default(cuid())
   userId        String?
-  user          User?       @relation(fields: [userId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id])
   applicationId String?
   application   Application? @relation(fields: [applicationId], references: [id])
-  
-  action        String
-  details       Json
-  ipAddress     String?
-  userAgent     String?
-  
-  createdAt     DateTime    @default(now())
-  
+
+  action    String
+  details   Json
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
   @@index([userId])
   @@index([applicationId])
   @@index([createdAt])
   @@index([action])
   @@map("audit_logs")
 }
-
 
 enum UserRole {
   USER

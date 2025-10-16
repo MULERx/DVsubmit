@@ -102,7 +102,7 @@ export async function PATCH(
         countryOfResidence: data.countryOfResidence,
 
         // Contact Information
-        phoneNumber: data.phoneNumber || null,
+        phoneNumber: data.phoneNumber,
         email: data.email,
 
         // Education
