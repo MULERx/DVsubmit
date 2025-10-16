@@ -33,12 +33,14 @@ interface MultiStepFormProps {
   onComplete?: (data: FormStepData) => Promise<void>;
   onError?: (error: string) => void;
   existingApplication?: ApplicationRecord | null;
+  onFormDataChange?: () => void;
 }
 
 export function MultiStepForm({
   onComplete,
   onError,
   existingApplication,
+  onFormDataChange,
 }: MultiStepFormProps) {
   // Custom hooks for form management
   const { formData, updateStepData, setFormData } =
@@ -134,29 +136,33 @@ export function MultiStepForm({
   const handlePersonalInfoSubmit = useCallback(
     (data: PersonalInfo) => {
       updateStepData("personal", data);
+      onFormDataChange?.();
     },
-    [updateStepData]
+    [updateStepData, onFormDataChange]
   );
 
   const handleMailingAddressSubmit = useCallback(
     (data: MailingAddress) => {
       updateStepData("address", data);
+      onFormDataChange?.();
     },
-    [updateStepData]
+    [updateStepData, onFormDataChange]
   );
 
   const handleContactInfoSubmit = useCallback(
     (data: ContactInfo) => {
       updateStepData("contact", data);
+      onFormDataChange?.();
     },
-    [updateStepData]
+    [updateStepData, onFormDataChange]
   );
 
   const handleEducationSubmit = useCallback(
     (data: Education) => {
       updateStepData("education", data);
+      onFormDataChange?.();
     },
-    [updateStepData]
+    [updateStepData, onFormDataChange]
   );
 
   const handleMaritalStatusSubmit = useCallback(
@@ -176,8 +182,9 @@ export function MultiStepForm({
         // Update spouse photo data directly
         setFormData((prev) => ({ ...prev, spousePhoto }));
       }
+      onFormDataChange?.();
     },
-    [setFormData, updateStepData]
+    [setFormData, updateStepData, onFormDataChange]
   );
 
   const handleChildrenSubmit = useCallback(
@@ -199,8 +206,9 @@ export function MultiStepForm({
         // Update children photos data directly
         setFormData((prev) => ({ ...prev, childrenPhotos }));
       }
+      onFormDataChange?.();
     },
-    [setFormData, updateStepData]
+    [setFormData, updateStepData, onFormDataChange]
   );
 
   const handlePhotoUploadSubmit = useCallback(
@@ -211,8 +219,9 @@ export function MultiStepForm({
       signedUrl?: string;
     }) => {
       updateStepData("photo", data);
+      onFormDataChange?.();
     },
-    [updateStepData]
+    [updateStepData, onFormDataChange]
   );
 
   // Handle final submission with transaction number

@@ -6,10 +6,24 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MultiStepForm } from "@/components/dv-form/multi-step-form";
 import { Toaster } from "@/components/ui/toaster";
 import { useApplication } from "@/hooks/use-application-queries";
+import { ArrowBigLeft } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function DVFormContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [hasFormData, setHasFormData] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const applicationId = searchParams.get("applicationId");
@@ -39,6 +53,16 @@ function DVFormContent() {
     setError(errorMessage);
   };
 
+  const handleBackClick = () => {
+    // Show dialog if user has made changes to the form or if editing existing application
+    if (hasFormData || existingApplication) {
+      setShowExitDialog(true);
+    } else {
+      // No form data, safe to navigate away
+      router.push("/dashboard");
+    }
+  };
+
   // Handle fetch error from TanStack Query
   const displayError =
     error || (isError && fetchError ? fetchError.message : null);
@@ -48,25 +72,13 @@ function DVFormContent() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4 mb-2">
-            <Link
-              href="/dashboard"
+            <button
+              onClick={handleBackClick}
               className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
+              <ArrowBigLeft className="h-4 w-4" />
               Back to Dashboard
-            </Link>
+            </button>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {existingApplication
@@ -132,11 +144,36 @@ function DVFormContent() {
             onComplete={handleComplete}
             onError={handleError}
             existingApplication={existingApplication}
+            onFormDataChange={() => setHasFormData(true)}
           />
         )}
       </div>
 
       <Toaster />
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave Application Form?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {existingApplication
+                ? "You have unsaved changes to your application. If you leave now, your changes will be lost."
+                : "You have started filling out the application form. If you leave now, all your progress will be lost and you'll need to start over."
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay on Form</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => router.push("/dashboard")}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Leave Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {isSubmitting && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
